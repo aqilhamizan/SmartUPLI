@@ -1,0 +1,8 @@
+# Exclude Excel files (not needed for web deployment)
+*.xlsx
+*.xls
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
