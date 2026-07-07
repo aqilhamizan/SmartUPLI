@@ -2284,3 +2284,66 @@ body.light-mode .portal-nav-item:hover {
     color: #ef4444 !important;
 }
 
+.portal-header-box {
+    margin-bottom: 35px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+}
+
+.portal-header-logos-frame {
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    padding: 12px 24px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+}
+
+.portal-header-logos-frame img.logo-polikk {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.portal-header-logos-frame img.logo-smartupli {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+}
+
+.portal-header-box h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    background: linear-gradient(135deg, var(--text-primary), var(--text-muted));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.portal-header-box h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    font-family: var(--font-display);
+}
+
+.portal-header-box p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
