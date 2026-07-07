@@ -553,6 +553,7 @@ const headerUserRole = document.getElementById("header-user-role");
 const headerUserAvatar = document.getElementById("header-avatar");
 const currentTabTitle = document.getElementById("current-tab-title");
 const logoutBtn = document.getElementById("logout-btn");
+const menuUtamaHeaderBtn = document.getElementById("btn-menu-utama-header");
 const timeDisplay = document.getElementById("current-time-display");
 
 // Global Session Select Elements
@@ -964,6 +965,18 @@ logoutBtn.addEventListener("click", () => {
     showToast("Anda telah log keluar dengan selamat.", "info");
     window.scrollTo(0, 0);
 });
+
+if (menuUtamaHeaderBtn) {
+    menuUtamaHeaderBtn.addEventListener("click", () => {
+        if (currentRole === "student") {
+            switchTab("student-dashboard");
+        } else if (currentRole === "lecturer") {
+            switchTab("lecturer-dashboard");
+        } else if (currentRole === "admin") {
+            switchTab("admin-dashboard");
+        }
+    });
+}
 
 // --------------------------------------------------------------------------
 // F. TAB ROUTING & RENDERING
@@ -3121,23 +3134,31 @@ function saveDocumentToStudent(studentIdx, docId, docData, students) {
 
 // Helper: upload file to Storage, fallback to base64 if unavailable
 async function uploadFileWithFallback(file, storagePath, onSuccess) {
+    if (typeof storage === 'undefined' || !storage) {
+        console.warn("Firebase Storage is undefined, using base64 fallback.");
+        return { useBase64: true };
+    }
     try {
         const storageRef = storage.ref(storagePath);
         const uploadTask = storageRef.put(file);
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             uploadTask.on('state_changed',
                 (snapshot) => {
                     const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
                     console.log(`Upload Storage: ${pct}%`);
                 },
                 (error) => {
-                    // Storage not set up — fallback to base64
                     console.warn("Storage unavailable, using base64 fallback:", error.code);
                     resolve({ useBase64: true });
                 },
                 async () => {
-                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                    resolve({ useBase64: false, downloadURL });
+                    try {
+                        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                        resolve({ useBase64: false, downloadURL });
+                    } catch (urlErr) {
+                        console.warn("Failed to get download URL, using base64 fallback:", urlErr);
+                        resolve({ useBase64: true });
+                    }
                 }
             );
         });
@@ -3151,11 +3172,17 @@ window.handleFileSelected = function (event, docId) {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Size validation (Fast fail before heavy read)
+    if (file.size > FS_MAX_FILE_SIZE) {
+        showToast(`Fail terlalu besar! Had maksimum ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
+        return;
+    }
+
     // Format validation
     if (docId === "slaid_pembentangan") {
         const name = file.name.toLowerCase();
         if (!name.endsWith(".ppt") && !name.endsWith(".pptx") && !name.endsWith(".pdf")) {
-            showToast("Slaid Pembentangan: Hanya format PowerPoint (.ppt, .pptx) atau PDF dibenarkan!", "error");
+            showToast("Hanya format PowerPoint (.ppt, .pptx) atau PDF dibenarkan!", "error");
             return;
         }
     } else {
@@ -3182,42 +3209,41 @@ window.handleFileSelected = function (event, docId) {
     // Use FileReader to read file — needed for both base64 fallback and for small files
     const reader = new FileReader();
     reader.onload = async function (e) {
-        const base64Data = e.target.result;
+        try {
+            const base64Data = e.target.result;
 
-        // Try Firebase Storage first
-        const result = await uploadFileWithFallback(file, storagePath, null);
+            // Try Firebase Storage first
+            const result = await uploadFileWithFallback(file, storagePath, null);
 
-        const students = getStudents();
-        const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
-        if (studentIdx === -1) return;
+            const students = getStudents();
+            const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
+            if (studentIdx === -1) return;
 
-        // Check file size limit
-        if (file.size > FS_MAX_FILE_SIZE) {
-            showToast(`Fail terlalu besar! Had maksimum ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
-            return;
+            const docData = {
+                status: "Dalam Semakan",
+                fileName: file.name,
+                fileSize: sizeStr,
+                uploadDate: formattedTime,
+                feedback: ""
+            };
+
+            if (!result.useBase64) {
+                // Firebase Storage success
+                docData.fileUrl = result.downloadURL;
+            } else {
+                // Firestore chunked file storage (FREE — no Firebase Storage needed)
+                showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
+                const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
+                docData.fileRef = fileRef;
+                // Also keep in-memory for immediate display (not saved to Firestore student doc)
+                docData.fileData = base64Data;
+            }
+
+            saveDocumentToStudent(studentIdx, docId, docData, students);
+        } catch (uploadErr) {
+            console.error("Gagal memuat naik dokumen:", uploadErr);
+            showToast(`Gagal memuat naik fail: ${uploadErr.message}`, "error");
         }
-
-        const docData = {
-            status: "Dalam Semakan",
-            fileName: file.name,
-            fileSize: sizeStr,
-            uploadDate: formattedTime,
-            feedback: ""
-        };
-
-        if (!result.useBase64) {
-            // Firebase Storage success
-            docData.fileUrl = result.downloadURL;
-        } else {
-            // Firestore chunked file storage (FREE — no Firebase Storage needed)
-            showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
-            const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
-            docData.fileRef = fileRef;
-            // Also keep in-memory for immediate display (not saved to Firestore student doc)
-            docData.fileData = base64Data;
-        }
-
-        saveDocumentToStudent(studentIdx, docId, docData, students);
     };
     reader.readAsDataURL(file);
 };
@@ -3556,7 +3582,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     startClock();
     setupBulkActionListeners();
     initTheme();
-    switchPortalTab('dashboard');
+
+    // Restore session from localStorage if exists
+    const savedUser = localStorage.getItem("upli_user");
+    const savedRole = localStorage.getItem("upli_role");
+    if (savedUser && savedRole) {
+        try {
+            const userObj = JSON.parse(savedUser);
+            // Refresh from current Firestore copy to prevent stale session data
+            const students = getStudents();
+            let refreshedUser = userObj;
+            if (savedRole === "student") {
+                refreshedUser = students.find(s => s.regNo === userObj.regNo) || userObj;
+            }
+            loginUser(refreshedUser, savedRole);
+        } catch (e) {
+            console.error("Failed to restore session:", e);
+            switchPortalTab('dashboard');
+        }
+    } else {
+        switchPortalTab('dashboard');
+    }
 
     // Theme toggle button click listener
     const toggleBtn = document.getElementById("theme-toggle-btn");
