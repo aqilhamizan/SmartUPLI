@@ -438,6 +438,8 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    width: 100%;
     gap: 8px;
 }
 
@@ -446,7 +448,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 .role-badge {
+    display: block;
     align-self: center;
+    margin: 8px auto 0 auto;
+    text-align: center;
+    width: max-content;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -2209,5 +2215,70 @@ body.light-mode .portal-nav-item:hover {
         height: auto !important;
         overflow-y: visible !important;
     }
+}
+
+/* Custom UI Improvements & Reusable Styles */
+.portal-tab-pane {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px);
+}
+
+.portal-login-card {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar-logo-container {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.sidebar-logo-container img {
+    height: 72px;
+    width: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(99,102,241,0.15);
+    margin: 0 auto;
+    display: block;
+}
+
+.btn-menu-utama-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    color: var(--color-primary);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-menu-utama-header:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+#btn-portal-return-dash {
+    display: none;
+    color: var(--color-primary) !important;
+}
+
+#btn-portal-logout {
+    display: none;
+    color: #ef4444 !important;
 }
 
