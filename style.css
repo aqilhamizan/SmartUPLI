@@ -437,6 +437,7 @@ input:focus, select:focus, textarea:focus {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 8px;
 }
 
@@ -445,7 +446,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .role-badge {
-    align-self: flex-start;
+    align-self: center;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;

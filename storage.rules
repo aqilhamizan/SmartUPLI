@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow full read/write for all paths (SmartUPLI open access)
+    // TODO: Tighten after authentication is added
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}

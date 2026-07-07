@@ -208,179 +208,315 @@ const DEFAULT_LOGS = [
     { type: "success", text: "Pentadbir sistem utama Hamzah bin Salleh sedia.", time: "2026-07-03 08:05" }
 ];
 
-// Initialize database (Includes migration for Session-based schema)
-function initDatabase() {
-    let migrate = false;
-    const existingStudents = localStorage.getItem("upli_students");
-    if (existingStudents) {
-        try {
-            const parsed = JSON.parse(existingStudents);
-            if (parsed.length > 0 && !parsed[0].hasOwnProperty("sesi")) {
-                migrate = true;
-            }
-        } catch (e) {
-            migrate = true;
-        }
-    }
-    
-    if (migrate) {
-        localStorage.removeItem("upli_admins");
-        localStorage.removeItem("upli_lecturers");
-        localStorage.removeItem("upli_students");
-        localStorage.removeItem("upli_logs");
-        localStorage.removeItem("upli_sessions");
-        localStorage.removeItem("upli_active_session");
-    }
+// --------------------------------------------------------------------------
+// A-2. FIREBASE FIRESTORE DATA LAYER (In-Memory Cache + Cloud Sync)
+// Strategy: Load all data from Firestore into dbCache on startup.
+//           get*() reads from dbCache (sync). save*() updates cache + Firestore (async).
+// --------------------------------------------------------------------------
 
-    if (!localStorage.getItem("upli_admins")) {
-        localStorage.setItem("upli_admins", JSON.stringify(DEFAULT_ADMINS));
-    }
-    if (!localStorage.getItem("upli_lecturers")) {
-        localStorage.setItem("upli_lecturers", JSON.stringify(DEFAULT_LECTURERS));
-    }
-    if (!localStorage.getItem("upli_students")) {
-        localStorage.setItem("upli_students", JSON.stringify(DEFAULT_STUDENTS));
-    }
-    
-    // Purge JTMK records from database if they exist
-    let existingSts = localStorage.getItem("upli_students");
-    if (existingSts) {
-        try {
-            let sts = JSON.parse(existingSts);
-            let cleaned = sts.filter(s => s.jabatan !== "JTMK");
-            if (cleaned.length !== sts.length) {
-                localStorage.setItem("upli_students", JSON.stringify(cleaned));
-            }
-        } catch(e) {}
-    }
-    let existingLecs = localStorage.getItem("upli_lecturers");
-    if (existingLecs) {
-        try {
-            let lecs = JSON.parse(existingLecs);
-            let cleaned = lecs.filter(l => l.dept !== "JTMK");
-            if (cleaned.length !== lecs.length) {
-                localStorage.setItem("upli_lecturers", JSON.stringify(cleaned));
-            }
-        } catch(e) {}
-    }
+const dbCache = {
+    admins: [], lecturers: [], students: [],
+    logs: [], sessions: [], activeSession: "",
+    rubriks: []
+};
 
-    if (!localStorage.getItem("upli_logs")) {
-        localStorage.setItem("upli_logs", JSON.stringify(DEFAULT_LOGS));
-    }
-    if (!localStorage.getItem("upli_sessions")) {
-        localStorage.setItem("upli_sessions", JSON.stringify(DEFAULT_SESSIONS));
-    }
-    if (!localStorage.getItem("upli_active_session")) {
-        localStorage.setItem("upli_active_session", "Sesi 1:2026/2027");
+// Show/hide loading overlay while Firestore loads
+function showDBLoading(show) {
+    let overlay = document.getElementById("db-loading-overlay");
+    if (show && !overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "db-loading-overlay";
+        overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.97);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f1f5f9;font-family:'Outfit',sans-serif;gap:18px;";
+        overlay.innerHTML = `
+            <div style="width:54px;height:54px;border:4px solid rgba(99,102,241,0.2);border-top:4px solid #6366f1;border-radius:50%;animation:db-spin 0.8s linear infinite;"></div>
+            <div style="text-align:center;">
+                <p style="font-size:1.15rem;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;">Menyambung ke Firebase...</p>
+                <p style="font-size:0.8rem;color:#94a3b8;">Memuatkan data sistem SmartUPLI</p>
+            </div>
+            <style>@keyframes db-spin{to{transform:rotate(360deg)}}</style>
+        `;
+        document.body.appendChild(overlay);
+    } else if (!show && overlay) {
+        overlay.style.transition = "opacity 0.3s";
+        overlay.style.opacity = "0";
+        setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 300);
     }
 }
 
-// Helper DB Getters & Setters
-function getAdmins() { return JSON.parse(localStorage.getItem("upli_admins")); }
-function saveAdmins(data) { localStorage.setItem("upli_admins", JSON.stringify(data)); }
+// Sanitize Firestore document ID
+function sanitizeDocId(str) {
+    return String(str).replace(/[/.#$\[\]]/g, "_");
+}
 
-function getLecturers() { return JSON.parse(localStorage.getItem("upli_lecturers")); }
-function saveLecturers(data) { localStorage.setItem("upli_lecturers", JSON.stringify(data)); }
+// ---------- Firestore Write Helpers (fire-and-forget) ----------
 
-function getStudents() {
-    let list = JSON.parse(localStorage.getItem("upli_students") || "[]");
-    let changed = false;
-    
-    // Old document IDs from previous schema that should be removed
-    const OLD_DOC_IDS = ["resume", "reply_letter", "weekly_reports", "final_report", "completion_cert"];
-    
-    list.forEach(s => {
-        if (!s.documents) {
-            s.documents = {};
-            changed = true;
+async function writeAdminsToFirestore(data) {
+    try { await db.collection("settings").doc("admins").set({ list: data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    catch (e) { console.warn("FS writeAdmins:", e.message); }
+}
+
+async function writeLecturersToFirestore(data) {
+    try { await db.collection("settings").doc("lecturers").set({ list: data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    catch (e) { console.warn("FS writeLecturers:", e.message); }
+}
+
+async function writeStudentToFirestore(student) {
+    try {
+        const s = JSON.parse(JSON.stringify(student));
+        // Strip large base64 fileData — files now stored in Firebase Storage (fileUrl)
+        if (s.documents) {
+            Object.keys(s.documents).forEach(k => {
+                if (s.documents[k] && s.documents[k].fileData) delete s.documents[k].fileData;
+            });
         }
-        
-        // Remove any old schema doc keys that don't belong in new schema
-        OLD_DOC_IDS.forEach(oldKey => {
-            if (s.documents[oldKey] !== undefined) {
-                delete s.documents[oldKey];
-                changed = true;
-            }
+        // Strip large base64 profile pics
+        if (s.profilePic && s.profilePic.startsWith("data:") && s.profilePic.length > 2000) delete s.profilePic;
+        await db.collection("students").doc(sanitizeDocId(student.regNo)).set(s);
+    } catch (e) { console.warn("FS writeStudent:", e.message); }
+}
+
+async function writeStudentsToFirestore(data) {
+    await Promise.all(data.map(s => writeStudentToFirestore(s)));
+}
+
+async function writeSettingsToFirestore(updates) {
+    try { await db.collection("settings").doc("global").set(updates, { merge: true }); }
+    catch (e) { console.warn("FS writeSettings:", e.message); }
+}
+
+async function writeLogToFirestore(entry) {
+    try { await db.collection("logs").add({ ...entry, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    catch (e) { console.warn("FS writeLog:", e.message); }
+}
+
+async function writeRubriksToFirestore(data) {
+    try {
+        const clean = data.map(r => {
+            const c = JSON.parse(JSON.stringify(r));
+            if (c.fileData && c.fileData.length > 1000) delete c.fileData;
+            return c;
         });
-        
-        // Add any missing doc keys from the correct category-based schema
+        await db.collection("settings").doc("rubriks").set({ list: clean, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    } catch (e) { console.warn("FS writeRubriks:", e.message); }
+}
+
+// ---------- Normalize students cache (ensure required doc fields) ----------
+function normalizeStudentsCache() {
+    const OLD_DOC_IDS = ["resume", "reply_letter", "weekly_reports", "final_report", "completion_cert"];
+    let changed = false;
+
+    // Remove JTMK dept students
+    const before = dbCache.students.length;
+    dbCache.students = dbCache.students.filter(s => s.jabatan !== "JTMK");
+    if (dbCache.students.length !== before) changed = true;
+
+    // Remove JTMK lecturers
+    dbCache.lecturers = dbCache.lecturers.filter(l => l.dept !== "JTMK");
+
+    dbCache.students.forEach(s => {
+        if (!s.documents) { s.documents = {}; changed = true; }
+        OLD_DOC_IDS.forEach(k => { if (s.documents[k] !== undefined) { delete s.documents[k]; changed = true; } });
         const requiredDocs = getStudentDocsList(s);
         requiredDocs.forEach(d => {
             if (!s.documents[d.id]) {
-                s.documents[d.id] = {
-                    status: "Belum Dihantar",
-                    fileName: "",
-                    fileSize: "",
-                    uploadDate: "",
-                    feedback: "",
-                    fileData: ""
-                };
+                s.documents[d.id] = { status: "Belum Dihantar", fileName: "", fileSize: "", uploadDate: "", feedback: "", fileUrl: "" };
                 changed = true;
             }
         });
     });
-    if (changed) {
-        localStorage.setItem("upli_students", JSON.stringify(list));
-    }
-    return list;
+
+    if (changed) writeStudentsToFirestore(dbCache.students);
 }
-function saveStudents(data) {
+
+// ---------- initDatabase — Async, loads from Firestore ----------
+async function initDatabase() {
+    showDBLoading(true);
     try {
-        localStorage.setItem("upli_students", JSON.stringify(data));
-    } catch (e) {
-        if (e.name === 'QuotaExceededError' || e.code === 22) {
-            console.warn("LocalStorage Quota Exceeded! Optimizing storage by mock-compressing large file data...");
-            let optimized = false;
-            
-            // Go through students and replace any large fileData (> 50KB) with a small dummy file base64 string
-            // but keep original file metadata (fileName, fileSize, uploadDate) intact.
-            data.forEach(s => {
-                if (s.documents) {
-                    Object.keys(s.documents).forEach(k => {
-                        const doc = s.documents[k];
-                        if (doc.fileData && doc.fileData.length > 50000) {
-                            // Dummy PDF base64 (small empty 1-page PDF)
-                            doc.fileData = "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nIC9QYWdlcyAyIDAgUiA+PgplbmRvYmoKMiAwIG9iagogIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbIDMgMCBSIF0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKICA8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUgODQyIF0gPj4KZW5kb2JqCnRyYWlsZXIKICA8PCAvUm9vdCAxIDAgUiA+JQolRU9GCg==";
-                            optimized = true;
-                        }
-                    });
-                }
-            });
-            
-            if (optimized) {
-                try {
-                    localStorage.setItem("upli_students", JSON.stringify(data));
-                    showToast("Simulasi Storan: Fail anda berjaya direkodkan, namun data fail disimpan secara simulasi kerana had storan pelayar (5MB).", "info");
-                    return;
-                } catch (retryErr) {
-                    showToast("Had storan pelayar penuh sepenuhnya! Sila hubungi Pentadbir.", "error");
-                }
-            } else {
-                showToast("Storan pelayar penuh sepenuhnya! Tidak dapat menyimpan rekod baharu.", "error");
-            }
+        // 1. Global settings
+        const settingsDoc = await db.collection("settings").doc("global").get();
+        if (settingsDoc.exists) {
+            const d = settingsDoc.data();
+            dbCache.sessions = d.sessions || DEFAULT_SESSIONS;
+            dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027";
+        } else {
+            dbCache.sessions = DEFAULT_SESSIONS;
+            dbCache.activeSession = "Sesi 1:2026/2027";
+            await writeSettingsToFirestore({ sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027" });
         }
-        throw e;
+
+        // 2. Admins
+        const adminsDoc = await db.collection("settings").doc("admins").get();
+        if (adminsDoc.exists && adminsDoc.data().list && adminsDoc.data().list.length > 0) {
+            dbCache.admins = adminsDoc.data().list;
+        } else {
+            dbCache.admins = DEFAULT_ADMINS;
+            await writeAdminsToFirestore(DEFAULT_ADMINS);
+        }
+
+        // 3. Lecturers
+        const lecturersDoc = await db.collection("settings").doc("lecturers").get();
+        if (lecturersDoc.exists && lecturersDoc.data().list && lecturersDoc.data().list.length > 0) {
+            dbCache.lecturers = lecturersDoc.data().list;
+        } else {
+            dbCache.lecturers = DEFAULT_LECTURERS;
+            await writeLecturersToFirestore(DEFAULT_LECTURERS);
+        }
+
+        // 4. Students
+        const studentsSnap = await db.collection("students").get();
+        if (!studentsSnap.empty) {
+            dbCache.students = studentsSnap.docs.map(doc => doc.data());
+        } else {
+            const cleanStudents = DEFAULT_STUDENTS.map(s => {
+                const c = JSON.parse(JSON.stringify(s));
+                if (c.documents) Object.keys(c.documents).forEach(k => { delete c.documents[k].fileData; });
+                return c;
+            });
+            dbCache.students = cleanStudents;
+            await writeStudentsToFirestore(cleanStudents);
+        }
+        normalizeStudentsCache();
+
+        // 5. Logs
+        try {
+            const logsSnap = await db.collection("logs").orderBy("createdAt", "desc").limit(50).get();
+            if (!logsSnap.empty) {
+                dbCache.logs = logsSnap.docs.map(d => ({ type: d.data().type || "info", text: d.data().text || "", time: d.data().time || "" }));
+            } else {
+                dbCache.logs = DEFAULT_LOGS;
+                for (const log of DEFAULT_LOGS) await writeLogToFirestore(log);
+            }
+        } catch (_) {
+            // Logs index might not exist yet — fallback to defaults
+            dbCache.logs = DEFAULT_LOGS;
+        }
+
+        // 6. Rubriks
+        const rubriksDoc = await db.collection("settings").doc("rubriks").get();
+        dbCache.rubriks = (rubriksDoc.exists && rubriksDoc.data().list) ? rubriksDoc.data().list : [];
+
+    } catch (err) {
+        console.error("Firebase initDatabase error:", err);
+        // Graceful fallback to localStorage if Firestore is unavailable
+        dbCache.admins = JSON.parse(localStorage.getItem("upli_admins") || JSON.stringify(DEFAULT_ADMINS));
+        dbCache.lecturers = JSON.parse(localStorage.getItem("upli_lecturers") || JSON.stringify(DEFAULT_LECTURERS));
+        dbCache.students = JSON.parse(localStorage.getItem("upli_students") || JSON.stringify(DEFAULT_STUDENTS));
+        dbCache.sessions = JSON.parse(localStorage.getItem("upli_sessions") || JSON.stringify(DEFAULT_SESSIONS));
+        dbCache.activeSession = localStorage.getItem("upli_active_session") || "Sesi 1:2026/2027";
+        dbCache.logs = JSON.parse(localStorage.getItem("upli_logs") || JSON.stringify(DEFAULT_LOGS));
+        dbCache.rubriks = JSON.parse(localStorage.getItem("upli_rubriks") || "[]");
+        showToast("⚠️ Gagal menyambung Firebase. Data tempatan digunakan.", "error");
+    } finally {
+        showDBLoading(false);
     }
 }
 
-function getSessions() { return JSON.parse(localStorage.getItem("upli_sessions")); }
-function saveSessions(data) { localStorage.setItem("upli_sessions", JSON.stringify(data)); }
+// ---------- Sync Getters — read from in-memory cache ----------
+function getAdmins() { return dbCache.admins; }
+function saveAdmins(data) { dbCache.admins = data; writeAdminsToFirestore(data); }
 
-function getActiveSession() { return localStorage.getItem("upli_active_session"); }
-function saveActiveSession(val) { localStorage.setItem("upli_active_session", val); }
+function getLecturers() { return dbCache.lecturers; }
+function saveLecturers(data) { dbCache.lecturers = data; writeLecturersToFirestore(data); }
 
-function getLogs() { return JSON.parse(localStorage.getItem("upli_logs")); }
+function getStudents() { return dbCache.students; }
+function saveStudents(data) { dbCache.students = data; writeStudentsToFirestore(data); }
+
+function getSessions() { return dbCache.sessions; }
+function saveSessions(data) { dbCache.sessions = data; writeSettingsToFirestore({ sessions: data }); }
+
+function getActiveSession() { return dbCache.activeSession; }
+function saveActiveSession(val) { dbCache.activeSession = val; writeSettingsToFirestore({ activeSession: val }); }
+
+function getLogs() { return dbCache.logs; }
 function addLog(type, text) {
-    const logs = getLogs() || [];
     const now = new Date();
-    const formattedTime = now.getFullYear() + "-" + 
-        String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-        String(now.getDate()).padStart(2, '0') + " " + 
-        String(now.getHours()).padStart(2, '0') + ":" + 
+    const formattedTime = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, '0') + "-" +
+        String(now.getDate()).padStart(2, '0') + " " +
+        String(now.getHours()).padStart(2, '0') + ":" +
         String(now.getMinutes()).padStart(2, '0');
-    
-    logs.unshift({ type, text, time: formattedTime });
-    localStorage.setItem("upli_logs", JSON.stringify(logs.slice(0, 50))); // Keep last 50
+    const entry = { type, text, time: formattedTime };
+    dbCache.logs.unshift(entry);
+    dbCache.logs = dbCache.logs.slice(0, 50);
+    writeLogToFirestore(entry);
+}
+
+function getRubriks() { return dbCache.rubriks; }
+function saveRubriks(data) { dbCache.rubriks = data; writeRubriksToFirestore(data); }
+
+// --------------------------------------------------------------------------
+// A-3. FIRESTORE FILE STORAGE (Chunked base64 — no Firebase Storage needed)
+// Firestore docs max = 1MB. Base64 adds ~33% overhead.
+// Each chunk = 600KB raw → ~800KB base64 → safe within 1MB limit.
+// --------------------------------------------------------------------------
+const FS_CHUNK_SIZE = 600 * 1024; // 600KB raw per chunk
+const FS_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB max per file
+
+// In-memory file cache so we don't re-fetch on every preview
+const fileCache = {};
+
+async function saveFileToFirestore(regNo, docId, base64Data) {
+    const fileId = `${sanitizeDocId(regNo)}_${docId}`;
+    const totalSize = base64Data.length;
+    const chunkCount = Math.ceil(totalSize / (FS_CHUNK_SIZE * 4 / 3)); // base64 chunks
+
+    // Split base64 string into chunks
+    const chunkSize = Math.ceil(totalSize / chunkCount);
+    const chunks = [];
+    for (let i = 0; i < totalSize; i += chunkSize) {
+        chunks.push(base64Data.slice(i, i + chunkSize));
+    }
+
+    // Write all chunks in parallel
+    await Promise.all(chunks.map((chunk, idx) =>
+        db.collection("file_data").doc(`${fileId}_${idx}`).set({
+            fileId, regNo: String(regNo), docId,
+            chunkIndex: idx, totalChunks: chunks.length,
+            data: chunk,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+    ));
+
+    // Cache in memory for immediate display
+    fileCache[fileId] = base64Data;
+    return fileId;
+}
+
+async function loadFileFromFirestore(regNo, docId) {
+    const fileId = `${sanitizeDocId(regNo)}_${docId}`;
+
+    // Return from memory cache if available
+    if (fileCache[fileId]) return fileCache[fileId];
+
+    // Load chunk 0 first to get totalChunks count
+    const chunk0 = await db.collection("file_data").doc(`${fileId}_0`).get();
+    if (!chunk0.exists) return null;
+
+    const { totalChunks } = chunk0.data();
+    let chunks = [chunk0.data().data];
+
+    if (totalChunks > 1) {
+        const rest = await Promise.all(
+            Array.from({ length: totalChunks - 1 }, (_, i) =>
+                db.collection("file_data").doc(`${fileId}_${i + 1}`).get()
+            )
+        );
+        rest.forEach(doc => chunks.push(doc.data().data));
+    }
+
+    const base64Data = chunks.join('');
+    fileCache[fileId] = base64Data; // Cache for future use
+    return base64Data;
+}
+
+async function deleteFileFromFirestore(regNo, docId) {
+    const fileId = `${sanitizeDocId(regNo)}_${docId}`;
+    delete fileCache[fileId];
+    // Try to delete up to 20 chunks
+    const deletes = Array.from({ length: 20 }, (_, i) =>
+        db.collection("file_data").doc(`${fileId}_${i}`).delete().catch(() => {})
+    );
+    await Promise.all(deletes);
 }
 
 // --------------------------------------------------------------------------
@@ -417,6 +553,10 @@ const headerUserRole = document.getElementById("header-user-role");
 const headerUserAvatar = document.getElementById("header-avatar");
 const currentTabTitle = document.getElementById("current-tab-title");
 const logoutBtn = document.getElementById("logout-btn");
+const menuUtamaBtn = document.getElementById("btn-menu-utama-header");
+const returnDashBtn = document.getElementById("btn-portal-return-dash");
+const portalLogoutBtn = document.getElementById("btn-portal-logout");
+
 const timeDisplay = document.getElementById("current-time-display");
 
 // Global Session Select Elements
@@ -774,9 +914,15 @@ function loginUser(user, role) {
     
     const targetTab = firstNavItem.dataset.tab;
     
-    // Switch to main interface
+    // Switch to main interface — explicitly set display to handle inline style override
+    loginView.style.display = "none";          // Force hide (overrides inline style)
     loginView.classList.remove("active");
     dashboardLayout.classList.add("active");
+    
+    // Reset scroll position so header is visible
+    window.scrollTo(0, 0);
+    const mc = document.querySelector(".main-content");
+    if (mc) mc.scrollTop = 0;
     
     switchTab(targetTab);
 }
@@ -806,7 +952,7 @@ globalSessionSelect.addEventListener("change", function() {
     renderTabData(activeTab);
 });
 
-logoutBtn.addEventListener("click", () => {
+function logoutUser() {
     if (currentUser) {
         addLog("info", `${currentUser.name} log keluar.`);
         currentUser = null;
@@ -815,10 +961,48 @@ logoutBtn.addEventListener("click", () => {
     
     dashboardLayout.classList.remove("active");
     loginView.classList.add("active");
+    loginView.style.display = "flex"; // Restore inline style to let CSS handle visibility
+    
+    // Reset portal sidebar buttons back to logged-out state
+    document.getElementById("btn-portal-login-tab").style.display = "flex";
+    document.getElementById("btn-portal-return-dash").style.display = "none";
+    document.getElementById("btn-portal-logout").style.display = "none";
+    
     switchPortalTab('dashboard');
     sessionSelectContainer.style.display = "none";
     applyDeptTheme(null); // Clear department theme on logout
     showToast("Anda telah log keluar dengan selamat.", "info");
+    window.scrollTo(0, 0);
+}
+
+logoutBtn.addEventListener("click", logoutUser);
+portalLogoutBtn.addEventListener("click", logoutUser);
+
+menuUtamaBtn.addEventListener("click", () => {
+    // Hide dashboard layout, show public portal
+    dashboardLayout.classList.remove("active");
+    loginView.classList.add("active");
+    loginView.style.display = "flex";
+    
+    // Switch to public portal home/dashboard tab
+    switchPortalTab('dashboard');
+    
+    // Update public portal navigation items
+    document.getElementById("btn-portal-login-tab").style.display = "none";
+    document.getElementById("btn-portal-return-dash").style.display = "flex";
+    document.getElementById("btn-portal-logout").style.display = "flex";
+});
+
+returnDashBtn.addEventListener("click", () => {
+    // Hide public portal, show dashboard layout
+    loginView.classList.remove("active");
+    loginView.style.display = "none";
+    dashboardLayout.classList.add("active");
+    
+    // Reset scroll position so header is visible
+    window.scrollTo(0, 0);
+    const mc = document.querySelector(".main-content");
+    if (mc) mc.scrollTop = 0;
 });
 
 // --------------------------------------------------------------------------
@@ -874,18 +1058,35 @@ document.querySelectorAll(".nav-item").forEach(item => {
 });
 
 function renderTabData(tabId) {
-    if (tabId === "student-dashboard") renderStudentDashboard();
-    if (tabId === "student-documents") renderStudentDocuments();
-    
-    if (tabId === "lecturer-dashboard") renderLecturerDashboard();
-    if (tabId === "lecturer-students") renderLecturerStudentsList();
-    
-    if (tabId === "admin-dashboard") renderAdminDashboard();
-    if (tabId === "admin-students") renderAdminStudentsTable();
-    if (tabId === "admin-lecturers") renderAdminLecturerAssignTable();
-    if (tabId === "admin-admins") renderAdminAdminsTable();
-    if (tabId === "admin-rubrik") renderAdminRubrik();
-    if (tabId === "rubrik-viewer") renderRubrikViewer();
+    try {
+        if (tabId === "student-dashboard") renderStudentDashboard();
+        if (tabId === "student-documents") renderStudentDocuments();
+        
+        if (tabId === "lecturer-dashboard") renderLecturerDashboard();
+        if (tabId === "lecturer-students") renderLecturerStudentsList();
+        
+        if (tabId === "admin-dashboard") renderAdminDashboard();
+        if (tabId === "admin-students") renderAdminStudentsTable();
+        if (tabId === "admin-lecturers") renderAdminLecturerAssignTable();
+        if (tabId === "admin-admins") renderAdminAdminsTable();
+        if (tabId === "admin-rubrik") renderAdminRubrik();
+        if (tabId === "rubrik-viewer") renderRubrikViewer();
+    } catch (renderErr) {
+        console.error("[SmartUPLI] renderTabData error:", renderErr);
+        // Show error message in the active tab section
+        const section = document.getElementById(tabId);
+        if (section) {
+            section.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:16px;padding:40px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem;color:var(--color-warning);"></i>
+                    <h3 style="color:var(--text-primary);font-family:var(--font-display);">Ralat Paparan</h3>
+                    <p style="color:var(--text-muted);font-size:0.9rem;text-align:center;max-width:400px;">Sistem menghadapi masalah memuatkan data. Cuba log keluar dan log masuk semula.</p>
+                    <code style="background:rgba(244,63,94,0.1);color:var(--color-danger);padding:8px 14px;border-radius:8px;font-size:0.8rem;word-break:break-all;">${renderErr.message}</code>
+                    <button class="btn btn-secondary" onclick="location.reload()" style="margin-top:8px;"><i class="fa-solid fa-rotate-right"></i> Muat Semula</button>
+                </div>
+            `;
+        }
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -1479,14 +1680,14 @@ function renderLecturerStudentsList() {
             
         let uploadControlsHTML = "";
         targetDocs.forEach(td => {
-            const hasDoc = s.documents[td.id] && s.documents[td.id].fileData;
+            const hasDoc = s.documents[td.id] && (s.documents[td.id].fileUrl || s.documents[td.id].fileData);
             uploadControlsHTML += `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; background:rgba(255,255,255,0.02); padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); gap: 10px;">
                     <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary);">${td.title}</span>
                     <div style="display:flex; gap:6px; align-items:center;">
                         ${hasDoc ? `
                             <span class="badge badge-success" style="font-size:0.6rem; padding:2px 6px;">Selesai</span>
-                            <a href="${s.documents[td.id].fileData}" download="${s.documents[td.id].fileName}" class="btn btn-sm btn-info" style="padding: 2px 6px; font-size: 0.65rem;" title="Muat Turun"><i class="fa-solid fa-download"></i></a>
+                            <a href="${s.documents[td.id].fileUrl || s.documents[td.id].fileData}" ${s.documents[td.id].fileUrl ? 'target="_blank"' : `download="${s.documents[td.id].fileName}"`} class="btn btn-sm btn-info" style="padding: 2px 6px; font-size: 0.65rem;" title="Muat Turun"><i class="fa-solid fa-download"></i></a>
                         ` : `
                             <span class="badge badge-secondary" style="font-size:0.6rem; padding:2px 6px; background:rgba(255,255,255,0.05); color:var(--text-muted);">Belum</span>
                         `}
@@ -1574,36 +1775,60 @@ window.openDocumentReviewModal = function(studentReg, docId) {
     document.getElementById("doc-review-feedback").value = doc.feedback || "";
     
     const dlLink = document.getElementById("doc-modal-download-link");
-    if (doc.fileData) {
-        dlLink.href = doc.fileData;
-        dlLink.setAttribute("download", doc.fileName);
+    const fileSource = doc.fileUrl || doc.fileData || "";
+    if (fileSource) {
+        dlLink.href = fileSource;
+        if (doc.fileUrl) {
+            dlLink.removeAttribute("download");
+            dlLink.setAttribute("target", "_blank");
+        } else {
+            dlLink.setAttribute("download", doc.fileName);
+        }
     } else {
         dlLink.removeAttribute("download");
         dlLink.href = "#";
-        dlLink.onclick = function(e) {
-            e.preventDefault();
-            showToast("Fail dimuat turun (Simulasi)", "success");
-        };
+        dlLink.onclick = function(e) { e.preventDefault(); showToast("Fail dimuat turun (Simulasi)", "success"); };
     }
     
     const previewBox = document.getElementById("doc-modal-preview-box");
-    previewBox.innerHTML = "";
-    if (doc.fileData && doc.fileData.trim() !== "") {
-        if (doc.fileData.startsWith("data:image/")) {
-            previewBox.innerHTML = `<img src="${doc.fileData}" alt="Fail Dokumen" style="max-width:100%; height:auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.15);">`;
-        } else if (doc.fileData.startsWith("data:application/pdf") || (doc.fileName && doc.fileName.toLowerCase().endsWith(".pdf"))) {
-            const blobUrl = dataURLtoBlobURL(doc.fileData);
-            previewBox.innerHTML = `<iframe src="${blobUrl}" style="width:100%; height:350px; border:1px solid var(--border-color); border-radius:6px; background:#fff;"></iframe>`;
-        } else {
-            previewBox.innerHTML = `
-                <div style="text-align:center; padding: 20px 0;">
-                    <i class="fa-solid fa-file-invoice text-accent" style="font-size:3.5rem; margin-bottom:8px;"></i>
-                    <p style="font-size:0.75rem; color:var(--text-secondary);">Format: ${doc.fileName.split('.').pop().toUpperCase()}</p>
-                    <p style="font-size:0.65rem; color:var(--text-muted);">Sila klik "Papar" untuk melihat paparan dokumen pintar</p>
-                </div>
-            `;
+    
+    // Async helper to render preview after loading
+    async function renderPreview() {
+        // Load from Firestore file_data if needed
+        if (!doc.fileUrl && !doc.fileData && doc.fileRef) {
+            previewBox.innerHTML = `<div style="text-align:center; padding:20px;"><div style="width:32px;height:32px;border:3px solid rgba(99,102,241,0.2);border-top:3px solid #6366f1;border-radius:50%;animation:db-spin 0.8s linear infinite;margin:0 auto 10px;"></div><p style="font-size:0.8rem;color:var(--text-muted);">Memuatkan fail...</p></div>`;
+            const loaded = await loadFileFromFirestore(studentReg, docId);
+            if (loaded) doc.fileData = loaded;
+        }
+
+        previewBox.innerHTML = "";
+        const fs = doc.fileUrl || doc.fileData || "";
+        if (fs && fs.trim() !== "") {
+            if (doc.fileUrl) {
+                const isImage = doc.fileName && /\.(png|jpg|jpeg)$/i.test(doc.fileName);
+                if (isImage) {
+                    previewBox.innerHTML = `<img src="${doc.fileUrl}" alt="Fail Dokumen" style="max-width:100%; height:auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.15);">`;
+                } else {
+                    previewBox.innerHTML = `<iframe src="${doc.fileUrl}" style="width:100%; height:350px; border:1px solid var(--border-color); border-radius:6px;"></iframe>`;
+                }
+            } else if (doc.fileData) {
+                if (doc.fileData.startsWith("data:image/")) {
+                    previewBox.innerHTML = `<img src="${doc.fileData}" alt="Fail Dokumen" style="max-width:100%; height:auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.15);">`;
+                } else if (doc.fileData.startsWith("data:application/pdf") || (doc.fileName && doc.fileName.toLowerCase().endsWith(".pdf"))) {
+                    const blobUrl = dataURLtoBlobURL(doc.fileData);
+                    previewBox.innerHTML = `<iframe src="${blobUrl}" style="width:100%; height:350px; border:1px solid var(--border-color); border-radius:6px; background:#fff;"></iframe>`;
+                } else {
+                    previewBox.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fa-solid fa-file-invoice text-accent" style="font-size:3rem;"></i><p style="margin-top:8px;">Fail tidak dapat dipaparkan secara langsung.</p></div>`;
+                }
+            }
+            // Also update download link now that fileData is loaded
+            if (doc.fileData && !fileSource) {
+                dlLink.href = doc.fileData;
+                dlLink.setAttribute("download", doc.fileName);
+            }
         }
     }
+    renderPreview();
     
     viewBtnInReview.onclick = function() {
         openDocumentViewer(studentReg, docId);
@@ -1659,7 +1884,7 @@ const viewerModal = document.getElementById("document-viewer-modal");
 const closeViewerBtns = viewerModal.querySelectorAll(".close-viewer-btn");
 const renderedView = document.getElementById("document-rendered-view");
 
-window.openDocumentViewer = function(studentReg, docId) {
+window.openDocumentViewer = async function(studentReg, docId) {
     const students = getStudents();
     const student = students.find(s => s.regNo === studentReg);
     if (!student) return;
@@ -1670,40 +1895,71 @@ window.openDocumentViewer = function(studentReg, docId) {
         return;
     }
     
+    renderedView.innerHTML = `<div style="text-align:center; padding:40px;"><div style="width:40px;height:40px;border:3px solid rgba(99,102,241,0.2);border-top:3px solid #6366f1;border-radius:50%;animation:db-spin 0.8s linear infinite;margin:0 auto 12px;"></div><p style="font-size:0.85rem;color:var(--text-muted);">Memuatkan dokumen...</p></div>`;
+    viewerModal.classList.add("active");
+
+    // Load fileData from Firestore file_data collection if needed
+    if (!doc.fileUrl && !doc.fileData && doc.fileRef) {
+        const loaded = await loadFileFromFirestore(studentReg, docId);
+        if (loaded) doc.fileData = loaded;
+    }
+
     renderedView.innerHTML = "";
     
-    // Priority 1: Show actual uploaded file
-    if (doc.fileData && doc.fileData.trim() !== "") {
-        if (doc.fileData.startsWith("data:image/")) {
-            // Show image inline
-            renderedView.innerHTML = `<img src="${doc.fileData}" style="max-width:100%; height:auto; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:4px;" alt="Fail Pelajar">`;
-        } else if (doc.fileData.startsWith("data:application/pdf") || (doc.fileName && doc.fileName.toLowerCase().endsWith(".pdf"))) {
-            // Show PDF in iframe using Blob URL to bypass browser security restrictions on data: URIs
-            const blobUrl = dataURLtoBlobURL(doc.fileData);
-            renderedView.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
-                    <div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
-                        <i class="fa-solid fa-file-pdf" style="font-size:1.5rem; color:#ef4444; margin-bottom:4px;"></i><br>
-                        ${doc.fileName}
+    // Priority 1: Show actual uploaded file (Firebase Storage URL or base64)
+    const fileSource = doc.fileUrl || doc.fileData || "";
+    if (fileSource && fileSource.trim() !== "") {
+        const isImage = doc.fileName && /\.(png|jpg|jpeg)$/i.test(doc.fileName);
+        const isPDF = doc.fileName && doc.fileName.toLowerCase().endsWith(".pdf");
+
+        if (doc.fileUrl) {
+            // Firebase Storage URL — embed directly
+            if (isImage) {
+                renderedView.innerHTML = `<img src="${doc.fileUrl}" style="max-width:100%; height:auto; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:4px;" alt="Fail Pelajar">`;
+            } else {
+                renderedView.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+                            <i class="fa-solid fa-file-pdf" style="font-size:1.5rem; color:#ef4444; margin-bottom:4px;"></i><br>
+                            ${doc.fileName}
+                        </div>
+                        <iframe src="${doc.fileUrl}" style="width:100%; height:600px; border:1px solid var(--border-color); border-radius:6px; background:#fff;"></iframe>
+                        <a href="${doc.fileUrl}" target="_blank" class="btn btn-primary btn-sm" style="gap:6px;">
+                            <i class="fa-solid fa-external-link-alt"></i> Buka dalam Tab Baharu
+                        </a>
                     </div>
-                    <iframe src="${blobUrl}" style="width:100%; height:600px; border:1px solid var(--border-color); border-radius:6px; background:#fff;"></iframe>
-                    <a href="${doc.fileData}" download="${doc.fileName}" class="btn btn-primary btn-sm" style="gap:6px;">
-                        <i class="fa-solid fa-download"></i> Muat Turun PDF
-                    </a>
-                </div>
-            `;
-        } else {
-            // Generic file — show download link
-            renderedView.innerHTML = `
-                <div style="text-align:center; padding:40px 20px;">
-                    <i class="fa-solid fa-file-arrow-down" style="font-size:3rem; color:var(--color-primary); margin-bottom:12px;"></i>
-                    <h4 style="margin-bottom:6px;">${doc.fileName}</h4>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px;">Fail ini tidak boleh dipaparkan secara langsung.</p>
-                    <a href="${doc.fileData}" download="${doc.fileName}" class="btn btn-primary" style="gap:6px;">
-                        <i class="fa-solid fa-download"></i> Muat Turun Fail
-                    </a>
-                </div>
-            `;
+                `;
+            }
+        } else if (doc.fileData) {
+            // Legacy base64
+            if (doc.fileData.startsWith("data:image/")) {
+                renderedView.innerHTML = `<img src="${doc.fileData}" style="max-width:100%; height:auto; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:4px;" alt="Fail Pelajar">`;
+            } else if (isPDF || doc.fileData.startsWith("data:application/pdf")) {
+                const blobUrl = dataURLtoBlobURL(doc.fileData);
+                renderedView.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+                            <i class="fa-solid fa-file-pdf" style="font-size:1.5rem; color:#ef4444; margin-bottom:4px;"></i><br>
+                            ${doc.fileName}
+                        </div>
+                        <iframe src="${blobUrl}" style="width:100%; height:600px; border:1px solid var(--border-color); border-radius:6px; background:#fff;"></iframe>
+                        <a href="${doc.fileData}" download="${doc.fileName}" class="btn btn-primary btn-sm" style="gap:6px;">
+                            <i class="fa-solid fa-download"></i> Muat Turun PDF
+                        </a>
+                    </div>
+                `;
+            } else {
+                renderedView.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px;">
+                        <i class="fa-solid fa-file-arrow-down" style="font-size:3rem; color:var(--color-primary); margin-bottom:12px;"></i>
+                        <h4 style="margin-bottom:6px;">${doc.fileName}</h4>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px;">Fail ini tidak boleh dipaparkan secara langsung.</p>
+                        <a href="${doc.fileData}" download="${doc.fileName}" class="btn btn-primary" style="gap:6px;">
+                            <i class="fa-solid fa-download"></i> Muat Turun Fail
+                        </a>
+                    </div>
+                `;
+            }
         }
     } 
     else {
@@ -1843,7 +2099,7 @@ window.openDocumentViewer = function(studentReg, docId) {
         renderedView.innerHTML = contentHTML;
     }
     
-    viewerModal.classList.add("active");
+    // Modal already opened at start (async loading pattern)
 };
 
 closeViewerBtns.forEach(btn => {
@@ -2887,24 +3143,55 @@ window.deleteAdmin = function(email) {
     );
 };
 
-// Global handlers attached to window for upload logic
+// Global handler — trigger file input click
 window.triggerFileUpload = function(docId) {
     const input = document.getElementById(`file-input-${docId}`);
     if (input) input.click();
 };
 
+// Helper: save file document data to student record + Firestore
+function saveDocumentToStudent(studentIdx, docId, docData, students) {
+    students[studentIdx].documents[docId] = docData;
+    saveStudents(students);
+    currentUser = students[studentIdx];
+    addLog("info", `Pelajar ${currentUser.name} memuat naik dokumen: ${getDocMetadata(docId, currentUser).title}`);
+    showToast(`Fail "${docData.fileName}" berjaya dimuat naik untuk semakan.`, "success");
+    renderStudentDocuments();
+}
+
+// Helper: upload file to Storage, fallback to base64 if unavailable
+async function uploadFileWithFallback(file, storagePath, onSuccess) {
+    try {
+        const storageRef = storage.ref(storagePath);
+        const uploadTask = storageRef.put(file);
+        return new Promise((resolve, reject) => {
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                    console.log(`Upload Storage: ${pct}%`);
+                },
+                (error) => {
+                    // Storage not set up — fallback to base64
+                    console.warn("Storage unavailable, using base64 fallback:", error.code);
+                    resolve({ useBase64: true });
+                },
+                async () => {
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                    resolve({ useBase64: false, downloadURL });
+                }
+            );
+        });
+    } catch (err) {
+        console.warn("Storage error, fallback:", err);
+        return { useBase64: true };
+    }
+}
+
 window.handleFileSelected = function(event, docId) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    // Size limit: 10GB
-    const MAX_SIZE = 10 * 1024 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-        showToast("Fail melebihi had saiz 10GB!", "error");
-        return;
-    }
-    
-    // Format validation for Slaid Pembentangan
+
+    // Format validation
     if (docId === "slaid_pembentangan") {
         const name = file.name.toLowerCase();
         if (!name.endsWith(".ppt") && !name.endsWith(".pptx") && !name.endsWith(".pdf")) {
@@ -2912,49 +3199,65 @@ window.handleFileSelected = function(event, docId) {
             return;
         }
     } else {
-        // All other documents: PDF, PNG, JPG only
         const name = file.name.toLowerCase();
         if (!name.endsWith(".pdf") && !name.endsWith(".png") && !name.endsWith(".jpg") && !name.endsWith(".jpeg")) {
             showToast("Hanya fail PDF, PNG, atau JPG dibenarkan untuk dokumen ini!", "error");
             return;
         }
     }
-    
+
+    const now = new Date();
+    const formattedTime = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, '0') + "-" +
+        String(now.getDate()).padStart(2, '0') + " " +
+        String(now.getHours()).padStart(2, '0') + ":" +
+        String(now.getMinutes()).padStart(2, '0');
+    const sizeKB = file.size / 1024;
+    const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
+
+    showToast(`Memuat naik "${file.name}"...`, "info");
+
+    const storagePath = `documents/${currentUser.regNo}/${docId}/${Date.now()}_${file.name}`;
+
+    // Use FileReader to read file — needed for both base64 fallback and for small files
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         const base64Data = e.target.result;
-        
+
+        // Try Firebase Storage first
+        const result = await uploadFileWithFallback(file, storagePath, null);
+
         const students = getStudents();
         const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
-        
-        if (studentIdx !== -1) {
-            const now = new Date();
-            const formattedTime = now.getFullYear() + "-" + 
-                String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-                String(now.getDate()).padStart(2, '0') + " " + 
-                String(now.getHours()).padStart(2, '0') + ":" + 
-                String(now.getMinutes()).padStart(2, '0');
-            
-            const sizeKB = file.size / 1024;
-            const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
-            
-            students[studentIdx].documents[docId] = {
-                status: "Dalam Semakan",
-                fileName: file.name,
-                fileSize: sizeStr,
-                uploadDate: formattedTime,
-                feedback: "",
-                fileData: base64Data   // Store full base64 for ZIP download (had saiz: 10GB)
-            };
-            
-            saveStudents(students);
-            currentUser = students[studentIdx];
-            
-            addLog("info", `Pelajar ${currentUser.name} memuat naik dokumen: ${getDocMetadata(docId, currentUser).title}`);
-            showToast(`Fail "${file.name}" berjaya dimuat naik untuk semakan.`, "success");
-            
-            renderStudentDocuments();
+        if (studentIdx === -1) return;
+
+        // Check file size limit
+        if (file.size > FS_MAX_FILE_SIZE) {
+            showToast(`Fail terlalu besar! Had maksimum ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
+            return;
         }
+
+        const docData = {
+            status: "Dalam Semakan",
+            fileName: file.name,
+            fileSize: sizeStr,
+            uploadDate: formattedTime,
+            feedback: ""
+        };
+
+        if (!result.useBase64) {
+            // Firebase Storage success
+            docData.fileUrl = result.downloadURL;
+        } else {
+            // Firestore chunked file storage (FREE — no Firebase Storage needed)
+            showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
+            const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
+            docData.fileRef = fileRef;
+            // Also keep in-memory for immediate display (not saved to Firestore student doc)
+            docData.fileData = base64Data;
+        }
+
+        saveDocumentToStudent(studentIdx, docId, docData, students);
     };
     reader.readAsDataURL(file);
 };
@@ -2962,49 +3265,59 @@ window.handleFileSelected = function(event, docId) {
 window.handleLecturerFileUpload = function(regNo, docId, inputEl) {
     const file = inputEl.files[0];
     if (!file) return;
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showToast("Fail melebihi had saiz 5MB!", "error");
-        return;
-    }
-    
+
+    const now = new Date();
+    const formattedTime = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, '0') + "-" +
+        String(now.getDate()).padStart(2, '0') + " " +
+        String(now.getHours()).padStart(2, '0') + ":" +
+        String(now.getMinutes()).padStart(2, '0');
+    const sizeKB = file.size / 1024;
+    const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
+
+    showToast(`Memuat naik borang markah...`, "info");
+    const storagePath = `lecturer_docs/${regNo}/${docId}/${Date.now()}_${file.name}`;
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         const base64Data = e.target.result;
-        
+        const result = await uploadFileWithFallback(file, storagePath, null);
+
         const students = getStudents();
         const studentIdx = students.findIndex(s => s.regNo === regNo);
-        
-        if (studentIdx !== -1) {
-            const now = new Date();
-            const formattedTime = now.getFullYear() + "-" + 
-                String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-                String(now.getDate()).padStart(2, '0') + " " + 
-                String(now.getHours()).padStart(2, '0') + ":" + 
-                String(now.getMinutes()).padStart(2, '0');
-            
-            const sizeKB = file.size / 1024;
-            const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
-            
-            students[studentIdx].documents[docId] = {
-                status: "Diterima", // Auto-approved since uploaded by supervisor
-                fileName: file.name,
-                fileSize: sizeStr,
-                uploadDate: formattedTime,
-                feedback: "Dimuat naik oleh Pensyarah Seliaan",
-                fileData: file.size < 500 * 1024 ? base64Data : ""
-            };
-            
-            saveStudents(students);
-            
-            addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
-            showToast(`Fail "${file.name}" berjaya dimuat naik dan diluluskan.`, "success");
-            
-            renderLecturerStudentsList();
+        if (studentIdx === -1) return;
+
+        if (file.size > FS_MAX_FILE_SIZE) {
+            showToast(`Fail terlalu besar! Had ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
+            return;
         }
+
+        const docData = {
+            status: "Diterima",
+            fileName: file.name,
+            fileSize: sizeStr,
+            uploadDate: formattedTime,
+            feedback: "Dimuat naik oleh Pensyarah Seliaan"
+        };
+
+        if (!result.useBase64) {
+            docData.fileUrl = result.downloadURL;
+        } else {
+            showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
+            const fileRef = await saveFileToFirestore(regNo, docId, base64Data);
+            docData.fileRef = fileRef;
+            docData.fileData = base64Data; // In-memory for immediate display
+        }
+
+        students[studentIdx].documents[docId] = docData;
+        saveStudents(students);
+        addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
+        showToast(`Fail "${file.name}" berjaya dimuat naik dan diluluskan.`, "success");
+        renderLecturerStudentsList();
     };
     reader.readAsDataURL(file);
 };
+
 
 // Bulk selection and actions binding
 function setupBulkActionListeners() {
@@ -3278,8 +3591,8 @@ function closeEditStudentModal() {
 // --------------------------------------------------------------------------
 // M. INITIALIZATION & SETUP
 // --------------------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-    initDatabase();
+document.addEventListener("DOMContentLoaded", async () => {
+    await initDatabase();
     startClock();
     setupBulkActionListeners();
     initTheme();
@@ -3338,37 +3651,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // RUBRIK PEMARKAHAN MODULE
 // ==========================================================================
 
-// --- localStorage helpers ---
-function getRubriks() {
-    return JSON.parse(localStorage.getItem("upli_rubriks") || "[]");
-}
-function saveRubriks(data) {
-    try {
-        localStorage.setItem("upli_rubriks", JSON.stringify(data));
-    } catch (e) {
-        if (e.name === 'QuotaExceededError' || e.code === 22) {
-            // For rubriks, since they are static reference files, we compress them if they exceed quota
-            console.warn("LocalStorage Quota Exceeded for Rubrik! Optimizing...");
-            let optimized = false;
-            data.forEach(r => {
-                if (r.fileData && r.fileData.length > 50000) {
-                    r.fileData = "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nIC9QYWdlcyAyIDAgUiA+PgplbmRvYmoKMiAwIG9iagogIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbIDMgMCBSIF0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKICA8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUgODQyIF0gPj4KZW5kb2JqCnRyYWlsZXIKICA8PCAvUm9vdCAxIDAgUiA+JQolRU9GCg==";
-                    optimized = true;
-                }
-            });
-            if (optimized) {
-                try {
-                    localStorage.setItem("upli_rubriks", JSON.stringify(data));
-                    showToast("Simulasi Storan: Fail Rubrik disimpan secara simulasi kerana had storan pelayar.", "info");
-                    return;
-                } catch(retryErr) {}
-            }
-            showToast("Gagal menyimpan Rubrik: Storan pelayar penuh! Sila gunakan fail PDF bersaiz lebih kecil.", "error");
-        } else {
-            throw e;
-        }
-    }
-}
+// Note: getRubriks() and saveRubriks() are defined in the Firestore data layer (line ~444)
+// and use dbCache for cloud sync. Do NOT redefine them here.
 
 // --- File input: show selected filename on zone label ---
 document.getElementById("rubrik-file-input").addEventListener("change", function() {
@@ -3630,6 +3914,12 @@ window.switchPortalTab = function(tabName) {
         pane.style.display = "none";
     });
 
+    // Reset scroll position of public content container to prevent layout shifting
+    const portalContent = document.querySelector(".portal-content");
+    if (portalContent) {
+        portalContent.scrollTop = 0;
+    }
+
     if (tabName === 'dashboard') {
         const btn = document.getElementById("btn-portal-home");
         if (btn) btn.classList.add("active");
@@ -3638,9 +3928,9 @@ window.switchPortalTab = function(tabName) {
     } else if (tabName === 'login') {
         const btn = document.getElementById("btn-portal-login-tab");
         if (btn) btn.classList.add("active");
-        document.getElementById("portal-tab-login").style.display = "block";
+        document.getElementById("portal-tab-login").style.display = "flex";
     } else if (tabName === 'register') {
-        document.getElementById("portal-tab-register").style.display = "block";
+        document.getElementById("portal-tab-register").style.display = "flex";
     }
 };
 

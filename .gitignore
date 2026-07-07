@@ -2,6 +2,10 @@
 *.xlsx
 *.xls
 
+# Token and secret files
+token*.txt
+*.token
+
 # System files
 .DS_Store
 Thumbs.db
