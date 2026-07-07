@@ -335,8 +335,10 @@ input:focus, select:focus, textarea:focus {
 .logo-icon {
     font-size: 2.2rem;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    display: inline-block;
     filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
 }
 

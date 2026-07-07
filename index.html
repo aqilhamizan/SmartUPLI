@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ms">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Stylesheet -->
@@ -16,19 +19,25 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
 </head>
+
 <body>
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Custom Confirm Modal (replaces native browser confirm()) -->
-    <div id="custom-confirm-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:28px 32px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.5); text-align:center;">
+    <div id="custom-confirm-overlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+        <div
+            style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:28px 32px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.5); text-align:center;">
             <div id="custom-confirm-icon" style="font-size:2.2rem; margin-bottom:12px; color:var(--color-danger);">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h3 id="custom-confirm-title" style="font-size:1.1rem; font-weight:700; margin-bottom:8px; color:var(--text-primary);">Pengesahan Diperlukan</h3>
-            <p id="custom-confirm-message" style="font-size:0.88rem; color:var(--text-muted); margin-bottom:24px; line-height:1.6;"></p>
+            <h3 id="custom-confirm-title"
+                style="font-size:1.1rem; font-weight:700; margin-bottom:8px; color:var(--text-primary);">Pengesahan
+                Diperlukan</h3>
+            <p id="custom-confirm-message"
+                style="font-size:0.88rem; color:var(--text-muted); margin-bottom:24px; line-height:1.6;"></p>
             <div style="display:flex; gap:12px; justify-content:center;">
                 <button id="custom-confirm-cancel" class="btn btn-secondary" style="min-width:100px;">Batal</button>
                 <button id="custom-confirm-ok" class="btn btn-danger" style="min-width:100px;">Padam</button>
@@ -40,55 +49,77 @@
     <div id="app">
 
         <!-- ================= PUBLIC PORTAL VIEW ================= -->
-        <section id="portal-view" class="view-section active" style="min-height: 100vh; display: flex; background: var(--bg-main);">
-            
+        <section id="portal-view" class="view-section active"
+            style="min-height: 100vh; display: flex; background: var(--bg-main);">
+
             <!-- Left Sidebar for Public Navigation -->
             <aside class="portal-sidebar">
                 <div>
-                    <div class="portal-sidebar-header" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); text-align: center; width: 100%;">
-                        <img src="smartupli_logo.png" alt="Logo SmartUPLI" style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-primary); box-shadow: 0 0 12px rgba(20,184,166,0.3);">
+                    <div class="portal-sidebar-header"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); text-align: center; width: 100%;">
+                        <img src="smartupli_logo.png" alt="Logo SmartUPLI"
+                            style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-primary); box-shadow: 0 0 12px rgba(20,184,166,0.3);">
                         <div style="text-align: center;">
-                            <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 0; line-height: 1;">Smart<span>UPLI</span></h3>
-                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; margin-bottom: 0;">Sistem Pengurusan Dokumen UPLI</p>
+                            <h3
+                                style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 0; line-height: 1;">
+                                Smart<span>UPLI</span></h3>
+                            <p
+                                style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; margin-bottom: 0;">
+                                Sistem Pengurusan Dokumen UPLI</p>
                         </div>
                     </div>
-                    
+
                     <nav class="portal-nav" style="display: flex; flex-direction: column; gap: 8px;">
-                        <button class="portal-nav-item active" id="btn-portal-home" onclick="switchPortalTab('dashboard')">
+                        <button class="portal-nav-item active" id="btn-portal-home"
+                            onclick="switchPortalTab('dashboard')">
                             <i class="fa-solid fa-chart-pie"></i> Menu Utama
                         </button>
                         <button class="portal-nav-item" id="btn-portal-login-tab" onclick="switchPortalTab('login')">
-                            <i class="fa-solid fa-right-to-bracket"></i> Log Masuk Portal
+                            <i class="fa-solid fa-right-to-bracket"></i> Daftar Masuk
                         </button>
-                        <button class="portal-nav-item" id="btn-portal-return-dash">
+                        <button class="portal-nav-item" id="btn-portal-return-dash"
+                            style="display: none; color: var(--color-primary) !important;">
                             <i class="fa-solid fa-gauge-high"></i> Ke Dashboard
                         </button>
-                        <button class="portal-nav-item" id="btn-portal-logout">
+                        <button class="portal-nav-item" id="btn-portal-logout"
+                            style="display: none; color: #ef4444 !important;">
                             <i class="fa-solid fa-right-from-bracket"></i> Log Keluar
                         </button>
                     </nav>
                 </div>
-                
-                <div class="portal-sidebar-footer" style="font-size: 0.75rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
+
+                <div class="portal-sidebar-footer"
+                    style="font-size: 0.75rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
                     <p style="margin-bottom: 4px;">Hakcipta © 2026 UPLI, PKK</p>
                     <p style="font-size: 0.65rem;">Versi 2.2 (Premium)</p>
                 </div>
             </aside>
 
             <!-- Main Content Area of Public Portal -->
-            <main class="portal-content" style="flex: 1; padding: 40px; box-sizing: border-box; overflow-y: auto; height: 100vh;">
-                
+            <main class="portal-content"
+                style="flex: 1; padding: 40px; box-sizing: border-box; overflow-y: auto; height: 100vh;">
+
                 <!-- Tab 1: Dashboard Utama (Public Stats) -->
                 <div id="portal-tab-dashboard" class="portal-tab-pane active" style="display: block;">
-                    <div style="margin-bottom: 35px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 24px;">
-                        <div class="portal-header-logos-frame" style="display: inline-flex; align-items: center; gap: 24px; padding: 12px 24px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); margin-bottom: 20px;">
-                            <img src="polikk_logo.png" alt="Logo Politeknik KK" style="height: 70px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div
+                        style="margin-bottom: 35px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 24px;">
+                        <div class="portal-header-logos-frame"
+                            style="display: inline-flex; align-items: center; gap: 24px; padding: 12px 24px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); margin-bottom: 20px;">
+                            <img src="polikk_logo.png" alt="Logo Politeknik KK"
+                                style="height: 70px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                             <div style="width: 1px; height: 50px; background: var(--border-color);"></div>
-                            <img src="smartupli_logo.png" alt="Logo SmartUPLI" style="height: 70px; width: auto; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));">
+                            <img src="smartupli_logo.png" alt="Logo SmartUPLI"
+                                style="height: 70px; width: auto; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));">
                         </div>
-                        <h1 style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); background: linear-gradient(135deg, var(--text-primary), var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; line-height: 1.2;">Sistem Pengurusan Dokumen UPLI</h1>
-                        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 15px; font-family: var(--font-display);">Politeknik Kota Kinabalu</h2>
-                        <p style="color: var(--text-secondary); font-size: 1rem; max-width: 800px; margin: 0 auto;">Paparan status penghantaran dan statistik dokumen UPLI mengikut Jabatan dan Program Pengajian.</p>
+                        <h1
+                            style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); background: linear-gradient(135deg, var(--text-primary), var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; line-height: 1.2;">
+                            Sistem Pengurusan Dokumen UPLI</h1>
+                        <h2
+                            style="font-size: 1.4rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 15px; font-family: var(--font-display);">
+                            Politeknik Kota Kinabalu</h2>
+                        <p style="color: var(--text-secondary); font-size: 1rem; max-width: 800px; margin: 0 auto;">
+                            Paparan status penghantaran dan statistik dokumen UPLI mengikut Jabatan dan Program
+                            Pengajian</p>
                     </div>
 
                     <!-- Summary Stats Rows -->
@@ -101,41 +132,54 @@
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon" style="background: rgba(16,185,129,0.12); color: var(--color-success);"><i class="fa-solid fa-folder-check"></i></div>
+                            <div class="stat-icon"
+                                style="background: rgba(16,185,129,0.12); color: var(--color-success);"><i
+                                    class="fa-solid fa-folder-check"></i></div>
                             <div class="stat-data">
                                 <h2 id="portal-total-complete" style="color: var(--color-success);">0</h2>
-                                <p>Pelajar Dokumen Lengkap</p>
+                                <p>Jumlah Lengkap Menghantar Dokumen</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon" style="background: rgba(99,102,241,0.12); color: var(--color-primary);"><i class="fa-solid fa-percent"></i></div>
+                            <div class="stat-icon"
+                                style="background: rgba(99,102,241,0.12); color: var(--color-primary);"><i
+                                    class="fa-solid fa-percent"></i></div>
                             <div class="stat-data">
                                 <h2 id="portal-completion-rate" style="color: var(--color-primary);">0%</h2>
-                                <p>Kadar Penyempurnaan</p>
+                                <p>Peratusan Penghantaran</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Departments Grid -->
-                    <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                    <h3
+                        style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-building-user text-accent"></i> Ringkasan Statistik Mengikut Jabatan
                     </h3>
-                    
-                    <div id="portal-departments-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-bottom: 40px;">
+
+                    <div id="portal-departments-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-bottom: 40px;">
                         <!-- Dynamically loaded department cards -->
                     </div>
                 </div>
 
                 <!-- Tab 2: Login Forms -->
-                <div id="portal-tab-login" class="portal-tab-pane">
-                    <div class="portal-login-card">
+                <div id="portal-tab-login" class="portal-tab-pane"
+                    style="display: none; align-items: center; justify-content: center; min-height: calc(100vh - 80px);">
+                    <div
+                        style="max-width: 500px; width: 100%; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
                         <div class="login-header" style="padding: 40px 30px 20px 30px; text-align: center;">
-                            <div class="login-logos-container" style="display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 20px;">
-                                <img src="polikk_logo.png" alt="Logo Politeknik KK" style="height: 75px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
+                            <div class="login-logos-container"
+                                style="display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 20px;">
+                                <img src="polikk_logo.png" alt="Logo Politeknik KK"
+                                    style="height: 75px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
                                 <div style="width: 1px; height: 50px; background: var(--border-color);"></div>
-                                <img src="smartupli_logo.png" alt="Logo SmartUPLI" style="height: 75px; width: auto; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
+                                <img src="smartupli_logo.png" alt="Logo SmartUPLI"
+                                    style="height: 75px; width: auto; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
                             </div>
-                            <p class="subtitle" style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-top: 10px;">Unit Perhubungan & Latihan Industri (UPLI) POLIKK</p>
+                            <p class="subtitle"
+                                style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-top: 10px;">
+                                Unit Perhubungan & Latihan Industri (UPLI) Politeknik Kota Kinabalu</p>
                         </div>
 
                         <!-- Role Selector Tabs -->
@@ -156,9 +200,11 @@
                             <!-- Student Login Form -->
                             <form id="student-login-form" class="login-form active">
                                 <div class="form-group">
-                                    <label for="student-reg"><i class="fa-solid fa-id-card"></i> No. Pendaftaran Pelajar</label>
-                                    <input type="text" id="student-reg" placeholder="Contoh: 13DDT23F1001" required autocomplete="off">
-                                    <span class="input-desc">Gunakan nombor pendaftaran yang telah didaftarkan oleh Admin.</span>
+                                    <label for="student-reg"><i class="fa-solid fa-id-card"></i> No. Pendaftaran
+                                        Pelajar</label>
+                                    <input type="text" id="student-reg" placeholder="Contoh: 07DKA23F1234" required
+                                        autocomplete="off">
+                                    <span class="input-desc">Gunakan nombor pendaftaran masing-masing/span>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">
                                     Log Masuk <i class="fa-solid fa-right-to-bracket"></i>
@@ -168,9 +214,12 @@
                             <!-- Lecturer Login Form -->
                             <form id="lecturer-login-form" class="login-form">
                                 <div class="form-group">
-                                    <label for="lecturer-email"><i class="fa-solid fa-envelope"></i> Emel Pensyarah</label>
-                                    <input type="email" id="lecturer-email" placeholder="Contoh: nama@polikk.edu.my" required autocomplete="email">
-                                    <span class="input-desc">Log masuk terus menggunakan emel rasmi @polikk.edu.my (Tanpa Kata Laluan).</span>
+                                    <label for="lecturer-email"><i class="fa-solid fa-envelope"></i> Emel
+                                        Pensyarah</label>
+                                    <input type="email" id="lecturer-email" placeholder="Contoh: nama@polikk.edu.my"
+                                        required autocomplete="email">
+                                    <span class="input-desc">Log masuk terus menggunakan emel rasmi @polikk.edu.my
+                                        (Tanpa Kata Laluan).</span>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">
                                     Log Masuk <i class="fa-solid fa-right-to-bracket"></i>
@@ -181,13 +230,17 @@
                             <form id="admin-login-form" class="login-form">
                                 <div class="form-group">
                                     <label for="admin-email"><i class="fa-solid fa-envelope"></i> Emel Admin</label>
-                                    <input type="email" id="admin-email" placeholder="Contoh: admin@polikk.edu.my" required autocomplete="email">
+                                    <input type="email" id="admin-email" placeholder="Contoh: admin@polikk.edu.my"
+                                        required autocomplete="email">
                                 </div>
                                 <div class="form-group">
-                                    <label for="admin-password"><i class="fa-solid fa-lock"></i> Kata Laluan (No. ID Staf)</label>
+                                    <label for="admin-password"><i class="fa-solid fa-lock"></i> Kata Laluan (No. ID
+                                        Staf)</label>
                                     <div class="password-input-wrapper">
-                                        <input type="password" id="admin-password" placeholder="Masukkan ID Staf anda" required autocomplete="current-password">
-                                        <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                                        <input type="password" id="admin-password" placeholder="Masukkan ID Staf anda"
+                                            required autocomplete="current-password">
+                                        <button type="button" class="toggle-password"><i
+                                                class="fa-solid fa-eye"></i></button>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">
@@ -197,18 +250,22 @@
                         </div>
 
                         <div class="login-footer">
-                            <p>Pentadbir UPLI baharu? <a href="#" id="link-to-register">Daftar Admin Baru</a></p>
+                            <p>Pegawai UPLI baharu? <a href="#" id="link-to-register">Daftar Admin Baru</a></p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tab 3: Register Form -->
-                <div id="portal-tab-register" class="portal-tab-pane">
-                    <div class="portal-login-card">
+                <div id="portal-tab-register" class="portal-tab-pane"
+                    style="display: none; align-items: center; justify-content: center; min-height: calc(100vh - 80px);">
+                    <div
+                        style="max-width: 500px; width: 100%; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
                         <div class="login-header" style="padding: 40px 30px 20px 30px; text-align: center;">
                             <div class="logo">
                                 <i class="fa-solid fa-user-plus logo-icon text-accent" style="font-size: 2.2rem;"></i>
-                                <span style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Daftar <span>Admin</span></span>
+                                <span
+                                    style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Daftar
+                                    <span>Admin</span></span>
                             </div>
                             <p class="subtitle" style="margin-top: 10px;">Pendaftaran Pentadbir Sistem Baharu POLIKK</p>
                         </div>
@@ -216,17 +273,21 @@
                         <form id="register-admin-form" class="register-form" style="padding: 0 30px 20px 30px;">
                             <div class="form-group">
                                 <label for="reg-admin-name"><i class="fa-solid fa-user"></i> Nama Penuh</label>
-                                <input type="text" id="reg-admin-name" placeholder="Nama penuh anda" required autocomplete="name">
+                                <input type="text" id="reg-admin-name" placeholder="Nama penuh anda" required
+                                    autocomplete="name">
                             </div>
                             <div class="form-group">
                                 <label for="reg-admin-email"><i class="fa-solid fa-envelope"></i> Emel Rasmi</label>
-                                <input type="email" id="reg-admin-email" placeholder="contoh@polikk.edu.my" required autocomplete="email">
+                                <input type="email" id="reg-admin-email" placeholder="contoh@polikk.edu.my" required
+                                    autocomplete="email">
                                 <span class="input-desc">Mestilah menggunakan emel domain @polikk.edu.my sahaja.</span>
                             </div>
                             <div class="form-group">
                                 <label for="reg-admin-id"><i class="fa-solid fa-id-badge"></i> No. ID Staf</label>
-                                <input type="text" id="reg-admin-id" placeholder="Contoh: STAFF987" required autocomplete="off">
-                                <span class="input-desc">ID Staf ini akan didaftarkan sebagai kata laluan untuk log masuk anda.</span>
+                                <input type="text" id="reg-admin-id" placeholder="Contoh: STAFF987" required
+                                    autocomplete="off">
+                                <span class="input-desc">ID Staf ini akan didaftarkan sebagai kata laluan untuk log
+                                    masuk anda.</span>
                             </div>
                             <button type="submit" class="btn btn-accent btn-block">
                                 Daftar Akaun <i class="fa-solid fa-user-plus"></i>
@@ -243,21 +304,25 @@
 
         <!-- ================= MAIN LAYOUT (STUDENT, LECTURER, ADMIN) ================= -->
         <div id="dashboard-layout" class="dashboard-layout">
-            
+
             <!-- Sidebar Navigation -->
             <aside class="sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-logo-container">
-                        <img src="smartupli_logo.png" alt="Logo SmartUPLI">
+                <div class="sidebar-header"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+                    <div class="sidebar-logo-container"
+                        style="display: block; width: 100%; margin: 0 auto; text-align: center;">
+                        <img src="smartupli_logo.png" alt="Logo SmartUPLI"
+                            style="height: 72px; width: 72px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-primary); box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(99,102,241,0.15); margin: 0 auto; display: block;">
                     </div>
-                    <span class="role-badge" id="user-role-badge">Pelajar</span>
+                    <span class="role-badge" id="user-role-badge"
+                        style="display: block; margin: 8px auto 0 auto; text-align: center; width: max-content; align-self: center;">Pelajar</span>
                 </div>
 
                 <div class="sidebar-user">
                     <div class="avatar" id="user-avatar">P</div>
                     <div class="user-details">
                         <h4 id="sidebar-user-name">Nama Pengguna</h4>
-                        <p id="sidebar-user-sub">13DDT23F1001</p>
+                        <p id="sidebar-user-sub">07DKA23F1234</p>
                     </div>
                 </div>
 
@@ -282,7 +347,7 @@
                             <i class="fa-solid fa-chart-pie"></i> Ringkasan Jabatan
                         </a>
                         <a href="#" class="nav-item" data-tab="lecturer-students">
-                            <i class="fa-solid fa-users"></i> Tab Seliaan Saya
+                            <i class="fa-solid fa-users"></i> Pelajar Seliaan Saya
                         </a>
                         <a href="#" class="nav-item" data-tab="rubrik-viewer">
                             <i class="fa-solid fa-book-open"></i> Rubrik Pemarkahan
@@ -292,7 +357,7 @@
                     <!-- Admin Nav -->
                     <div class="nav-group" id="nav-admin">
                         <a href="#" class="nav-item active" data-tab="admin-dashboard">
-                            <i class="fa-solid fa-chart-line"></i> Dashboard Statistik
+                            <i class="fa-solid fa-chart-line"></i> Statistik
                         </a>
                         <a href="#" class="nav-item" data-tab="admin-students">
                             <i class="fa-solid fa-user-graduate"></i> Pengurusan Pelajar
@@ -309,14 +374,15 @@
                     </div>
                 </nav>
 
-                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: auto;">
+                <div
+                    style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: auto;">
                     Hakcipta © 2026 UPLI, PKK
                 </div>
             </aside>
 
             <!-- Main Content Container -->
             <main class="main-content">
-                
+
                 <!-- Top Header -->
                 <header class="content-header">
                     <div class="header-left">
@@ -335,14 +401,18 @@
                             <i class="fa-regular fa-clock"></i>
                             <span id="current-time-display">00:00:00</span>
                         </div>
-                        <button class="btn-theme-toggle" id="theme-toggle-btn" title="Tukar Mod Gelap/Cerah" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); cursor: pointer; font-size: 1rem; transition: var(--transition-fast); outline: none;">
+                        <button class="btn-theme-toggle" id="theme-toggle-btn" title="Tukar Mod Gelap/Cerah"
+                            style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); cursor: pointer; font-size: 1rem; transition: var(--transition-fast); outline: none;">
                             <i class="fa-solid fa-moon"></i>
                         </button>
                         <div class="profile-summary">
                             <span class="user-role-label" id="header-user-role">Pelajar</span>
                             <div class="avatar mini-avatar" id="header-avatar">P</div>
                         </div>
-                        <button class="btn btn-menu-utama-header" id="btn-menu-utama-header">
+                        <button class="btn btn-menu-utama-header" id="btn-menu-utama-header"
+                            style="display: flex; align-items: center; gap: 8px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: var(--color-primary); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-fast);"
+                            onmouseover="this.style.background='rgba(99, 102, 241, 0.2)'"
+                            onmouseout="this.style.background='rgba(99, 102, 241, 0.1)'">
                             <i class="fa-solid fa-house"></i> Menu Utama
                         </button>
                         <button class="btn btn-logout-header" id="logout-btn">
@@ -360,7 +430,8 @@
                         <div class="welcome-banner">
                             <div class="welcome-text">
                                 <h1>Selamat Datang Kembali, <span id="student-welcome-name">Pelajar</span>! 👋</h1>
-                                <p>Sila pastikan semua dokumen latihan industri anda dimuat naik dan diluluskan oleh pensyarah pemantau atau penilai.</p>
+                                <p>Sila pastikan semua dokumen latihan industri anda dimuat naik dan diluluskan oleh
+                                    Pegawai UPLI</p>
                             </div>
                             <div class="welcome-icon">
                                 <i class="fa-solid fa-circle-check"></i>
@@ -370,7 +441,7 @@
                         <!-- Progress & Details Grid -->
                         <div class="dashboard-grid">
                             <div class="card status-progress-card">
-                                <h3>Kemajuan Dokumen</h3>
+                                <h3>Status Penghantaran</h3>
                                 <div class="progress-bar-container">
                                     <div class="progress-bar" id="student-progress-bar" style="width: 0%"></div>
                                     <span class="progress-text" id="student-progress-text">0/5 Diluluskan</span>
@@ -434,33 +505,43 @@
                             <!-- Personal Profile Card -->
                             <div class="card info-card" id="student-personal-profile-card">
                                 <h3>Profil Peribadi</h3>
-                                <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:15px; text-align:center; gap:8px;">
-                                    <div class="avatar" id="profile-card-avatar" style="width: 70px; height: 70px; font-size: 1.8rem; cursor:pointer; position:relative; border: 2px solid var(--color-primary); background: var(--bg-primary); display:flex; align-items:center; justify-content:center; border-radius:50%;" onclick="document.getElementById('profile-pic-upload-self').click()">
+                                <div
+                                    style="display:flex; flex-direction:column; align-items:center; margin-bottom:15px; text-align:center; gap:8px;">
+                                    <div class="avatar" id="profile-card-avatar"
+                                        style="width: 70px; height: 70px; font-size: 1.8rem; cursor:pointer; position:relative; border: 2px solid var(--color-primary); background: var(--bg-primary); display:flex; align-items:center; justify-content:center; border-radius:50%;"
+                                        onclick="document.getElementById('profile-pic-upload-self').click()">
                                         P
-                                        <div style="position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:0.6rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--bg-card);">
+                                        <div
+                                            style="position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:0.6rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--bg-card);">
                                             <i class="fa-solid fa-camera"></i>
                                         </div>
                                     </div>
-                                    <input type="file" id="profile-pic-upload-self" style="display:none;" accept="image/*" onchange="handleProfilePicUploaded('self', this)">
-                                    <span style="font-size:0.65rem; color:var(--text-muted);">Klik gambar untuk tukar</span>
+                                    <input type="file" id="profile-pic-upload-self" style="display:none;"
+                                        accept="image/*" onchange="handleProfilePicUploaded('self', this)">
+                                    <span style="font-size:0.65rem; color:var(--text-muted);">Klik untuk upload
+                                        gambar</span>
                                 </div>
                                 <div class="student-info-section">
                                     <div class="info-row">
                                         <i class="fa-solid fa-envelope text-accent"></i>
                                         <div class="info-details" style="width: 100%;">
                                             <span>Emel Pelajar:</span>
-                                            <input type="email" id="profile-self-email" placeholder="Sila masukkan emel" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); width:100%; box-sizing: border-box;">
+                                            <input type="email" id="profile-self-email" placeholder="Sila masukkan emel"
+                                                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); width:100%; box-sizing: border-box;">
                                         </div>
                                     </div>
                                     <div class="info-row" style="margin-top: 10px;">
                                         <i class="fa-solid fa-phone text-success"></i>
                                         <div class="info-details" style="width: 100%;">
                                             <span>No. Telefon:</span>
-                                            <input type="tel" id="profile-self-phone" placeholder="Contoh: 012-3456789" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); width:100%; box-sizing: border-box;">
+                                            <input type="tel" id="profile-self-phone" placeholder="Contoh: 012-3456789"
+                                                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); width:100%; box-sizing: border-box;">
                                         </div>
                                     </div>
                                 </div>
-                                <button class="btn btn-primary btn-block" style="margin-top: 16px; padding: 8px 16px; font-size: 0.85rem; gap: 6px;" onclick="updateSelfProfile()">
+                                <button class="btn btn-primary btn-block"
+                                    style="margin-top: 16px; padding: 8px 16px; font-size: 0.85rem; gap: 6px;"
+                                    onclick="updateSelfProfile()">
                                     <i class="fa-solid fa-floppy-disk"></i> Kemaskini Profil
                                 </button>
                             </div>
@@ -469,7 +550,8 @@
                         <div class="alert-box info mt-4">
                             <i class="fa-solid fa-circle-info"></i>
                             <div class="alert-content">
-                                <strong>Panduan Sistem:</strong> Sila gunakan tab "Penghantaran Dokumen" untuk memuat naik fail. Selepas dimuat naik, pensyarah pemantau/penilai anda akan menyemak dokumen tersebut.
+                                <strong>Panduan Sistem:</strong> Sila gunakan tab "Penghantaran Dokumen" untuk memuat
+                                naik fail. Selepas dimuat naik, Pegawai UPLI akan menyemak dokumen tersebut.
                             </div>
                         </div>
                     </section>
@@ -479,22 +561,29 @@
                         <div class="section-header-box">
                             <div>
                                 <h3>Penghantaran Dokumen UPLI</h3>
-                                <p>Sila muat naik fail dokumen mengikut format yang ditetapkan. Sila klik "Papar" bagi dokumen yang telah diupload.</p>
+                                <p>Sila muat naik fail dokumen mengikut format yang ditetapkan. Sila klik "Papar" bagi
+                                    dokumen yang telah diupload.</p>
                             </div>
                         </div>
 
                         <!-- Download All Banner (shown when all docs complete) -->
-                        <div id="download-all-docs-banner" style="display:none; margin-bottom: 20px; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                        <div id="download-all-docs-banner"
+                            style="display:none; margin-bottom: 20px; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
                             <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="width:44px; height:44px; border-radius:50%; background: rgba(16,185,129,0.2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color: var(--color-success);">
+                                <div
+                                    style="width:44px; height:44px; border-radius:50%; background: rgba(16,185,129,0.2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color: var(--color-success);">
                                     <i class="fa-solid fa-circle-check"></i>
                                 </div>
                                 <div>
-                                    <div style="font-weight:700; font-size:1rem; color: var(--color-success);">Semua Dokumen Lengkap!</div>
-                                    <div style="font-size:0.78rem; color: var(--text-muted);">Semua fail telah dimuat naik. Anda boleh muat turun semua dokumen dalam satu fail ZIP.</div>
+                                    <div style="font-weight:700; font-size:1rem; color: var(--color-success);">Semua
+                                        Dokumen Lengkap!</div>
+                                    <div style="font-size:0.78rem; color: var(--text-muted);">Semua fail telah dimuat
+                                        naik. Anda boleh muat turun semua dokumen dalam satu fail ZIP.</div>
                                 </div>
                             </div>
-                            <button id="btn-download-all-docs" class="btn btn-primary" style="gap: 8px; padding: 10px 20px; font-size: 0.85rem; background: var(--color-success); border-color: var(--color-success); white-space:nowrap;" onclick="downloadAllStudentDocs()">
+                            <button id="btn-download-all-docs" class="btn btn-primary"
+                                style="gap: 8px; padding: 10px 20px; font-size: 0.85rem; background: var(--color-success); border-color: var(--color-success); white-space:nowrap;"
+                                onclick="downloadAllStudentDocs()">
                                 <i class="fa-solid fa-file-zipper"></i> Muat Turun Semua Dokumen (ZIP)
                             </button>
                         </div>
@@ -511,8 +600,9 @@
                     <section id="lecturer-dashboard" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Senarai Semua Pelajar UPLI Mengikut Jabatan</h3>
-                                <p>Pilih jabatan di bawah untuk melihat keseluruhan maklumat pelajar latihan industri POLIKK.</p>
+                                <h3>Senarai Semua Pelajar LI Mengikut Jabatan</h3>
+                                <p>Pilih jabatan di bawah untuk melihat keseluruhan maklumat pelajar latihan industri
+                                    PKK.</p>
                             </div>
                         </div>
 
@@ -531,7 +621,8 @@
                                 <h3 id="lecturer-dept-table-title">Senarai Pelajar Jabatan: JKA</h3>
                                 <div class="search-box">
                                     <i class="fa-solid fa-magnifying-glass"></i>
-                                    <input type="text" id="lecturer-dept-student-search" placeholder="Cari nama atau no. pendaftaran...">
+                                    <input type="text" id="lecturer-dept-student-search"
+                                        placeholder="Cari nama atau no. pendaftaran...">
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -554,16 +645,18 @@
                         </div>
                     </section>
 
-                    <!-- Lecturer Students Tab (Tab Seliaan Saya) -->
+                    <!-- Lecturer Students Tab (Pelajar Seliaan Saya) -->
                     <section id="lecturer-students" class="tab-content">
                         <div class="section-header-box">
                             <div>
                                 <h3>Pelajar Di Bawah Seliaan Anda</h3>
-                                <p>Senarai pelajar yang meletakkan anda sebagai <strong>Pensyarah Pemantau</strong> atau <strong>Pensyarah Penilai</strong> mereka.</p>
+                                <p>Senarai pelajar yang diletakkan di bawah anda untuk <strong>Proses
+                                        Pemantauan</strong> dan <strong>Proses Penilaian</strong> mereka.</p>
                             </div>
                             <div class="search-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="lecturer-my-student-search" placeholder="Cari nama atau no. pendaftaran...">
+                                <input type="text" id="lecturer-my-student-search"
+                                    placeholder="Cari nama atau no. pendaftaran...">
                             </div>
                         </div>
 
@@ -585,10 +678,13 @@
                                 </div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); color: var(--color-success);"><i class="fa-solid fa-folder-check"></i></div>
+                                <div class="stat-icon"
+                                    style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); color: var(--color-success);">
+                                    <i class="fa-solid fa-folder-check"></i>
+                                </div>
                                 <div class="stat-data">
                                     <h2 id="admin-stat-complete" style="color: var(--color-success);">0</h2>
-                                    <p>Pelajar Dokumen Lengkap</p>
+                                    <p>Jumlah Lengkap Menghantar Dokumen</p>
                                 </div>
                             </div>
                             <div class="stat-card">
@@ -603,7 +699,7 @@
                         <!-- Department Selection for Admin Dashboard Students View -->
                         <div class="section-header-box">
                             <div>
-                                <h3>Status Kemajuan Dokumen Mengikut Jabatan</h3>
+                                <h3>Status Penghantaran Dokumen Mengikut Jabatan</h3>
                                 <p>Sila pilih jabatan untuk melihat status dokumen serta senarai pelajar.</p>
                             </div>
                         </div>
@@ -647,8 +743,8 @@
                     <section id="admin-students" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Pengurusan Rekod Pelajar UPLI</h3>
-                                <p>Import rekod pelajar, lihat fail, semak dokumen yang dihantar, dan padam akaun pelajar.</p>
+                                <h3>Pengurusan Data Pelajar UPLI</h3>
+                                <p>Import data pelajar, semak dokumen yang dihantar, dan padam akaun pelajar.</p>
                             </div>
                         </div>
 
@@ -666,21 +762,30 @@
                             <div class="card">
                                 <div class="card-header-box">
                                     <div>
-                                        <h3><i class="fa-solid fa-file-arrow-up text-success"></i> Import Rekod Pelajar Baharu</h3>
-                                        <p style="margin:4px 0 0; font-size:0.8rem;" class="text-muted">Pelajar akan didaftarkan ke jabatan: <strong id="import-target-dept-label" style="color:var(--color-primary);">JKA</strong></p>
+                                        <h3><i class="fa-solid fa-file-arrow-up text-success"></i> Import Data Pelajar
+                                            Baharu</h3>
+                                        <p style="margin:4px 0 0; font-size:0.8rem;" class="text-muted">Pelajar akan
+                                            didaftarkan ke jabatan: <strong id="import-target-dept-label"
+                                                style="color:var(--color-primary);">JKA</strong></p>
                                     </div>
                                     <i class="fa-solid fa-file-excel text-success" style="font-size: 1.5rem;"></i>
                                 </div>
-                                <p class="input-desc mb-4" style="margin-top:8px;">Sila muat naik fail Excel atau CSV. Data akan didaftarkan di bawah <strong>Sesi Akademik Aktif</strong> jika kolum 'Sesi' tiada. Jika kolum 'Jabatan' tiada dalam fail, pelajar akan didaftarkan ke jabatan tab yang sedang aktif.</p>
-                                <div class="upload-zone" id="excel-upload-zone" style="padding: 30px 20px; border-style: solid;">
+                                <p class="input-desc mb-4" style="margin-top:8px;">Sila muat naik fail Excel atau CSV.
+                                    Data akan didaftarkan di bawah <strong>Sesi Akademik Aktif</strong> jika column
+                                    'Sesi' tiada. Jika column 'Jabatan' tiada dalam fail, pelajar akan didaftarkan ke
+                                    jabatan tab yang sedang aktif.</p>
+                                <div class="upload-zone" id="excel-upload-zone"
+                                    style="padding: 30px 20px; border-style: solid;">
                                     <i class="fa-solid fa-file-arrow-up text-success"></i>
                                     <span>Pilih Fail Excel / CSV Pelajar</span>
                                     <span class="file-constraint">Format fail: .csv, .xlsx, .xls</span>
                                 </div>
                                 <input type="file" id="excel-file-input" style="display:none;" accept=".csv,.xlsx,.xls">
                                 <div class="excel-template-box mt-4">
-                                    <h5 style="font-size:0.8rem; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-circle-info"></i> Format CSV yang Diterima:</h5>
-                                    <code style="font-size:0.65rem; display:block; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; line-height:1.4; overflow-x:auto;">
+                                    <h5 style="font-size:0.8rem; font-weight:700; margin-bottom:8px;"><i
+                                            class="fa-solid fa-circle-info"></i> Format CSV yang Diterima:</h5>
+                                    <code
+                                        style="font-size:0.65rem; display:block; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; line-height:1.4; overflow-x:auto;">
                                         Nama,No Pendaftaran,Tempat LI,Pensyarah Pemantau,Pensyarah Penilai,Jabatan,Emel,Sesi<br>
                                         Ahmad Rafiqi,13DKA23F2026,Petronas,faridah@polikk.edu.my,rizwan@polikk.edu.my,JKA,rafiqi@student.com,Sesi 1:2026/2027
                                     </code>
@@ -696,20 +801,25 @@
                                 <form id="admin-add-session-form" class="dashboard-form">
                                     <div class="form-group">
                                         <label for="admin-new-session-name">Nama Sesi Akademik Baharu</label>
-                                        <input type="text" id="admin-new-session-name" placeholder="Contoh: Sesi 2:2026/2027" required>
+                                        <input type="text" id="admin-new-session-name"
+                                            placeholder="Contoh: Sesi 2:2026/2027" required>
                                         <span class="input-desc">Format: Sesi [1/2]:[Tahun/Tahun]</span>
                                     </div>
-                                    <button type="submit" class="btn btn-accent btn-block">Daftar Sesi <i class="fa-solid fa-plus"></i></button>
+                                    <button type="submit" class="btn btn-accent btn-block">Daftar Sesi <i
+                                            class="fa-solid fa-plus"></i></button>
                                 </form>
                             </div>
                         </div>
 
                         <!-- Bulk Action Bar -->
-                        <div class="bulk-action-bar card mt-4" style="padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 0px;">
+                        <div class="bulk-action-bar card mt-4"
+                            style="padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 0px;">
                             <div style="display:flex; align-items:center; gap:12px;">
-                                <span id="bulk-select-count" class="text-muted" style="font-size:0.85rem; font-weight:600;">0 pelajar dipilih</span>
-                                <button class="btn btn-secondary btn-sm" id="btn-bulk-delete" disabled style="padding: 6px 12px; background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15); color: var(--color-danger);">
-                                    <i class="fa-solid fa-trash-can"></i> Hapus Terpilih
+                                <span id="bulk-select-count" class="text-muted"
+                                    style="font-size:0.85rem; font-weight:600;">0 pelajar dipilih</span>
+                                <button class="btn btn-secondary btn-sm" id="btn-bulk-delete" disabled
+                                    style="padding: 6px 12px; background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15); color: var(--color-danger);">
+                                    <i class="fa-solid fa-trash-can"></i> Padam Terpilih
                                 </button>
                             </div>
                         </div>
@@ -719,14 +829,16 @@
                                 <h3 id="admin-students-table-title">Pelajar Berdaftar: JKA</h3>
                                 <div class="search-box">
                                     <i class="fa-solid fa-magnifying-glass"></i>
-                                    <input type="text" id="admin-student-search-input" placeholder="Cari nama atau no. pendaftaran...">
+                                    <input type="text" id="admin-student-search-input"
+                                        placeholder="Cari nama atau no. pendaftaran...">
                                 </div>
                             </div>
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th style="width: 40px; text-align: center;"><input type="checkbox" id="admin-student-select-all"></th>
+                                            <th style="width: 40px; text-align: center;"><input type="checkbox"
+                                                    id="admin-student-select-all"></th>
                                             <th>Nama Pelajar</th>
                                             <th>No. Pendaftaran</th>
                                             <th>Tempat Latihan Industri (LI)</th>
@@ -747,15 +859,17 @@
                         <div class="section-header-box">
                             <div>
                                 <h3>Agihan Pensyarah Pemantau & Penilai</h3>
-                                <p>Sila masukkan emel pensyarah secara terus untuk mengagihkan pemantau dan penilai bagi setiap pelajar.</p>
+                                <p>Sila masukkan emel pensyarah secara langsung untuk agihan pemantau dan penilai bagi
+                                    setiap pelajar.</p>
                             </div>
                             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                                 <div class="search-box">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                     <input type="text" id="admin-assign-search-input" placeholder="Cari pelajar...">
                                 </div>
-                                <button class="btn btn-danger btn-sm" id="btn-delete-all-from-lecturers" style="padding: 8px 14px; background: #7f1d1d; border-color: #991b1b; white-space:nowrap;">
-                                    <i class="fa-solid fa-skull-crossbones"></i> Hapus Semua Pelajar
+                                <button class="btn btn-danger btn-sm" id="btn-delete-all-from-lecturers"
+                                    style="padding: 8px 14px; background: #7f1d1d; border-color: #991b1b; white-space:nowrap;">
+                                    <i class="fa-solid fa-skull-crossbones"></i> Padam Semua Pelajar
                                 </button>
                             </div>
                         </div>
@@ -819,8 +933,9 @@
                     <section id="admin-rubrik" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Rubrik Pemarkahan UPLI</h3>
-                                <p>Muat naik fail PDF rubrik pemarkahan untuk rujukan pelajar dan pensyarah. Semua pengguna boleh memuat turun rubrik yang telah dimuat naik.</p>
+                                <h3>Rubrik Pemarkahan</h3>
+                                <p>Muat naik fail PDF rubrik pemarkahan untuk rujukan pelajar dan pensyarah. Semua
+                                    pengguna boleh memuat turun rubrik yang telah dimuat naik.</p>
                             </div>
                         </div>
 
@@ -832,23 +947,31 @@
                             <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
                                 <div class="form-group">
                                     <label for="rubrik-title-input"><i class="fa-solid fa-tag"></i> Tajuk Rubrik</label>
-                                    <input type="text" id="rubrik-title-input" placeholder="Contoh: Rubrik Penilaian Appendix E1 (Kejuruteraan)" autocomplete="off">
+                                    <input type="text" id="rubrik-title-input"
+                                        placeholder="Contoh: Rubrik Penilaian Appendix E1 (Kejuruteraan)"
+                                        autocomplete="off">
                                 </div>
                                 <div class="form-group">
-                                    <label for="rubrik-category-select"><i class="fa-solid fa-layer-group"></i> Kategori</label>
-                                    <select id="rubrik-category-select" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; width: 100%;">
+                                    <label for="rubrik-category-select"><i class="fa-solid fa-layer-group"></i>
+                                        Kategori</label>
+                                    <select id="rubrik-category-select"
+                                        style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; width: 100%;">
                                         <option value="Kejuruteraan">Kejuruteraan (DKA / JKE / JKM)</option>
-                                        <option value="Bukan Kejuruteraan">Bukan Kejuruteraan (DBK / DUB / JP / JPH)</option>
+                                        <option value="Bukan Kejuruteraan">Bukan Kejuruteraan (DBK / DUB / JP / JPH)
+                                        </option>
                                         <option value="Umum">Umum (Semua Pelajar)</option>
                                     </select>
                                 </div>
-                                <div class="upload-zone" id="rubrik-upload-zone" onclick="document.getElementById('rubrik-file-input').click()" style="cursor:pointer;">
+                                <div class="upload-zone" id="rubrik-upload-zone"
+                                    onclick="document.getElementById('rubrik-file-input').click()"
+                                    style="cursor:pointer;">
                                     <i class="fa-solid fa-file-pdf" style="font-size: 2rem; color: #ef4444;"></i>
                                     <span>Klik untuk pilih fail PDF Rubrik</span>
                                     <span class="file-constraint">Format: PDF sahaja (Maks: 10MB)</span>
                                 </div>
                                 <input type="file" id="rubrik-file-input" style="display:none;" accept=".pdf">
-                                <button class="btn btn-primary" id="btn-upload-rubrik" onclick="handleRubrikUpload()" style="align-self: flex-start; gap: 8px;">
+                                <button class="btn btn-primary" id="btn-upload-rubrik" onclick="handleRubrikUpload()"
+                                    style="align-self: flex-start; gap: 8px;">
                                     <i class="fa-solid fa-cloud-arrow-up"></i> Simpan & Muat Naik Rubrik
                                 </button>
                             </div>
@@ -860,7 +983,8 @@
                                 <h3><i class="fa-solid fa-list-ul text-accent"></i> Senarai Rubrik Dimuat Naik</h3>
                                 <span class="badge badge-success" id="rubrik-count-badge">0 Rubrik</span>
                             </div>
-                            <div id="admin-rubrik-list" style="padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 80px;">
+                            <div id="admin-rubrik-list"
+                                style="padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 80px;">
                                 <!-- JS populated -->
                             </div>
                         </div>
@@ -870,11 +994,13 @@
                     <section id="rubrik-viewer" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Rubrik Pemarkahan UPLI</h3>
-                                <p>Senarai rubrik pemarkahan yang telah dimuat naik oleh Admin UPLI. Anda boleh memuat turun mana-mana rubrik untuk rujukan.</p>
+                                <h3>Rubrik Pemarkahan</h3>
+                                <p>Senarai rubrik pemarkahan yang telah dimuat naik oleh Admin UPLI. Anda boleh memuat
+                                    turun mana-mana rubrik untuk rujukan.</p>
                             </div>
                         </div>
-                        <div id="rubrik-viewer-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px; min-height: 80px;">
+                        <div id="rubrik-viewer-list"
+                            style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px; min-height: 80px;">
                             <!-- JS populated -->
                         </div>
                     </section>
@@ -933,7 +1059,7 @@
                         <div class="doc-info-block">
                             <span class="info-label">Pelajar:</span>
                             <h4 id="doc-modal-student-name">Nama Pelajar</h4>
-                            <p id="doc-modal-student-reg">13DDT23F1001</p>
+                            <p id="doc-modal-student-reg">07DKA23F1234</p>
                         </div>
                         <div class="doc-info-block">
                             <span class="info-label">Jenis Dokumen:</span>
@@ -948,12 +1074,14 @@
                                     <p id="doc-modal-file-size">1.2 MB • Dimuat naik pada 03/07/2026</p>
                                 </div>
                                 <div style="display:flex; gap:8px;">
-                                    <button id="doc-modal-view-btn" class="btn btn-icon btn-primary" title="Lihat Fail"><i class="fa-solid fa-eye"></i></button>
-                                    <a href="#" id="doc-modal-download-link" class="btn btn-icon btn-secondary" download title="Muat Turun"><i class="fa-solid fa-download"></i></a>
+                                    <button id="doc-modal-view-btn" class="btn btn-icon btn-primary"
+                                        title="Lihat Fail"><i class="fa-solid fa-eye"></i></button>
+                                    <a href="#" id="doc-modal-download-link" class="btn btn-icon btn-secondary" download
+                                        title="Muat Turun"><i class="fa-solid fa-download"></i></a>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Real/Mock Document Preview Area -->
                         <div class="preview-area">
                             <span class="preview-label">Pra-paparan Fail:</span>
@@ -973,15 +1101,19 @@
                         <!-- Review Action Form -->
                         <form id="doc-review-form" class="doc-review-form">
                             <div class="form-group">
-                                <label for="doc-review-status"><i class="fa-solid fa-circle-check"></i> Keputusan Penilaian</label>
+                                <label for="doc-review-status"><i class="fa-solid fa-circle-check"></i> Keputusan
+                                    Penilaian</label>
                                 <select id="doc-review-status" required>
                                     <option value="Diterima">Terima & Luluskan Dokumen</option>
                                     <option value="Ditolak">Tolak Dokumen (Perlu Pembetulan)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="doc-review-feedback"><i class="fa-solid fa-comment-dots"></i> Ulasan / Maklum Balas</label>
-                                <textarea id="doc-review-feedback" rows="6" placeholder="Sila berikan ulasan jika dokumen ditolak, atau tinggalkan ulasan positif jika diluluskan..." required></textarea>
+                                <label for="doc-review-feedback"><i class="fa-solid fa-comment-dots"></i> Ulasan /
+                                    Maklum Balas</label>
+                                <textarea id="doc-review-feedback" rows="6"
+                                    placeholder="Sila berikan ulasan jika dokumen ditolak, atau tinggalkan ulasan positif jika diluluskan..."
+                                    required></textarea>
                             </div>
                             <button type="submit" class="btn btn-block btn-success" id="btn-submit-review">
                                 Hantar Keputusan <i class="fa-solid fa-paper-plane"></i>
@@ -995,17 +1127,20 @@
 
     <!-- ==================== PREMIUM DOCUMENT VIEWER MODAL ==================== -->
     <div id="document-viewer-modal" class="modal-overlay">
-        <div class="modal-card modal-large" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-card modal-large"
+            style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-file-invoice text-teal"></i> Paparan Dokumen Pintar</h3>
                 <button class="close-viewer-btn close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body" style="flex-grow: 1; overflow-y: auto; background: #e2e8f0; display: flex; justify-content: center; align-items: flex-start; padding: 30px;">
+            <div class="modal-body"
+                style="flex-grow: 1; overflow-y: auto; background: #e2e8f0; display: flex; justify-content: center; align-items: flex-start; padding: 30px;">
                 <div id="document-rendered-view" class="document-rendered-view">
                     <!-- Dynamic rendering of document content will happen here -->
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 24px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+            <div class="modal-footer"
+                style="padding: 15px 24px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn btn-secondary close-viewer-btn">Tutup Paparan</button>
             </div>
         </div>
@@ -1016,21 +1151,27 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-user-pen text-primary"></i> Kemaskini Profil Pelajar</h3>
-                <button class="close-modal-btn" onclick="closeEditStudentModal()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="close-modal-btn" onclick="closeEditStudentModal()"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
                 <form id="edit-student-form">
                     <input type="hidden" id="edit-student-reg-hidden">
-                    
-                    <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:15px; text-align:center; gap:8px;">
-                        <div class="avatar" id="edit-student-modal-avatar" style="width: 70px; height: 70px; font-size: 1.8rem; cursor:pointer; position:relative; border: 2px solid var(--color-primary); background: var(--bg-primary); display:flex; align-items:center; justify-content:center; border-radius:50%;" onclick="document.getElementById('profile-pic-upload-admin').click()">
+
+                    <div
+                        style="display:flex; flex-direction:column; align-items:center; margin-bottom:15px; text-align:center; gap:8px;">
+                        <div class="avatar" id="edit-student-modal-avatar"
+                            style="width: 70px; height: 70px; font-size: 1.8rem; cursor:pointer; position:relative; border: 2px solid var(--color-primary); background: var(--bg-primary); display:flex; align-items:center; justify-content:center; border-radius:50%;"
+                            onclick="document.getElementById('profile-pic-upload-admin').click()">
                             S
-                            <div style="position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:0.6rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--bg-card);">
+                            <div
+                                style="position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:0.6rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--bg-card);">
                                 <i class="fa-solid fa-camera"></i>
                             </div>
                         </div>
-                        <input type="file" id="profile-pic-upload-admin" style="display:none;" accept="image/*" onchange="handleProfilePicUploaded('admin', this)">
-                        <span style="font-size:0.65rem; color:var(--text-muted);">Klik gambar untuk tukar</span>
+                        <input type="file" id="profile-pic-upload-admin" style="display:none;" accept="image/*"
+                            onchange="handleProfilePicUploaded('admin', this)">
+                        <span style="font-size:0.65rem; color:var(--text-muted);">Klik untuk upload gambar</span>
                     </div>
 
                     <div class="form-group">
@@ -1100,4 +1241,5 @@
         }
     </script>
 </body>
+
 </html>

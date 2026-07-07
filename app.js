@@ -13,15 +13,15 @@ const DOC_SCHEMAS = {
             { id: "skop_kerja", title: "Senarai Skop Kerja", desc: "Skop kerja yang dipersetujui semasa latihan industri." }
         ],
         semasa: [
-            { id: "lapor_diri", title: "Kad Pengesahan Lapor Diri", desc: "Kad pengesahan melapor diri di tempat latihan." },
-            { id: "appendix_e2", title: "Appendix E2", desc: "Borang penilaian semasa latihan industri (Kejuruteraan)." }
+            { id: "lapor_diri", title: "Kad Pengesahan Lapor Diri", desc: "Kad pengesahan lapor diri di tempat latihan industri." },
+            { id: "appendix_e2", title: "Appendix E2", desc: "Borang markah Proses Pemantauan semasa latihan industri (Kejuruteraan)." }
         ],
         selepas: [
-            { id: "appendix_e1", title: "Appendix E1", desc: "Borang penilaian selepas latihan industri (Kejuruteraan)." },
-            { id: "appendix_e3", title: "Appendix E3", desc: "Borang laporan penilaian akhir (Kejuruteraan)." },
-            { id: "weekly_reflections", title: "Weekly Reflections (20 muka surat)", desc: "Refleksi mingguan sepanjang latihan (minima 20 muka surat)." },
+            { id: "appendix_e1", title: "Appendix E1", desc: "Borang markah Penilaian Industri semasa latihan industri (Kejuruteraan)." },
+            { id: "appendix_e3", title: "Appendix E3", desc: "Borang markah Penilaian dan Pembentangan Akhir LI (Kejuruteraan)." },
+            { id: "weekly_reflections", title: "Weekly Reflections (20 muka surat)", desc: "Refleksi mingguan sepanjang latihan industri (jumlah 20 muka surat)." },
             { id: "slaid_pembentangan", title: "Slaid Pembentangan", desc: "Slaid untuk sesi pembentangan akhir." },
-            { id: "laporan_akhir", title: "Laporan Akhir LI", desc: "Buku laporan akhir latihan industri lengkap." }
+            { id: "laporan_akhir", title: "Laporan Akhir LI", desc: "Laporan Akhir Latihan Industri (LALI)." }
         ]
     },
     "Bukan Kejuruteraan": {
@@ -30,14 +30,14 @@ const DOC_SCHEMAS = {
             { id: "skop_kerja", title: "Senarai Skop Kerja", desc: "Skop kerja yang dipersetujui semasa latihan industri." }
         ],
         semasa: [
-            { id: "lapor_diri", title: "Kad Pengesahan Lapor Diri", desc: "Kad pengesahan melapor diri di tempat latihan." },
-            { id: "appendix_2", title: "Appendix 2", desc: "Borang penilaian semasa latihan industri (Bukan Kejuruteraan)." }
+            { id: "lapor_diri", title: "Kad Pengesahan Lapor Diri", desc: "Kad pengesahan lapor diri di tempat latihan industri." },
+            { id: "appendix_2", title: "Appendix 2", desc: "Borang markah Proses Pemantauan semasa latihan industri (Bukan Kejuruteraan)." }
         ],
         selepas: [
-            { id: "appendix_1", title: "Appendix 1", desc: "Borang penilaian selepas latihan industri (Bukan Kejuruteraan)." },
-            { id: "weekly_reflections", title: "Weekly Reflections (20 muka surat)", desc: "Refleksi mingguan sepanjang latihan (minima 20 muka surat)." },
+            { id: "appendix_1", title: "Appendix 1", desc: "Borang markah Penilaian Industri semasa latihan industri (Bukan Kejuruteraan)." },
+            { id: "weekly_reflections", title: "Weekly Reflections (20 muka surat)", desc: "Refleksi mingguan sepanjang latihan (jumlah 20 muka surat)." },
             { id: "slaid_pembentangan", title: "Slaid Pembentangan", desc: "Slaid untuk sesi pembentangan akhir." },
-            { id: "laporan_akhir", title: "Laporan Akhir LI", desc: "Buku laporan akhir latihan industri lengkap." }
+            { id: "laporan_akhir", title: "Laporan Akhir LI", desc: "Laporan Akhir Latihan Industri (LALI)." }
         ]
     }
 };
@@ -47,7 +47,7 @@ function getStudentCategory(student) {
     const dept = (student.jabatan || "").toUpperCase();
     const classVal = (student.class || "").toUpperCase();
     const regNo = (student.regNo || "").toUpperCase();
-    
+
     if (dept === "JKE" || dept === "JKM") {
         return "Kejuruteraan";
     }
@@ -89,7 +89,7 @@ function studentHasPenilai(student) {
     if (!student) return false;
     const cat = getStudentCategory(student);
     if (cat === "Kejuruteraan") return true;
-    
+
     const classVal = (student.class || "").toUpperCase();
     const regNo = (student.regNo || "").toUpperCase();
     if (classVal.includes("DUB") || classVal.includes("DBK") || regNo.includes("DUB") || regNo.includes("DBK")) {
@@ -514,7 +514,7 @@ async function deleteFileFromFirestore(regNo, docId) {
     delete fileCache[fileId];
     // Try to delete up to 20 chunks
     const deletes = Array.from({ length: 20 }, (_, i) =>
-        db.collection("file_data").doc(`${fileId}_${i}`).delete().catch(() => {})
+        db.collection("file_data").doc(`${fileId}_${i}`).delete().catch(() => { })
     );
     await Promise.all(deletes);
 }
@@ -553,10 +553,6 @@ const headerUserRole = document.getElementById("header-user-role");
 const headerUserAvatar = document.getElementById("header-avatar");
 const currentTabTitle = document.getElementById("current-tab-title");
 const logoutBtn = document.getElementById("logout-btn");
-const menuUtamaBtn = document.getElementById("btn-menu-utama-header");
-const returnDashBtn = document.getElementById("btn-portal-return-dash");
-const portalLogoutBtn = document.getElementById("btn-portal-logout");
-
 const timeDisplay = document.getElementById("current-time-display");
 
 // Global Session Select Elements
@@ -575,7 +571,7 @@ function updateUserAvatars(user) {
         sidebarUserAvatar.style.backgroundSize = "cover";
         sidebarUserAvatar.style.backgroundPosition = "center";
         sidebarUserAvatar.textContent = "";
-        
+
         headerUserAvatar.style.backgroundImage = `url(${user.profilePic})`;
         headerUserAvatar.style.backgroundSize = "cover";
         headerUserAvatar.style.backgroundPosition = "center";
@@ -595,18 +591,18 @@ function showToast(message, type = "info") {
     const container = document.getElementById("toast-container");
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
-    
+
     let iconClass = "fa-solid fa-circle-info";
     if (type === "success") iconClass = "fa-solid fa-circle-check";
     if (type === "error") iconClass = "fa-solid fa-circle-exmark";
-    
+
     toast.innerHTML = `
         <i class="${iconClass}"></i>
         <div class="toast-content">${message}</div>
     `;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = "slideOut 0.25s forwards";
         setTimeout(() => toast.remove(), 250);
@@ -620,32 +616,32 @@ function showConfirm(message, onConfirm, title = "Pengesahan Diperlukan", confir
     const titleEl = document.getElementById("custom-confirm-title");
     const okBtn = document.getElementById("custom-confirm-ok");
     const cancelBtn = document.getElementById("custom-confirm-cancel");
-    
+
     titleEl.textContent = title;
     msgEl.textContent = message;
     okBtn.textContent = confirmLabel;
-    
+
     overlay.style.display = "flex";
-    
+
     // Remove old listeners to prevent stacking
     const newOkBtn = okBtn.cloneNode(true);
     const newCancelBtn = cancelBtn.cloneNode(true);
     okBtn.parentNode.replaceChild(newOkBtn, okBtn);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-    
+
     newOkBtn.textContent = confirmLabel;
-    
+
     function closeModal() {
         overlay.style.display = "none";
     }
-    
+
     newOkBtn.addEventListener("click", () => {
         closeModal();
         onConfirm();
     });
-    
+
     newCancelBtn.addEventListener("click", closeModal);
-    
+
     // Click outside overlay to cancel
     overlay.addEventListener("click", function outsideClick(e) {
         if (e.target === overlay) {
@@ -673,7 +669,7 @@ function getInitials(name) {
 let currentPreviewBlobUrls = [];
 function clearPreviewBlobUrls() {
     currentPreviewBlobUrls.forEach(url => {
-        try { URL.revokeObjectURL(url); } catch(e){}
+        try { URL.revokeObjectURL(url); } catch (e) { }
     });
     currentPreviewBlobUrls = [];
 }
@@ -701,7 +697,7 @@ function dataURLtoBlobURL(dataURL) {
 
 // Toggle password visibility
 document.querySelectorAll(".toggle-password").forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         const input = this.previousElementSibling;
         const icon = this.querySelector("i");
         if (input.type === "password") {
@@ -737,10 +733,10 @@ const loginTabButtons = document.querySelectorAll(".login-tabs .tab-btn");
 const loginForms = document.querySelectorAll(".login-body .login-form");
 
 loginTabButtons.forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         loginTabButtons.forEach(b => b.classList.remove("active"));
         loginForms.forEach(f => f.classList.remove("active"));
-        
+
         this.classList.add("active");
         const role = this.dataset.role;
         document.getElementById(`${role}-login-form`).classList.add("active");
@@ -763,7 +759,7 @@ studentLoginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const regNo = document.getElementById("student-reg").value.trim().toUpperCase();
     const students = getStudents();
-    
+
     const matchedStudent = students.find(s => s.regNo === regNo);
     if (matchedStudent) {
         loginUser(matchedStudent, "student");
@@ -776,30 +772,30 @@ studentLoginForm.addEventListener("submit", (e) => {
 lecturerLoginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const email = document.getElementById("lecturer-email").value.trim().toLowerCase();
-    
+
     if (!email.endsWith("@polikk.edu.my")) {
         showToast("Format emel salah! Mestilah berakhir dengan @polikk.edu.my", "error");
         return;
     }
-    
+
     const lecturers = getLecturers();
     let matchedLecturer = lecturers.find(l => l.email === email);
-    
+
     if (!matchedLecturer) {
         const prefix = email.split('@')[0];
         const formattedName = prefix.split(/[._-]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-        
+
         matchedLecturer = {
             name: "Pensyarah " + formattedName,
             email: email,
-            dept: "JKA", 
+            dept: "JKA",
             role: "lecturer"
         };
         lecturers.push(matchedLecturer);
         saveLecturers(lecturers);
         addLog("success", `Pensyarah mendaftar masuk kali pertama (Auto-Register): ${matchedLecturer.name} (${email})`);
     }
-    
+
     loginUser(matchedLecturer, "lecturer");
 });
 
@@ -808,15 +804,15 @@ adminLoginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const email = document.getElementById("admin-email").value.trim().toLowerCase();
     const password = document.getElementById("admin-password").value.trim(); // password is staffId
-    
+
     if (!email.endsWith("@polikk.edu.my")) {
         showToast("Format emel salah! Mestilah berakhir dengan @polikk.edu.my", "error");
         return;
     }
-    
+
     const admins = getAdmins();
     const matchedAdmin = admins.find(a => a.email === email && a.staffId === password);
-    
+
     if (matchedAdmin) {
         loginUser(matchedAdmin, "admin");
     } else {
@@ -830,18 +826,18 @@ registerAdminForm.addEventListener("submit", (e) => {
     const name = document.getElementById("reg-admin-name").value.trim();
     const email = document.getElementById("reg-admin-email").value.trim().toLowerCase();
     const id = document.getElementById("reg-admin-id").value.trim();
-    
+
     if (!email.endsWith("@polikk.edu.my")) {
         showToast("Pendaftaran Gagal: Hanya emel @polikk.edu.my dibenarkan.", "error");
         return;
     }
-    
+
     const admins = getAdmins();
     if (admins.some(a => a.email === email)) {
         showToast("Emel ini telah berdaftar sebagai Admin!", "error");
         return;
     }
-    
+
     const newAdmin = {
         name,
         email,
@@ -849,16 +845,16 @@ registerAdminForm.addEventListener("submit", (e) => {
         role: "admin",
         status: "Aktif"
     };
-    
+
     admins.push(newAdmin);
     saveAdmins(admins);
     addLog("info", `Admin baharu didaftarkan: ${name} (${email})`);
-    
+
     showToast("Akaun pentadbir (admin) berjaya didaftarkan!", "success");
     registerAdminForm.reset();
-    
+
     switchPortalTab('login');
-    
+
     loginTabButtons.forEach(b => b.classList.remove("active"));
     loginForms.forEach(f => f.classList.remove("active"));
     document.querySelector('.login-tabs [data-role="admin"]').classList.add("active");
@@ -872,28 +868,28 @@ registerAdminForm.addEventListener("submit", (e) => {
 function loginUser(user, role) {
     currentUser = user;
     currentRole = role;
-    
+
     showToast(`Log masuk berjaya sebagai ${user.name}`, "success");
     addLog("info", `${user.name} (${role.toUpperCase()}) log masuk.`);
-    
+
     // Setup Sidebar Details
     sidebarUserName.textContent = user.name;
     sidebarUserSub.textContent = role === "student" ? user.regNo : user.email;
-    
+
     updateUserAvatars(user);
-    
+
     let displayBadge = "Pelajar";
     if (role === "lecturer") displayBadge = "Pensyarah";
     if (role === "admin") displayBadge = "Admin UPLI";
-    
+
     userRoleBadge.textContent = displayBadge;
     headerUserRole.textContent = displayBadge;
-    
+
     // Reset inputs
     studentLoginForm.reset();
     lecturerLoginForm.reset();
     adminLoginForm.reset();
-    
+
     // Global Session Dropdown logic: Show only for Lecturer and Admin
     if (role === "lecturer" || role === "admin") {
         populateGlobalSessionSelect();
@@ -901,36 +897,36 @@ function loginUser(user, role) {
     } else {
         sessionSelectContainer.style.display = "none";
     }
-    
+
     // Show Nav Group for Role
     Object.keys(navGroups).forEach(g => {
         navGroups[g].style.display = g === role ? "flex" : "none";
     });
-    
+
     // Setup Navigation active link
     const firstNavItem = navGroups[role].querySelector(".nav-item");
     navGroups[role].querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
     firstNavItem.classList.add("active");
-    
+
     const targetTab = firstNavItem.dataset.tab;
-    
+
     // Switch to main interface — explicitly set display to handle inline style override
     loginView.style.display = "none";          // Force hide (overrides inline style)
     loginView.classList.remove("active");
     dashboardLayout.classList.add("active");
-    
+
     // Reset scroll position so header is visible
     window.scrollTo(0, 0);
     const mc = document.querySelector(".main-content");
     if (mc) mc.scrollTop = 0;
-    
+
     switchTab(targetTab);
 }
 
 function populateGlobalSessionSelect() {
     const sessions = getSessions();
     const active = getActiveSession();
-    
+
     globalSessionSelect.innerHTML = "";
     sessions.forEach(s => {
         const option = document.createElement("option");
@@ -942,67 +938,31 @@ function populateGlobalSessionSelect() {
 }
 
 // Watch global session dropdown change
-globalSessionSelect.addEventListener("change", function() {
+globalSessionSelect.addEventListener("change", function () {
     const selectedSesi = this.value;
     saveActiveSession(selectedSesi);
     addLog("info", `Pertukaran paparan sesi akademik aktif ke: ${selectedSesi}`);
     showToast(`Paparan ditukar ke Sesi: ${selectedSesi}`, "info");
-    
+
     // Refresh current tab
     renderTabData(activeTab);
 });
 
-function logoutUser() {
+logoutBtn.addEventListener("click", () => {
     if (currentUser) {
         addLog("info", `${currentUser.name} log keluar.`);
         currentUser = null;
         currentRole = null;
     }
-    
+
     dashboardLayout.classList.remove("active");
     loginView.classList.add("active");
     loginView.style.display = "flex"; // Restore inline style to let CSS handle visibility
-    
-    // Reset portal sidebar buttons back to logged-out state
-    document.getElementById("btn-portal-login-tab").style.display = "flex";
-    document.getElementById("btn-portal-return-dash").style.display = "none";
-    document.getElementById("btn-portal-logout").style.display = "none";
-    
     switchPortalTab('dashboard');
     sessionSelectContainer.style.display = "none";
     applyDeptTheme(null); // Clear department theme on logout
     showToast("Anda telah log keluar dengan selamat.", "info");
     window.scrollTo(0, 0);
-}
-
-logoutBtn.addEventListener("click", logoutUser);
-portalLogoutBtn.addEventListener("click", logoutUser);
-
-menuUtamaBtn.addEventListener("click", () => {
-    // Hide dashboard layout, show public portal
-    dashboardLayout.classList.remove("active");
-    loginView.classList.add("active");
-    loginView.style.display = "flex";
-    
-    // Switch to public portal home/dashboard tab
-    switchPortalTab('dashboard');
-    
-    // Update public portal navigation items
-    document.getElementById("btn-portal-login-tab").style.display = "none";
-    document.getElementById("btn-portal-return-dash").style.display = "flex";
-    document.getElementById("btn-portal-logout").style.display = "flex";
-});
-
-returnDashBtn.addEventListener("click", () => {
-    // Hide public portal, show dashboard layout
-    loginView.classList.remove("active");
-    loginView.style.display = "none";
-    dashboardLayout.classList.add("active");
-    
-    // Reset scroll position so header is visible
-    window.scrollTo(0, 0);
-    const mc = document.querySelector(".main-content");
-    if (mc) mc.scrollTop = 0;
 });
 
 // --------------------------------------------------------------------------
@@ -1010,16 +970,16 @@ returnDashBtn.addEventListener("click", () => {
 // --------------------------------------------------------------------------
 function switchTab(tabId) {
     activeTab = tabId;
-    
+
     document.querySelectorAll(".tab-content").forEach(tab => {
         tab.classList.remove("active");
     });
-    
+
     const targetSection = document.getElementById(tabId);
     if (targetSection) {
         targetSection.classList.add("active");
     }
-    
+
     document.querySelectorAll(".nav-item").forEach(item => {
         if (item.dataset.tab === tabId) {
             item.classList.add("active");
@@ -1027,30 +987,30 @@ function switchTab(tabId) {
             item.classList.remove("active");
         }
     });
-    
+
     let title = "Dashboard";
     if (tabId === "student-dashboard") title = "Dashboard Pelajar";
     if (tabId === "student-documents") title = "Muat Naik & Status Dokumen";
     if (tabId === "lecturer-dashboard") title = "Ringkasan Dokumen Jabatan";
     if (tabId === "lecturer-students") title = "Senarai Pelajar Seliaan UPLI";
-    if (tabId === "admin-dashboard") title = "Statistik Dashboard Admin";
-    if (tabId === "admin-students") title = "Pengurusan Maklumat Pelajar";
+    if (tabId === "admin-dashboard") title = "Statistik Keseluruhan Pelajar LI";
+    if (tabId === "admin-students") title = "Pengurusan Data Pelajar";
     if (tabId === "admin-lecturers") title = "Agihan Pensyarah Pemantau / Penilai";
     if (tabId === "admin-admins") title = "Pengurusan Pentadbir Sistem";
-    if (tabId === "admin-rubrik") title = "Rubrik Pemarkahan UPLI";
-    if (tabId === "rubrik-viewer") title = "Rubrik Pemarkahan UPLI";
-    
+    if (tabId === "admin-rubrik") title = "Rubrik Pemarkahan";
+    if (tabId === "rubrik-viewer") title = "Rubrik Pemarkahan";
+
     currentTabTitle.textContent = title;
-    
+
     renderTabData(tabId);
 }
 
 document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", function(e) {
+    item.addEventListener("click", function (e) {
         e.preventDefault();
         const tabId = this.dataset.tab;
         switchTab(tabId);
-        
+
         if (window.innerWidth <= 768) {
             sidebar.classList.remove("active");
         }
@@ -1061,10 +1021,10 @@ function renderTabData(tabId) {
     try {
         if (tabId === "student-dashboard") renderStudentDashboard();
         if (tabId === "student-documents") renderStudentDocuments();
-        
+
         if (tabId === "lecturer-dashboard") renderLecturerDashboard();
         if (tabId === "lecturer-students") renderLecturerStudentsList();
-        
+
         if (tabId === "admin-dashboard") renderAdminDashboard();
         if (tabId === "admin-students") renderAdminStudentsTable();
         if (tabId === "admin-lecturers") renderAdminLecturerAssignTable();
@@ -1094,13 +1054,13 @@ function renderTabData(tabId) {
 // --------------------------------------------------------------------------
 function renderStudentDashboard() {
     if (currentRole !== "student") return;
-    
+
     const students = getStudents();
     const updatedUser = students.find(s => s.regNo === currentUser.regNo);
     if (updatedUser) currentUser = updatedUser;
-    
+
     document.getElementById("student-welcome-name").textContent = currentUser.name;
-    
+
     // Calculate document statistics
     let approved = 0;
     let pending = 0;
@@ -1108,42 +1068,42 @@ function renderStudentDashboard() {
     let missing = 0;
     const requiredDocs = getStudentDocsList(currentUser);
     const totalDocs = requiredDocs.length;
-    
+
     requiredDocs.forEach(d => {
         const key = d.id;
         const doc = currentUser.documents[key];
         const status = doc ? doc.status : "Belum Dihantar";
-        
+
         if (status === "Diterima") approved++;
         else if (status === "Dalam Semakan") pending++;
         else if (status === "Ditolak") rejected++;
         else missing++;
     });
-    
+
     document.getElementById("student-stat-approved").textContent = approved;
     document.getElementById("student-stat-pending").textContent = pending;
     document.getElementById("student-stat-rejected").textContent = rejected;
     document.getElementById("student-stat-missing").textContent = missing;
-    
+
     const progressPercent = (approved / totalDocs) * 100;
     const progressBar = document.getElementById("student-progress-bar");
     progressBar.style.width = `${progressPercent}%`;
     document.getElementById("student-progress-text").textContent = `${approved}/${totalDocs} Diluluskan`;
-    
+
     // Render Sesi, Company & Monitors & Evaluators
     document.getElementById("student-session-display").textContent = currentUser.sesi || "Sesi 1:2026/2027";
     document.getElementById("student-tempat-li").textContent = currentUser.tempatLI || "Belum Ditentukan";
-    
+
     const lecturers = getLecturers();
     const pemantau = lecturers.find(l => l.email === currentUser.pensyarahPemantau);
     const penilai = lecturers.find(l => l.email === currentUser.pensyarahPenilai);
-    
+
     const pemantauNameEl = document.getElementById("student-pemantau-name");
     const pemantauEmailEl = document.getElementById("student-pemantau-email");
     const penilaiNameEl = document.getElementById("student-penilai-name");
     const penilaiEmailEl = document.getElementById("student-penilai-email");
     const penilaiRow = document.getElementById("student-penilai-row");
-    
+
     if (pemantau) {
         pemantauNameEl.textContent = currentUser.pensyarahPemantauName || pemantau.name;
         pemantauEmailEl.textContent = pemantau.email;
@@ -1151,7 +1111,7 @@ function renderStudentDashboard() {
         pemantauNameEl.textContent = currentUser.pensyarahPemantauName || currentUser.pensyarahPemantau || "Belum Diagihkan";
         pemantauEmailEl.textContent = currentUser.pensyarahPemantau ? currentUser.pensyarahPemantau : "";
     }
-    
+
     if (studentHasPenilai(currentUser)) {
         if (penilaiRow) penilaiRow.style.display = "flex";
         if (penilai) {
@@ -1169,7 +1129,7 @@ function renderStudentDashboard() {
     const selfEmailInput = document.getElementById("profile-self-email");
     const selfPhoneInput = document.getElementById("profile-self-phone");
     const selfAvatarEl = document.getElementById("profile-card-avatar");
-    
+
     if (selfEmailInput) selfEmailInput.value = currentUser.email || "";
     if (selfPhoneInput) selfPhoneInput.value = currentUser.phone || "";
     if (selfAvatarEl) {
@@ -1183,21 +1143,21 @@ function renderStudentDashboard() {
             selfAvatarEl.textContent = getInitials(currentUser.name);
         }
     }
-    
+
     // Update theme
     applyDeptTheme(currentUser.jabatan);
 }
 
 function renderStudentDocuments() {
     if (currentRole !== "student") return;
-    
+
     const students = getStudents();
     const updatedUser = students.find(s => s.regNo === currentUser.regNo);
     if (updatedUser) currentUser = updatedUser;
-    
+
     const container = document.getElementById("student-docs-container");
     container.innerHTML = "";
-    
+
     // Group documents by phase
     const requiredDocs = getStudentDocsList(currentUser);
     const phases = {
@@ -1205,23 +1165,23 @@ function renderStudentDocuments() {
         "Semasa LI": [],
         "Selepas LI": []
     };
-    
+
     requiredDocs.forEach(d => {
         if (phases[d.phase]) {
             phases[d.phase].push(d);
         }
     });
-    
+
     let index = 1;
-    
+
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.gap = "30px";
-    
+
     Object.keys(phases).forEach(phaseName => {
         const phaseDocs = phases[phaseName];
         if (phaseDocs.length === 0) return;
-        
+
         const phaseSection = document.createElement("div");
         phaseSection.className = "phase-section";
         phaseSection.innerHTML = `
@@ -1231,23 +1191,23 @@ function renderStudentDocuments() {
             <div class="document-list-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
             </div>
         `;
-        
+
         const grid = phaseSection.querySelector(".document-list-grid");
-        
+
         phaseDocs.forEach(d => {
             const key = d.id;
             const doc = currentUser.documents[key] || { status: "Belum Dihantar", fileName: "", fileSize: "", uploadDate: "", feedback: "" };
             const status = doc.status;
-            
+
             let statusClass = "badge-muted";
             if (status === "Dalam Semakan") statusClass = "badge-warning";
             if (status === "Diterima") statusClass = "badge-success";
             if (status === "Ditolak") statusClass = "badge-danger";
-            
+
             const card = document.createElement("div");
             card.className = "doc-card";
             card.style.margin = "0";
-            
+
             let cardBody = `
                 <div class="doc-card-header">
                     <span class="doc-number">${index++}</span>
@@ -1257,7 +1217,7 @@ function renderStudentDocuments() {
                     <h4>${d.title}</h4>
                     <p>${d.desc}</p>
             `;
-            
+
             if (status === "Ditolak" && doc.feedback) {
                 cardBody += `
                     <div class="doc-feedback-box">
@@ -1266,7 +1226,7 @@ function renderStudentDocuments() {
                     </div>
                 `;
             }
-            
+
             if (status !== "Belum Dihantar" && doc.fileName) {
                 cardBody += `
                     <div class="uploaded-file-info" style="justify-content: space-between;">
@@ -1283,7 +1243,7 @@ function renderStudentDocuments() {
                     </div>
                 `;
             }
-            
+
             if (status === "Belum Dihantar" || status === "Ditolak") {
                 // slaid_pembentangan: PowerPoint or PDF only; others: PDF/PNG/JPG
                 const isSlaid = key === "slaid_pembentangan";
@@ -1312,15 +1272,15 @@ function renderStudentDocuments() {
                     </button>
                 `;
             }
-            
+
             cardBody += `</div>`;
             card.innerHTML = cardBody;
             grid.appendChild(card);
         });
-        
+
         container.appendChild(phaseSection);
     });
-    
+
     // --- Hide download-all banner (admin-only feature, not shown to students) ---
     const banner = document.getElementById("download-all-docs-banner");
     if (banner) banner.style.display = "none";
@@ -1331,13 +1291,13 @@ function renderStudentDocuments() {
 // --------------------------------------------------------------------------
 async function downloadAllStudentDocs() {
     if (!currentUser) return;
-    
+
     const students = getStudents();
     const updatedUser = students.find(s => s.regNo === currentUser.regNo);
     if (updatedUser) currentUser = updatedUser;
-    
+
     const requiredDocs = getStudentDocsList(currentUser);
-    
+
     // Collect documents that have fileData
     const docsWithData = requiredDocs
         .map(d => ({
@@ -1345,34 +1305,34 @@ async function downloadAllStudentDocs() {
             doc: (currentUser.documents || {})[d.id]
         }))
         .filter(item => item.doc && item.doc.fileData && item.doc.fileData.trim() !== "");
-    
+
     if (docsWithData.length === 0) {
         showToast("Tiada fail dokumen yang telah dimuat naik untuk dimuat turun.", "warning");
         return;
     }
-    
+
     const btnDl = document.getElementById("btn-download-all-docs");
     if (btnDl) {
         btnDl.disabled = true;
         btnDl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sedang Menyediakan ZIP...`;
     }
-    
+
     try {
         const zip = new JSZip();
-        
+
         // Folder name based on student name and regNo (sanitize for filesystem)
         const safeName = (currentUser.name || "Pelajar").replace(/[^a-zA-Z0-9_ ]/g, "_");
         const folderName = `${safeName}_${currentUser.regNo}`;
         const folder = zip.folder(folderName);
-        
+
         // Add each document file to the ZIP
         docsWithData.forEach(item => {
             const { meta, doc } = item;
-            
+
             // Extract base64 data (strip data URI prefix if present)
             let base64Data = doc.fileData;
             let fileExtension = "";
-            
+
             if (base64Data.startsWith("data:")) {
                 const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
                 if (matches) {
@@ -1385,21 +1345,21 @@ async function downloadAllStudentDocs() {
                     else fileExtension = "";
                 }
             }
-            
+
             // Use original fileName if available, fallback to doc title
             let fileName = doc.fileName || `${meta.title}${fileExtension}`;
             // Remove any path separators to keep it safe
             fileName = fileName.replace(/[\\/]/g, "_");
-            
+
             folder.file(fileName, base64Data, { base64: true });
         });
-        
+
         // Generate ZIP blob and trigger download
         const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
         saveAs(blob, `${folderName}.zip`);
-        
+
         showToast(`Berjaya! ${docsWithData.length} fail dimuat turun dalam ${folderName}.zip`, "success");
-        
+
     } catch (err) {
         console.error("ZIP Error:", err);
         showToast("Ralat semasa menjana fail ZIP. Sila cuba semula.", "error");
@@ -1414,51 +1374,51 @@ async function downloadAllStudentDocs() {
 // --------------------------------------------------------------------------
 // Download a specific student's documents as ZIP — ADMIN ONLY
 // --------------------------------------------------------------------------
-window.adminDownloadStudentDocs = async function(regNo) {
+window.adminDownloadStudentDocs = async function (regNo) {
     if (currentRole !== "admin") {
         showToast("Hanya Admin yang dibenarkan untuk muat turun folder pelajar!", "error");
         return;
     }
-    
+
     const students = getStudents();
     const student = students.find(s => s.regNo === regNo);
     if (!student) {
         showToast("Rekod pelajar tidak dijumpai!", "error");
         return;
     }
-    
+
     const requiredDocs = getStudentDocsList(student);
-    
+
     // Only collect documents with actual fileData
     const docsWithData = requiredDocs
         .map(d => ({ meta: d, doc: (student.documents || {})[d.id] }))
         .filter(item => item.doc && item.doc.fileData && item.doc.fileData.trim() !== "");
-    
+
     if (docsWithData.length === 0) {
         showToast("Tiada fail dokumen yang tersimpan untuk pelajar ini.", "error");
         return;
     }
-    
+
     // Disable the button to prevent double-click
     const btnEl = document.getElementById(`btn-admin-dl-${regNo}`);
     if (btnEl) {
         btnEl.disabled = true;
         btnEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
     }
-    
+
     try {
         const zip = new JSZip();
-        
+
         // Folder name: StudentName_RegNo
         const safeName = (student.name || "Pelajar").replace(/[^a-zA-Z0-9_ ]/g, "_");
         const folderName = `${safeName}_${student.regNo}`;
         const folder = zip.folder(folderName);
-        
+
         docsWithData.forEach(item => {
             const { meta, doc } = item;
             let base64Data = doc.fileData;
             let fileExtension = "";
-            
+
             if (base64Data.startsWith("data:")) {
                 const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
                 if (matches) {
@@ -1469,18 +1429,18 @@ window.adminDownloadStudentDocs = async function(regNo) {
                     else if (mime.includes("jpeg") || mime.includes("jpg")) fileExtension = ".jpg";
                 }
             }
-            
+
             let fileName = doc.fileName || `${meta.title}${fileExtension}`;
             fileName = fileName.replace(/[\\/]/g, "_");
             folder.file(fileName, base64Data, { base64: true });
         });
-        
+
         const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
         saveAs(blob, `${folderName}.zip`);
-        
+
         addLog("success", `Admin memuat turun folder dokumen pelajar: ${student.name} (${regNo}) — ${docsWithData.length} fail.`);
         showToast(`Berjaya! Folder ${folderName}.zip telah dimuat turun.`, "success");
-        
+
     } catch (err) {
         console.error("ZIP Error:", err);
         showToast("Ralat semasa menjana fail ZIP. Sila cuba semula.", "error");
@@ -1498,7 +1458,7 @@ window.adminDownloadStudentDocs = async function(regNo) {
 
 // Switch Lecturer Department Tabs
 document.querySelectorAll("#lecturer-dashboard .dept-tab-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         document.querySelectorAll("#lecturer-dashboard .dept-tab-btn").forEach(b => b.classList.remove("active"));
         this.classList.add("active");
         activeLecturerDept = this.dataset.dept;
@@ -1512,26 +1472,26 @@ function deptHasPenilai(dept) {
 
 function renderLecturerDashboard() {
     if (currentRole !== "lecturer") return;
-    
+
     applyDeptTheme(activeLecturerDept);
     document.getElementById("lecturer-dept-table-title").textContent = `Senarai Pelajar Jabatan: ${activeLecturerDept}`;
-    
+
     const students = getStudents();
     const lecturers = getLecturers();
     const activeSesi = getActiveSession();
     const searchQuery = document.getElementById("lecturer-dept-student-search").value.trim().toLowerCase();
-    
+
     const tbody = document.getElementById("lecturer-dept-students-table-body");
     const tableEl = tbody.closest("table");
     const thead = tableEl.querySelector("thead");
-    
+
     // FILTER: Filter students by department AND active academic session AND search query
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         s.jabatan === activeLecturerDept &&
         s.sesi === activeSesi &&
         (s.name.toLowerCase().includes(searchQuery) || s.regNo.toLowerCase().includes(searchQuery))
     );
-    
+
     // Set headers dynamically
     const hasPenilai = deptHasPenilai(activeLecturerDept);
     thead.innerHTML = `
@@ -1548,12 +1508,12 @@ function renderLecturerDashboard() {
             <th>Status Dokumen</th>
         </tr>
     `;
-    
+
     if (filteredStudents.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${hasPenilai ? 8 : 6}" style="text-align:center;" class="text-muted">Tiada rekod pelajar berdaftar di bawah jabatan ${activeLecturerDept} bagi sesi ${activeSesi}.</td></tr>`;
         return;
     }
-    
+
     tbody.innerHTML = "";
     filteredStudents.forEach(s => {
         const pemantau = lecturers.find(l => l.email === s.pensyarahPemantau);
@@ -1562,7 +1522,7 @@ function renderLecturerDashboard() {
         const pemantauEmail = s.pensyarahPemantau || "Belum diagihkan";
         const penilaiName = s.pensyarahPenilaiName || (penilai ? penilai.name : (s.pensyarahPenilai || "Belum diagihkan"));
         const penilaiEmail = s.pensyarahPenilai || "Belum diagihkan";
-        
+
         let docsVisual = "";
         const requiredDocs = getStudentDocsList(s);
         requiredDocs.forEach(d => {
@@ -1572,10 +1532,10 @@ function renderLecturerDashboard() {
             if (status === "Dalam Semakan") c = "yellow";
             if (status === "Diterima") c = "green";
             if (status === "Ditolak") c = "red";
-            
-            docsVisual += `<span class="status-indicator-dot ${c}" title="${d.title}: ${status}" onclick="openDocumentReviewModal('${s.regNo}', '${key}')">${d.title.split(" ").map(w => w[0]).join("").substring(0,2)}</span>`;
+
+            docsVisual += `<span class="status-indicator-dot ${c}" title="${d.title}: ${status}" onclick="openDocumentReviewModal('${s.regNo}', '${key}')">${d.title.split(" ").map(w => w[0]).join("").substring(0, 2)}</span>`;
         });
-        
+
         tbody.innerHTML += `
             <tr>
                 <td>
@@ -1606,26 +1566,26 @@ document.getElementById("lecturer-dept-student-search").addEventListener("input"
 
 function renderLecturerStudentsList() {
     if (currentRole !== "lecturer") return;
-    
+
     const students = getStudents();
     const activeSesi = getActiveSession();
     const searchQuery = document.getElementById("lecturer-my-student-search").value.trim().toLowerCase();
-    
+
     const grid = document.getElementById("lecturer-my-students-grid");
     grid.innerHTML = "";
-    
+
     // FILTER: Supervision tab only shows students of the active academic session where this lecturer is Pemantau OR Penilai
-    const myStudents = students.filter(s => 
+    const myStudents = students.filter(s =>
         s.sesi === activeSesi &&
         (s.pensyarahPemantau === currentUser.email || s.pensyarahPenilai === currentUser.email) &&
         (s.name.toLowerCase().includes(searchQuery) || s.regNo.toLowerCase().includes(searchQuery))
     );
-    
+
     if (myStudents.length === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px;" class="card text-muted">Tiada rekod pelajar seliaan di bawah pemantauan/penilaian anda bagi sesi ${activeSesi}.</div>`;
         return;
     }
-    
+
     myStudents.forEach(s => {
         const requiredDocs = getStudentDocsList(s);
         let approvedCount = 0;
@@ -1634,37 +1594,37 @@ function renderLecturerStudentsList() {
             if (status === "Diterima") approvedCount++;
         });
         const pct = Math.round((approvedCount / requiredDocs.length) * 100);
-        
+
         let docStatusGridHTML = "";
         requiredDocs.forEach(d => {
             const key = d.id;
             const status = s.documents[key] ? s.documents[key].status : "Belum Dihantar";
             let color = "gray";
             let tooltip = `${d.title}: Belum Hantar`;
-            
+
             if (status === "Dalam Semakan") { color = "yellow"; tooltip = `${d.title}: Semakan`; }
             if (status === "Diterima") { color = "green"; tooltip = `${d.title}: Diterima`; }
             if (status === "Ditolak") { color = "red"; tooltip = `${d.title}: Ditolak`; }
-            
-            const initialsDoc = d.title.split(" ").map(w => w[0]).join("").substring(0,2);
+
+            const initialsDoc = d.title.split(" ").map(w => w[0]).join("").substring(0, 2);
             docStatusGridHTML += `
                 <div class="status-indicator-dot ${color}" title="${tooltip}" onclick="openDocumentReviewModal('${s.regNo}', '${key}')">
                     ${initialsDoc}
                 </div>
             `;
         });
-        
+
         const isPemantau = s.pensyarahPemantau === currentUser.email;
         const isPenilai = s.pensyarahPenilai === currentUser.email;
         let roleLabel = "";
         if (isPemantau && isPenilai) roleLabel = "Pemantau & Penilai";
         else if (isPemantau) roleLabel = "Pensyarah Pemantau";
         else if (isPenilai) roleLabel = "Pensyarah Penilai";
-        
+
         // Lecturer marksheets upload buttons
         const isKejuruteraan = getStudentCategory(s) === "Kejuruteraan";
         const targetDocs = [];
-        
+
         if (isKejuruteraan) {
             if (isPemantau) {
                 targetDocs.push({ id: "appendix_e2", title: "Appendix E2 (Pemantau)" });
@@ -1677,7 +1637,7 @@ function renderLecturerStudentsList() {
                 targetDocs.push({ id: "appendix_2", title: "Appendix 2 (Pemantau)" });
             }
         }
-            
+
         let uploadControlsHTML = "";
         targetDocs.forEach(td => {
             const hasDoc = s.documents[td.id] && (s.documents[td.id].fileUrl || s.documents[td.id].fileData);
@@ -1702,7 +1662,7 @@ function renderLecturerStudentsList() {
 
         const card = document.createElement("div");
         card.className = "student-card";
-        
+
         card.innerHTML = `
             <div class="student-card-header">
                 <div class="avatar">${getInitials(s.name)}</div>
@@ -1732,7 +1692,7 @@ function renderLecturerStudentsList() {
                 ${uploadControlsHTML}
             </div>
         `;
-        
+
         grid.appendChild(card);
     });
 }
@@ -1748,32 +1708,32 @@ const closeReviewModalBtns = reviewModal.querySelectorAll(".close-modal-btn");
 const reviewForm = document.getElementById("doc-review-form");
 const viewBtnInReview = document.getElementById("doc-modal-view-btn");
 
-window.openDocumentReviewModal = function(studentReg, docId) {
+window.openDocumentReviewModal = function (studentReg, docId) {
     const students = getStudents();
     const student = students.find(s => s.regNo === studentReg);
     if (!student) return;
-    
+
     const doc = student.documents[docId];
     if (doc.status === "Belum Dihantar") {
         showToast("Pelajar belum memuat naik fail dokumen ini!", "error");
         return;
     }
-    
+
     currentReviewContext = { studentReg, docId };
-    
+
     document.getElementById("doc-modal-student-name").textContent = student.name;
     document.getElementById("doc-modal-student-reg").textContent = student.regNo;
     document.getElementById("doc-modal-doc-type").textContent = getDocMetadata(docId, student).title;
     document.getElementById("doc-modal-file-name").textContent = doc.fileName;
     document.getElementById("doc-modal-file-size").textContent = `${doc.fileSize} • Dimuat naik pada ${doc.uploadDate}`;
-    
+
     const badgeEl = document.getElementById("doc-modal-current-status-badge");
     badgeEl.className = "badge " + (doc.status === "Diterima" ? "badge-success" : (doc.status === "Ditolak" ? "badge-danger" : "badge-warning"));
     badgeEl.textContent = doc.status;
-    
+
     document.getElementById("doc-review-status").value = doc.status === "Diterima" ? "Diterima" : "Ditolak";
     document.getElementById("doc-review-feedback").value = doc.feedback || "";
-    
+
     const dlLink = document.getElementById("doc-modal-download-link");
     const fileSource = doc.fileUrl || doc.fileData || "";
     if (fileSource) {
@@ -1787,11 +1747,11 @@ window.openDocumentReviewModal = function(studentReg, docId) {
     } else {
         dlLink.removeAttribute("download");
         dlLink.href = "#";
-        dlLink.onclick = function(e) { e.preventDefault(); showToast("Fail dimuat turun (Simulasi)", "success"); };
+        dlLink.onclick = function (e) { e.preventDefault(); showToast("Fail dimuat turun (Simulasi)", "success"); };
     }
-    
+
     const previewBox = document.getElementById("doc-modal-preview-box");
-    
+
     // Async helper to render preview after loading
     async function renderPreview() {
         // Load from Firestore file_data if needed
@@ -1829,11 +1789,11 @@ window.openDocumentReviewModal = function(studentReg, docId) {
         }
     }
     renderPreview();
-    
-    viewBtnInReview.onclick = function() {
+
+    viewBtnInReview.onclick = function () {
         openDocumentViewer(studentReg, docId);
     };
-    
+
     reviewModal.classList.add("active");
 };
 
@@ -1848,25 +1808,25 @@ closeReviewModalBtns.forEach(btn => {
 reviewForm.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!currentReviewContext) return;
-    
+
     const { studentReg, docId } = currentReviewContext;
     const status = document.getElementById("doc-review-status").value;
     const feedback = document.getElementById("doc-review-feedback").value.trim();
-    
+
     const students = getStudents();
     const studentIdx = students.findIndex(s => s.regNo === studentReg);
-    
+
     if (studentIdx !== -1) {
         students[studentIdx].documents[docId].status = status;
         students[studentIdx].documents[docId].feedback = feedback;
-        
+
         saveStudents(students);
         addLog("info", `Semakan [${status}] diberikan kepada ${students[studentIdx].name} bagi dokumen ${getDocMetadata(docId, students[studentIdx]).title}`);
-        
+
         showToast("Semakan dokumen berjaya dikemas kini!", "success");
         reviewModal.classList.remove("active");
         currentReviewContext = null;
-        
+
         if (currentRole === "lecturer") {
             renderLecturerDashboard();
             renderLecturerStudentsList();
@@ -1884,17 +1844,17 @@ const viewerModal = document.getElementById("document-viewer-modal");
 const closeViewerBtns = viewerModal.querySelectorAll(".close-viewer-btn");
 const renderedView = document.getElementById("document-rendered-view");
 
-window.openDocumentViewer = async function(studentReg, docId) {
+window.openDocumentViewer = async function (studentReg, docId) {
     const students = getStudents();
     const student = students.find(s => s.regNo === studentReg);
     if (!student) return;
-    
+
     const doc = student.documents[docId];
     if (!doc || doc.status === "Belum Dihantar") {
         showToast("Dokumen tidak wujud!", "error");
         return;
     }
-    
+
     renderedView.innerHTML = `<div style="text-align:center; padding:40px;"><div style="width:40px;height:40px;border:3px solid rgba(99,102,241,0.2);border-top:3px solid #6366f1;border-radius:50%;animation:db-spin 0.8s linear infinite;margin:0 auto 12px;"></div><p style="font-size:0.85rem;color:var(--text-muted);">Memuatkan dokumen...</p></div>`;
     viewerModal.classList.add("active");
 
@@ -1905,7 +1865,7 @@ window.openDocumentViewer = async function(studentReg, docId) {
     }
 
     renderedView.innerHTML = "";
-    
+
     // Priority 1: Show actual uploaded file (Firebase Storage URL or base64)
     const fileSource = doc.fileUrl || doc.fileData || "";
     if (fileSource && fileSource.trim() !== "") {
@@ -1961,10 +1921,10 @@ window.openDocumentViewer = async function(studentReg, docId) {
                 `;
             }
         }
-    } 
+    }
     else {
         let contentHTML = "";
-        
+
         const letterheadHTML = `
             <div class="polikk-letterhead">
                 <div class="letterhead-logo-sim">PKK</div>
@@ -1975,9 +1935,9 @@ window.openDocumentViewer = async function(studentReg, docId) {
                 </div>
             </div>
         `;
-        
+
         const meta = getDocMetadata(docId, student);
-        
+
         if (docId === "borang_jawapan") {
             contentHTML = `
                 ${letterheadHTML}
@@ -2095,10 +2055,10 @@ window.openDocumentViewer = async function(studentReg, docId) {
                 </div>
             `;
         }
-        
+
         renderedView.innerHTML = contentHTML;
     }
-    
+
     // Modal already opened at start (async loading pattern)
 };
 
@@ -2116,7 +2076,7 @@ closeViewerBtns.forEach(btn => {
 
 // Switch Admin Dashboard Department Tabs
 document.querySelectorAll("#admin-dashboard-dept-tabs .dept-tab-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         document.querySelectorAll("#admin-dashboard-dept-tabs .dept-tab-btn").forEach(b => b.classList.remove("active"));
         this.classList.add("active");
         activeAdminDept = this.dataset.dept;
@@ -2126,7 +2086,7 @@ document.querySelectorAll("#admin-dashboard-dept-tabs .dept-tab-btn").forEach(bt
 
 // Switch Admin Students Management Department Tabs
 document.querySelectorAll("#admin-students-dept-tabs .dept-tab-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         document.querySelectorAll("#admin-students-dept-tabs .dept-tab-btn").forEach(b => b.classList.remove("active"));
         this.classList.add("active");
         activeAdminStudentDept = this.dataset.dept;
@@ -2139,7 +2099,7 @@ document.querySelectorAll("#admin-students-dept-tabs .dept-tab-btn").forEach(btn
 
 // Switch Admin Lecturer Assignment Department Tabs
 document.querySelectorAll("#admin-assign-dept-tabs .dept-tab-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", function () {
         document.querySelectorAll("#admin-assign-dept-tabs .dept-tab-btn").forEach(b => b.classList.remove("active"));
         this.classList.add("active");
         activeAdminAssignDept = this.dataset.dept;
@@ -2149,20 +2109,20 @@ document.querySelectorAll("#admin-assign-dept-tabs .dept-tab-btn").forEach(btn =
 
 function renderAdminDashboard() {
     if (currentRole !== "admin") return;
-    
+
     const students = getStudents();
     const admins = getAdmins();
     const activeSesi = getActiveSession();
-    
+
     applyDeptTheme(activeAdminDept);
-    
+
     // Filter students by active session
     const currentSessionStudents = students.filter(s => s.sesi === activeSesi);
-    
+
     // Total stats update (filtered by academic session for students)
     document.getElementById("admin-total-students").textContent = currentSessionStudents.length;
     document.getElementById("admin-total-admins").textContent = admins.length;
-    
+
     // Count students with ALL documents "Diterima" (complete folder)
     const completeCount = currentSessionStudents.filter(s => {
         const requiredDocs = getStudentDocsList(s);
@@ -2173,16 +2133,16 @@ function renderAdminDashboard() {
     }).length;
     const completeEl = document.getElementById("admin-stat-complete");
     if (completeEl) completeEl.textContent = completeCount;
-    
+
     // Update Department Details inside Dashboard
     document.getElementById("admin-dept-title-display").textContent = `Senarai Pelajar Jabatan: ${activeAdminDept} (${activeSesi})`;
-    
+
     const deptStudents = currentSessionStudents.filter(s => s.jabatan === activeAdminDept);
     document.getElementById("admin-dept-count-badge").textContent = `${deptStudents.length} Pelajar`;
-    
+
     const listBody = document.getElementById("admin-dashboard-dept-students-list");
     listBody.innerHTML = "";
-    
+
     if (deptStudents.length === 0) {
         listBody.innerHTML = `<tr><td colspan="5" style="text-align:center;" class="text-muted">Tiada rekod pelajar berdaftar di bawah jabatan ${activeAdminDept} bagi sesi ${activeSesi}.</td></tr>`;
     } else {
@@ -2194,7 +2154,7 @@ function renderAdminDashboard() {
                 if (status === "Diterima") approvedCount++;
             });
             const pct = Math.round((approvedCount / requiredDocs.length) * 100);
-            
+
             listBody.innerHTML += `
                 <tr>
                     <td>
@@ -2215,7 +2175,7 @@ function renderAdminDashboard() {
                     </td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.regNo}')">
-                            <i class="fa-solid fa-trash-can"></i> Hapus
+                            <i class="fa-solid fa-trash-can"></i> Padam
                         </button>
                     </td>
                 </tr>
@@ -2233,11 +2193,11 @@ excelUploadZone.addEventListener("click", () => excelFileInput.click());
 excelFileInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
     const reader = new FileReader();
-    
-    reader.onload = function(evt) {
+
+    reader.onload = function (evt) {
         try {
             let results = [];
             if (isExcel) {
@@ -2254,38 +2214,38 @@ excelFileInput.addEventListener("change", (e) => {
                 const textContent = evt.target.result;
                 results = parseCSV(textContent);
             }
-            
+
             if (results.length === 0) {
                 showToast("Muat naik Gagal: Format fail salah atau tiada data ditemui!", "error");
                 return;
             }
-            
+
             const students = getStudents();
             const activeSesi = getActiveSession();
             let countImported = 0;
             let countDuplicates = 0;
-            
+
             const lecturers = getLecturers();
-            
+
             results.forEach(s => {
                 const dupIdx = students.findIndex(exist => exist.regNo === s.regNo);
-                
+
                 // Session resolution: Use Sesi column from CSV/Excel if exists, else fallback to active session dropdown
                 const sessionValue = s.sesi || activeSesi;
-                
+
                 // Resolve lecturer names from database if empty in CSV
                 let resolvedPemantauName = s.pensyarahPemantauName || "";
                 if (!resolvedPemantauName && s.pensyarahPemantau) {
                     const found = lecturers.find(l => l.email === s.pensyarahPemantau);
                     if (found) resolvedPemantauName = found.name;
                 }
-                
+
                 let resolvedPenilaiName = s.pensyarahPenilaiName || "";
                 if (!resolvedPenilaiName && s.pensyarahPenilai) {
                     const found = lecturers.find(l => l.email === s.pensyarahPenilai);
                     if (found) resolvedPenilaiName = found.name;
                 }
-                
+
                 const studentObj = {
                     name: s.name,
                     regNo: s.regNo,
@@ -2301,7 +2261,7 @@ excelFileInput.addEventListener("change", (e) => {
                     role: "student",
                     documents: {}
                 };
-                
+
                 // Build documents using the correct category-based schema
                 const requiredDocs = getStudentDocsList(studentObj);
                 requiredDocs.forEach(d => {
@@ -2314,7 +2274,7 @@ excelFileInput.addEventListener("change", (e) => {
                         fileData: ""
                     };
                 });
-                
+
                 if (dupIdx === -1) {
                     students.push(studentObj);
                     countImported++;
@@ -2331,11 +2291,11 @@ excelFileInput.addEventListener("change", (e) => {
                     countDuplicates++;
                 }
             });
-            
+
             saveStudents(students);
             addLog("success", `Admin memuat naik fail Excel/CSV: ${countImported} pelajar baharu didaftarkan, ${countDuplicates} rekod dikemaskini.`);
             showToast(`Fail berjaya diproses! ${countImported} Pelajar Didaftarkan, ${countDuplicates} Dikemas Kini.`, "success");
-            
+
             // Auto-switch to the active dept tab to show newly imported students
             if (countImported > 0) {
                 const importedDept = results[0].jabatan || activeAdminStudentDept;
@@ -2346,7 +2306,7 @@ excelFileInput.addEventListener("change", (e) => {
                 const importLabel = document.getElementById("import-target-dept-label");
                 if (importLabel) importLabel.textContent = activeAdminStudentDept;
             }
-            
+
             renderAdminDashboard();
             renderAdminStudentsTable();
             renderAdminLecturerAssignTable();
@@ -2354,7 +2314,7 @@ excelFileInput.addEventListener("change", (e) => {
             showToast("Ralat memproses fail: " + err.message, "error");
         }
     };
-    
+
     if (isExcel) {
         reader.readAsArrayBuffer(file);
     } else {
@@ -2383,18 +2343,18 @@ function parseCSV(text) {
     if (text.startsWith('\ufeff')) {
         text = text.substring(1);
     }
-    
+
     const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
     if (lines.length === 0) return [];
-    
+
     // Detect delimiter: comma or semicolon
     const firstLine = lines[0];
     const commaCount = (firstLine.match(/,/g) || []).length;
     const semiCount = (firstLine.match(/;/g) || []).length;
     const delimiter = semiCount > commaCount ? ';' : ',';
-    
+
     const rawFirstCols = firstLine.split(delimiter).map(h => cleanVal(h));
-    
+
     // Detect if first line is a header row (require at least 2 keyword matches to prevent false positives)
     let isHeader = false;
     const headerKeywords = ['nama', 'name', 'pendaftaran', 'reg', 'id', 'matrik', 'kelas', 'class', 'jabatan', 'dept', 'tempat', 'li', 'company', 'syarikat', 'sesi', 'session'];
@@ -2408,10 +2368,10 @@ function parseCSV(text) {
     if (matchCount >= 2) {
         isHeader = true;
     }
-    
+
     let headers = [];
     let startIndex = 0;
-    
+
     if (isHeader) {
         headers = rawFirstCols.map(h => h.toLowerCase());
         startIndex = 1;
@@ -2420,12 +2380,12 @@ function parseCSV(text) {
         headers = ['nama', 'pendaftaran', 'tempat', 'pemantau', 'penilai', 'jabatan', 'emel', 'kelas', 'sesi'];
         startIndex = 0;
     }
-    
+
     // Find column indices
     const nameIdx = headers.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('pelajar') || h.includes('student') || h.includes('full'));
     const regIdx = headers.findIndex(h => h.includes('pendaftaran') || h.includes('reg') || h.includes('id') || h.includes('matrik') || h.includes('no'));
     const tempatIdx = headers.findIndex(h => h.includes('tempat') || h.includes('li') || h.includes('company') || h.includes('syarikat') || h.includes('organisasi'));
-    
+
     // Find all columns containing 'pemantau'
     const pemantauCols = [];
     headers.forEach((h, idx) => {
@@ -2446,7 +2406,7 @@ function parseCSV(text) {
             emailPemantauIdx = pemantauCols[1].index;
         }
     }
-    
+
     // Find all columns containing 'penilai'
     const penilaiCols = [];
     headers.forEach((h, idx) => {
@@ -2467,16 +2427,16 @@ function parseCSV(text) {
             emailPenilaiIdx = penilaiCols[1].index;
         }
     }
-    
+
     const jabIdx = headers.findIndex(h => h.includes('jabatan') || h.includes('dept') || h.includes('department'));
     const emailIdx = headers.findIndex(h => h.includes('emel') || h.includes('email'));
     const sesiIdx = headers.findIndex(h => h.includes('sesi') || h.includes('session') || h.includes('cohort'));
-    
+
     const results = [];
     for (let i = startIndex; i < lines.length; i++) {
         const cols = lines[i].split(delimiter).map(c => cleanVal(c));
         if (cols.length === 0 || cols.every(c => c === "")) continue;
-        
+
         let name = "";
         let regNo = "";
         let tempatLI = "";
@@ -2488,7 +2448,7 @@ function parseCSV(text) {
         let email = "";
         let classVal = "";
         let sesi = "";
-        
+
         if (isHeader) {
             name = (nameIdx !== -1 && cols[nameIdx]) ? cleanStudentName(cols[nameIdx]) : "";
             regNo = (regIdx !== -1 && cols[regIdx]) ? cleanVal(cols[regIdx]).toUpperCase() : "";
@@ -2521,12 +2481,12 @@ function parseCSV(text) {
                 sesi = cols[8] ? cleanVal(cols[8]) : "";
             }
         }
-        
+
         // Final fallback validation for critical missing fields
-        if (!regNo) regNo = `REG-${Math.floor(Math.random()*10000)}`;
+        if (!regNo) regNo = `REG-${Math.floor(Math.random() * 10000)}`;
         if (!name) name = `Pelajar ${i}`;
         if (!email) email = `${regNo.toLowerCase()}@student.com`;
-        
+
         results.push({ name, regNo, tempatLI, pensyarahPemantau, pensyarahPemantauName, pensyarahPenilai, pensyarahPenilaiName, jabatan, email, class: classVal, sesi });
     }
     return results;
@@ -2535,13 +2495,13 @@ function parseCSV(text) {
 // Excel row parser helper (using SheetJS 2D array)
 function parseExcelRows(rows) {
     if (rows.length === 0) return [];
-    
+
     // Clean rows of completely blank rows (all cells are empty/null)
     const cleanedRows = rows.filter(r => r && r.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== ""));
     if (cleanedRows.length === 0) return [];
-    
+
     const firstRow = cleanedRows[0].map(c => cleanVal(c));
-    
+
     // Detect if first row is a header row (require at least 2 keyword matches to prevent false positives)
     let isHeader = false;
     const headerKeywords = ['nama', 'name', 'pendaftaran', 'reg', 'id', 'matrik', 'kelas', 'class', 'jabatan', 'dept', 'tempat', 'li', 'company', 'syarikat', 'sesi', 'session'];
@@ -2555,10 +2515,10 @@ function parseExcelRows(rows) {
     if (matchCount >= 2) {
         isHeader = true;
     }
-    
+
     let headers = [];
     let startIndex = 0;
-    
+
     if (isHeader) {
         headers = firstRow.map(h => h.toLowerCase());
         startIndex = 1;
@@ -2567,12 +2527,12 @@ function parseExcelRows(rows) {
         headers = ['nama', 'pendaftaran', 'tempat', 'pemantau', 'penilai', 'jabatan', 'emel', 'kelas', 'sesi'];
         startIndex = 0;
     }
-    
+
     // Find column indices
     const nameIdx = headers.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('pelajar') || h.includes('student') || h.includes('full'));
     const regIdx = headers.findIndex(h => h.includes('pendaftaran') || h.includes('reg') || h.includes('id') || h.includes('matrik') || h.includes('no'));
     const tempatIdx = headers.findIndex(h => h.includes('tempat') || h.includes('li') || h.includes('company') || h.includes('syarikat') || h.includes('organisasi'));
-    
+
     // Find all columns containing 'pemantau'
     const pemantauCols = [];
     headers.forEach((h, idx) => {
@@ -2593,7 +2553,7 @@ function parseExcelRows(rows) {
             emailPemantauIdx = pemantauCols[1].index;
         }
     }
-    
+
     // Find all columns containing 'penilai'
     const penilaiCols = [];
     headers.forEach((h, idx) => {
@@ -2614,16 +2574,16 @@ function parseExcelRows(rows) {
             emailPenilaiIdx = penilaiCols[1].index;
         }
     }
-    
+
     const jabIdx = headers.findIndex(h => h.includes('jabatan') || h.includes('dept') || h.includes('department'));
     const emailIdx = headers.findIndex(h => h.includes('emel') || h.includes('email'));
     const sesiIdx = headers.findIndex(h => h.includes('sesi') || h.includes('session') || h.includes('cohort'));
-    
+
     const results = [];
     for (let i = startIndex; i < cleanedRows.length; i++) {
         const cols = cleanedRows[i].map(c => cleanVal(c));
         if (cols.length === 0 || cols.every(c => c === "")) continue;
-        
+
         let name = "";
         let regNo = "";
         let tempatLI = "";
@@ -2635,7 +2595,7 @@ function parseExcelRows(rows) {
         let email = "";
         let classVal = "";
         let sesi = "";
-        
+
         if (isHeader) {
             name = (nameIdx !== -1 && cols[nameIdx]) ? cleanStudentName(cols[nameIdx]) : "";
             regNo = (regIdx !== -1 && cols[regIdx]) ? cleanVal(cols[regIdx]).toUpperCase() : "";
@@ -2668,12 +2628,12 @@ function parseExcelRows(rows) {
                 sesi = cols[8] ? cleanVal(cols[8]) : "";
             }
         }
-        
+
         // Final fallback validation for critical missing fields
-        if (!regNo) regNo = `REG-${Math.floor(Math.random()*10000)}`;
+        if (!regNo) regNo = `REG-${Math.floor(Math.random() * 10000)}`;
         if (!name) name = `Pelajar ${i}`;
         if (!email) email = `${regNo.toLowerCase()}@student.com`;
-        
+
         results.push({ name, regNo, tempatLI, pensyarahPemantau, pensyarahPemantauName, pensyarahPenilai, pensyarahPenilaiName, jabatan, email, class: classVal, sesi });
     }
     return results;
@@ -2684,31 +2644,31 @@ const addSessionForm = document.getElementById("admin-add-session-form");
 addSessionForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const newSessionName = document.getElementById("admin-new-session-name").value.trim();
-    
+
     // Regular expression validation e.g. "Sesi 1:2026/2027" or "Sesi 2:2026/2027"
     const sessionRegex = /^Sesi \d:20\d{2}\/20\d{2}$/;
     if (!sessionRegex.test(newSessionName)) {
         showToast("Format nama Sesi salah! Sila gunakan format: Sesi [1/2]:[Tahun/Tahun] (Contoh: Sesi 2:2026/2027)", "error");
         return;
     }
-    
+
     const sessions = getSessions();
     if (sessions.includes(newSessionName)) {
         showToast("Sesi Akademik ini sudah berdaftar di dalam sistem!", "error");
         return;
     }
-    
+
     sessions.push(newSessionName);
     saveSessions(sessions);
     saveActiveSession(newSessionName); // auto-set to newly registered session
     addLog("success", `Admin mendaftarkan sesi akademik baharu: ${newSessionName}`);
-    
+
     showToast(`Sesi "${newSessionName}" berjaya didaftarkan dan diaktifkan.`, "success");
     addSessionForm.reset();
-    
+
     // Refresh selects
     populateGlobalSessionSelect();
-    
+
     // Refresh View
     renderAdminDashboard();
     renderAdminStudentsTable();
@@ -2718,29 +2678,29 @@ addSessionForm.addEventListener("submit", (e) => {
 // Render Admin Students Tab Table (with Department & Session Filtering & Checkbox Selections)
 function renderAdminStudentsTable() {
     if (currentRole !== "admin") return;
-    
+
     applyDeptTheme(activeAdminStudentDept);
-    
+
     const activeSesi = getActiveSession();
     document.getElementById("admin-students-table-title").textContent = `Pelajar Berdaftar: ${activeAdminStudentDept} (${activeSesi})`;
-    
+
     const students = getStudents();
     const searchVal = document.getElementById("admin-student-search-input").value.trim().toLowerCase();
-    
+
     const tbody = document.getElementById("admin-students-table-body");
     tbody.innerHTML = "";
-    
+
     // FILTER: Filter students by department AND active session AND search query
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         s.jabatan === activeAdminStudentDept &&
         (s.sesi || "").trim() === (activeSesi || "").trim() &&
         (
-            (s.name || "").toLowerCase().includes(searchVal) || 
-            (s.regNo || "").toLowerCase().includes(searchVal) || 
+            (s.name || "").toLowerCase().includes(searchVal) ||
+            (s.regNo || "").toLowerCase().includes(searchVal) ||
             (s.class || "").toLowerCase().includes(searchVal)
         )
     );
-    
+
     if (filteredStudents.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;" class="text-muted">Tiada rekod pelajar berdaftar ditemui bagi jabatan ${activeAdminStudentDept} untuk sesi ${activeSesi}.</td></tr>`;
         const selectAllCheck = document.getElementById("admin-student-select-all");
@@ -2748,7 +2708,7 @@ function renderAdminStudentsTable() {
         if (window.updateBulkCount) window.updateBulkCount();
         return;
     }
-    
+
     filteredStudents.forEach(s => {
         const requiredDocs = getStudentDocsList(s);
         let approvedCount = 0;
@@ -2757,13 +2717,13 @@ function renderAdminStudentsTable() {
             if (status === "Diterima") approvedCount++;
         });
         const pct = Math.round((approvedCount / requiredDocs.length) * 100);
-        
+
         // Check if ALL required documents are fully approved ("Diterima") AND have actual file data
         const allComplete = approvedCount === requiredDocs.length && requiredDocs.every(d => {
             const doc = s.documents[d.id];
             return doc && doc.status === "Diterima" && doc.fileData && doc.fileData.trim() !== "";
         });
-        
+
         let docsVisual = "";
         requiredDocs.forEach(d => {
             const key = d.id;
@@ -2772,17 +2732,17 @@ function renderAdminStudentsTable() {
             if (status === "Dalam Semakan") c = "yellow";
             if (status === "Diterima") c = "green";
             if (status === "Ditolak") c = "red";
-            
-            docsVisual += `<span class="status-indicator-dot ${c}" title="${d.title}: ${status}" onclick="openDocumentReviewModal('${s.regNo}', '${key}')">${d.title.split(" ").map(w => w[0]).join("").substring(0,2)}</span>`;
+
+            docsVisual += `<span class="status-indicator-dot ${c}" title="${d.title}: ${status}" onclick="openDocumentReviewModal('${s.regNo}', '${key}')">${d.title.split(" ").map(w => w[0]).join("").substring(0, 2)}</span>`;
         });
-        
+
         let avatarStyle = "";
         let avatarContent = getInitials(s.name);
         if (s.profilePic) {
             avatarStyle = `style="background-image: url(${s.profilePic}); background-size: cover; background-position: center;"`;
             avatarContent = "";
         }
-        
+
         // Admin-only download button — only shown when folder is complete
         const downloadBtn = allComplete
             ? `<button id="btn-admin-dl-${s.regNo}" class="btn btn-sm" onclick="adminDownloadStudentDocs('${s.regNo}')" title="Muat Turun Folder Pelajar (ZIP)" style="background: linear-gradient(135deg, #059669, #047857); color:#fff; border:none; border-radius:6px; padding:5px 9px; font-size:0.75rem; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:5px; white-space:nowrap;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
@@ -2791,7 +2751,7 @@ function renderAdminStudentsTable() {
             : `<button class="btn btn-sm" disabled title="Dokumen belum lengkap — muat turun hanya tersedia apabila semua dokumen 'Diterima'" style="background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px dashed var(--border-color); border-radius:6px; padding:5px 9px; font-size:0.75rem; cursor:not-allowed; display:flex; align-items:center; gap:5px; white-space:nowrap;">
                 <i class="fa-solid fa-folder-arrow-down"></i> Belum Lengkap
               </button>`;
-        
+
         tbody.innerHTML += `
             <tr>
                 <td style="text-align: center;">
@@ -2834,7 +2794,7 @@ function renderAdminStudentsTable() {
             </tr>
         `;
     });
-    
+
     const selectAllCheck = document.getElementById("admin-student-select-all");
     if (selectAllCheck) selectAllCheck.checked = false;
     if (window.updateBulkCount) window.updateBulkCount();
@@ -2842,10 +2802,10 @@ function renderAdminStudentsTable() {
 
 document.getElementById("admin-student-search-input").addEventListener("input", renderAdminStudentsTable);
 
-window.deleteStudent = function(regNo) {
+window.deleteStudent = function (regNo) {
     showConfirm(
         `Padam pelajar ${regNo}? Ini akan memadamkan semua rekod dokumen mereka secara kekal.`,
-        function() {
+        function () {
             const students = getStudents();
             const updated = students.filter(s => s.regNo !== regNo);
             saveStudents(updated);
@@ -2862,22 +2822,22 @@ window.deleteStudent = function(regNo) {
 // Admin Assignment Tab (Tugasan Pemantau & Penilai mengikut Emel - Filtered by Session)
 function renderAdminLecturerAssignTable() {
     if (currentRole !== "admin") return;
-    
+
     applyDeptTheme(activeAdminAssignDept);
-    
+
     const students = getStudents();
     const activeSesi = getActiveSession();
     const searchVal = document.getElementById("admin-assign-search-input").value.trim().toLowerCase();
-    
+
     // Set dynamic table header
     const thead = document.getElementById("admin-lecturer-assign-table-header");
     const tbody = document.getElementById("admin-lecturer-assign-table-body");
     tbody.innerHTML = "";
-    
+
     // JKA, JKE, JKM have 8 columns (Nama Pemantau, Email Pemantau, Nama Penilai, Email Penilai)
     // JP, JPH have 6 columns (Nama Pemantau, Email Pemantau, no Penilai)
     const isKejuruteraanTab = ["JKA", "JKE", "JKM"].includes(activeAdminAssignDept);
-    
+
     if (isKejuruteraanTab) {
         thead.innerHTML = `
             <tr>
@@ -2901,23 +2861,23 @@ function renderAdminLecturerAssignTable() {
             </tr>
         `;
     }
-    
+
     // FILTER: Filter assignment list by active academic session AND selected department tab!
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         s.sesi === activeSesi &&
         s.jabatan === activeAdminAssignDept &&
         (s.name.toLowerCase().includes(searchVal) || s.regNo.toLowerCase().includes(searchVal))
     );
-    
+
     if (filteredStudents.length === 0) {
         const colSpan = isKejuruteraanTab ? 7 : 5;
         tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center;" class="text-muted">Tiada rekod pelajar ditemui bagi jabatan ${activeAdminAssignDept} untuk sesi ${activeSesi}.</td></tr>`;
         return;
     }
-    
+
     filteredStudents.forEach(s => {
         const hasPenilai = studentHasPenilai(s) && isKejuruteraanTab;
-        
+
         if (isKejuruteraanTab) {
             tbody.innerHTML += `
                 <tr>
@@ -2951,7 +2911,7 @@ function renderAdminLecturerAssignTable() {
                             <i class="fa-solid fa-floppy-disk"></i> Simpan
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.regNo}')" style="margin-left: 5px;">
-                            <i class="fa-solid fa-trash-can"></i> Hapus
+                            <i class="fa-solid fa-trash-can"></i> Padam
                         </button>
                     </td>
                 </tr>
@@ -2975,7 +2935,7 @@ function renderAdminLecturerAssignTable() {
                             <i class="fa-solid fa-floppy-disk"></i> Simpan
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.regNo}')" style="margin-left: 5px;">
-                            <i class="fa-solid fa-trash-can"></i> Hapus
+                            <i class="fa-solid fa-trash-can"></i> Padam
                         </button>
                     </td>
                 </tr>
@@ -2986,16 +2946,16 @@ function renderAdminLecturerAssignTable() {
 
 document.getElementById("admin-assign-search-input").addEventListener("input", renderAdminLecturerAssignTable);
 
-window.saveAssignment = function(regNo) {
+window.saveAssignment = function (regNo) {
     const pemantauName = document.getElementById(`assign-pemantau-name-${regNo}`).value.trim();
     const pemantauEmail = document.getElementById(`assign-pemantau-email-${regNo}`).value.trim().toLowerCase();
-    
+
     const penilaiNameEl = document.getElementById(`assign-penilai-name-${regNo}`);
     const penilaiEmailEl = document.getElementById(`assign-penilai-email-${regNo}`);
-    
+
     const penilaiName = penilaiNameEl ? penilaiNameEl.value.trim() : "";
     const penilaiEmail = penilaiEmailEl ? penilaiEmailEl.value.trim().toLowerCase() : "";
-    
+
     if (pemantauEmail && !pemantauEmail.endsWith("@polikk.edu.my")) {
         showToast("Emel Pemantau mestilah berakhir dengan @polikk.edu.my!", "error");
         return;
@@ -3004,22 +2964,22 @@ window.saveAssignment = function(regNo) {
         showToast("Emel Penilai mestilah berakhir dengan @polikk.edu.my!", "error");
         return;
     }
-    
+
     const students = getStudents();
     const studentIdx = students.findIndex(s => s.regNo === regNo);
-    
+
     if (studentIdx !== -1) {
         students[studentIdx].pensyarahPemantau = pemantauEmail;
         students[studentIdx].pensyarahPemantauName = pemantauName;
         students[studentIdx].pensyarahPenilai = penilaiEmail;
         students[studentIdx].pensyarahPenilaiName = penilaiName;
-        
+
         saveStudents(students);
         addLog("info", `Admin mengemas kini agihan pensyarah bagi pelajar ${regNo}: Pemantau(${pemantauName} - ${pemantauEmail || 'Tiada'}), Penilai(${penilaiName} - ${penilaiEmail || 'Tiada'})`);
         showToast("Agihan pensyarah berjaya disimpan!", "success");
-        
+
         const lecturers = getLecturers();
-        
+
         if (pemantauEmail && !lecturers.some(l => l.email === pemantauEmail)) {
             const prefix = pemantauEmail.split('@')[0];
             const nameToSave = pemantauName || ("Pensyarah " + prefix.charAt(0).toUpperCase() + prefix.slice(1));
@@ -3041,7 +3001,7 @@ window.saveAssignment = function(regNo) {
             });
         }
         saveLecturers(lecturers);
-        
+
         renderAdminLecturerAssignTable();
     }
 };
@@ -3063,18 +3023,18 @@ addAdminForm.addEventListener("submit", (e) => {
     const name = document.getElementById("modal-admin-name").value.trim();
     const email = document.getElementById("modal-admin-email").value.trim().toLowerCase();
     const staffId = document.getElementById("modal-admin-id").value.trim();
-    
+
     if (!email.endsWith("@polikk.edu.my")) {
         showToast("Ralat: Hanya emel @polikk.edu.my dibenarkan!", "error");
         return;
     }
-    
+
     const admins = getAdmins();
     if (admins.some(a => a.email === email)) {
         showToast("Ralat: Emel admin ini telah berdaftar!", "error");
         return;
     }
-    
+
     const newAdmin = {
         name,
         email,
@@ -3082,11 +3042,11 @@ addAdminForm.addEventListener("submit", (e) => {
         role: "admin",
         status: "Aktif"
     };
-    
+
     admins.push(newAdmin);
     saveAdmins(admins);
     addLog("success", `Admin mendaftarkan admin baharu: ${name} (${email})`);
-    
+
     showToast("Pentadbir sistem berjaya disimpan!", "success");
     addAdminForm.reset();
     addAdminModal.classList.remove("active");
@@ -3096,11 +3056,11 @@ addAdminForm.addEventListener("submit", (e) => {
 
 function renderAdminAdminsTable() {
     if (currentRole !== "admin") return;
-    
+
     const admins = getAdmins();
     const tbody = document.getElementById("admin-admins-table-body");
     tbody.innerHTML = "";
-    
+
     admins.forEach(a => {
         const isCurrent = a.email === currentUser.email;
         tbody.innerHTML += `
@@ -3126,10 +3086,10 @@ function renderAdminAdminsTable() {
     });
 }
 
-window.deleteAdmin = function(email) {
+window.deleteAdmin = function (email) {
     showConfirm(
         `Adakah anda pasti mahu membuang admin dengan emel: ${email}? Tindakan ini tidak boleh diundurkan.`,
-        function() {
+        function () {
             const admins = getAdmins();
             const updated = admins.filter(a => a.email !== email);
             saveAdmins(updated);
@@ -3144,7 +3104,7 @@ window.deleteAdmin = function(email) {
 };
 
 // Global handler — trigger file input click
-window.triggerFileUpload = function(docId) {
+window.triggerFileUpload = function (docId) {
     const input = document.getElementById(`file-input-${docId}`);
     if (input) input.click();
 };
@@ -3187,7 +3147,7 @@ async function uploadFileWithFallback(file, storagePath, onSuccess) {
     }
 }
 
-window.handleFileSelected = function(event, docId) {
+window.handleFileSelected = function (event, docId) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -3221,7 +3181,7 @@ window.handleFileSelected = function(event, docId) {
 
     // Use FileReader to read file — needed for both base64 fallback and for small files
     const reader = new FileReader();
-    reader.onload = async function(e) {
+    reader.onload = async function (e) {
         const base64Data = e.target.result;
 
         // Try Firebase Storage first
@@ -3262,7 +3222,7 @@ window.handleFileSelected = function(event, docId) {
     reader.readAsDataURL(file);
 };
 
-window.handleLecturerFileUpload = function(regNo, docId, inputEl) {
+window.handleLecturerFileUpload = function (regNo, docId, inputEl) {
     const file = inputEl.files[0];
     if (!file) return;
 
@@ -3279,7 +3239,7 @@ window.handleLecturerFileUpload = function(regNo, docId, inputEl) {
     const storagePath = `lecturer_docs/${regNo}/${docId}/${Date.now()}_${file.name}`;
 
     const reader = new FileReader();
-    reader.onload = async function(e) {
+    reader.onload = async function (e) {
         const base64Data = e.target.result;
         const result = await uploadFileWithFallback(file, storagePath, null);
 
@@ -3324,21 +3284,21 @@ function setupBulkActionListeners() {
     const selectAllCheck = document.getElementById("admin-student-select-all");
     const bulkDeleteBtn = document.getElementById("btn-bulk-delete");
     const countDisplay = document.getElementById("bulk-select-count");
-    
+
     if (!selectAllCheck) return; // safeguard if elements are not in DOM
-    
+
     // Select All checkbox change
-    selectAllCheck.addEventListener("change", function() {
+    selectAllCheck.addEventListener("change", function () {
         const checkboxes = document.querySelectorAll(".student-select-checkbox");
         checkboxes.forEach(cb => cb.checked = this.checked);
         updateBulkCount();
     });
-    
+
     // Update bulk action bar states
-    window.updateBulkCount = function() {
+    window.updateBulkCount = function () {
         const checkboxes = document.querySelectorAll(".student-select-checkbox");
         const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-        
+
         countDisplay.textContent = `${checkedCount} pelajar dipilih`;
         if (checkedCount > 0) {
             bulkDeleteBtn.disabled = false;
@@ -3351,7 +3311,7 @@ function setupBulkActionListeners() {
             bulkDeleteBtn.style.color = "var(--color-danger)";
             bulkDeleteBtn.style.borderColor = "rgba(244,63,94,0.15)";
         }
-        
+
         // Update Select All checkbox state
         if (checkboxes.length > 0 && checkedCount === checkboxes.length) {
             selectAllCheck.checked = true;
@@ -3364,33 +3324,33 @@ function setupBulkActionListeners() {
             selectAllCheck.indeterminate = false;
         }
     };
-    
+
     // Bulk Delete selected (checkbox ticked)
     bulkDeleteBtn.addEventListener("click", () => {
         const checkboxes = document.querySelectorAll(".student-select-checkbox:checked");
         const regs = Array.from(checkboxes).map(cb => cb.dataset.reg);
-        
+
         if (regs.length === 0) return;
-        
+
         showConfirm(
             `Adakah anda pasti mahu memadamkan ${regs.length} rekod pelajar yang dipilih secara pukal? Tindakan ini akan memadamkan fail dan maklumat mereka secara kekal.`,
-            function() {
+            function () {
                 const students = getStudents();
                 const updated = students.filter(s => !regs.includes(s.regNo));
                 saveStudents(updated);
                 addLog("danger", `Admin memadam secara pukal ${regs.length} pelajar.`);
                 showToast(`${regs.length} rekod pelajar berjaya dipadamkan secara pukal.`, "info");
-                
+
                 selectAllCheck.checked = false;
                 selectAllCheck.indeterminate = false;
                 updateBulkCount();
-                
+
                 renderAdminStudentsTable();
                 renderAdminDashboard();
                 renderAdminLecturerAssignTable();
             },
-            "Hapus Pelajar Terpilih",
-            "Ya, Hapus Semuanya"
+            "Padam Pelajar Terpilih",
+            "Ya, Padam Semuanya"
         );
     });
 }
@@ -3399,23 +3359,23 @@ function setupBulkActionListeners() {
 function deleteAllStudentsGlobal() {
     const students = getStudents();
     const totalCount = students.length;
-    
+
     if (totalCount === 0) {
         showToast("Tiada rekod pelajar untuk dipadamkan.", "info");
         return;
     }
-    
+
     showConfirm(
         `⚠️ AMARAN KERAS: Adakah anda pasti mahu memadamkan KESEMUA ${totalCount} rekod pelajar merentas SEMUA jabatan dan semua sesi akademik? Tindakan ini TIDAK BOLEH DIUNDURKAN!`,
-        function() {
+        function () {
             saveStudents([]);
             addLog("danger", `Admin memadam SEMUA ${totalCount} rekod pelajar merentas semua jabatan dan sesi.`);
             showToast(`Kesemua ${totalCount} rekod pelajar telah dipadamkan sepenuhnya.`, "info");
-            
+
             renderAdminStudentsTable();
             renderAdminDashboard();
             renderAdminLecturerAssignTable();
-            
+
             const selectAllCheck = document.getElementById("admin-student-select-all");
             if (selectAllCheck) {
                 selectAllCheck.checked = false;
@@ -3423,12 +3383,12 @@ function deleteAllStudentsGlobal() {
                 if (window.updateBulkCount) updateBulkCount();
             }
         },
-        "⚠️ Hapus SEMUA Pelajar Seluruh Sistem",
-        "Ya, Hapus Semua Sepenuhnya"
+        "⚠️ Padam SEMUA Pelajar Seluruh Sistem",
+        "Ya, Padam Semua Sepenuhnya"
     );
 }
 
-// Bind Hapus Semua Pelajar button in Pengurusan Pensyarah tab
+// Bind Padam Semua Pelajar button in Pengurusan Pensyarah tab
 document.addEventListener("DOMContentLoaded", () => {
     const btnDeleteAllFromLecturers = document.getElementById("btn-delete-all-from-lecturers");
     if (btnDeleteAllFromLecturers) {
@@ -3455,7 +3415,7 @@ function applyDeptTheme(dept) {
 function initTheme() {
     const savedTheme = localStorage.getItem("upli_theme") || "dark";
     const toggleBtn = document.getElementById("theme-toggle-btn");
-    
+
     if (savedTheme === "light") {
         document.body.classList.add("light-mode");
         if (toggleBtn) {
@@ -3472,20 +3432,20 @@ function initTheme() {
 // Profile updates (Student)
 function updateSelfProfile() {
     if (currentRole !== "student" || !currentUser) return;
-    
+
     const email = document.getElementById("profile-self-email").value.trim();
     const phone = document.getElementById("profile-self-phone").value.trim();
-    
+
     const students = getStudents();
     const idx = students.findIndex(s => s.regNo === currentUser.regNo);
     if (idx !== -1) {
         students[idx].email = email;
         students[idx].phone = phone;
         saveStudents(students);
-        
+
         currentUser.email = email;
         currentUser.phone = phone;
-        
+
         showToast("Profil peribadi berjaya dikemas kini!", "success");
     }
 }
@@ -3496,15 +3456,15 @@ let adminTempProfilePic = "";
 function handleProfilePicUploaded(type, input) {
     const file = input.files[0];
     if (!file) return;
-    
+
     if (file.size > 1024 * 1024) {
         showToast("Gagal: Saiz fail imej melebihi had 1MB!", "error");
         input.value = "";
         return;
     }
-    
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const base64 = e.target.result;
         if (type === "self") {
             if (currentRole !== "student" || !currentUser) return;
@@ -3514,7 +3474,7 @@ function handleProfilePicUploaded(type, input) {
                 students[idx].profilePic = base64;
                 saveStudents(students);
                 currentUser.profilePic = base64;
-                
+
                 // Update avatar visuals
                 const selfAvatarEl = document.getElementById("profile-card-avatar");
                 if (selfAvatarEl) {
@@ -3546,14 +3506,14 @@ function openEditStudentModal(regNo) {
     const students = getStudents();
     const student = students.find(s => s.regNo === regNo);
     if (!student) return;
-    
+
     document.getElementById("edit-student-reg-hidden").value = student.regNo;
     document.getElementById("edit-student-name").value = student.name;
     document.getElementById("edit-student-email").value = student.email || "";
     document.getElementById("edit-student-phone").value = student.phone || "";
     document.getElementById("edit-student-tempat").value = student.tempatLI || "";
     document.getElementById("edit-student-jabatan").value = student.jabatan || "JKA";
-    
+
     // Load academic sessions
     const sessions = getSessions();
     const sessionSelect = document.getElementById("edit-student-sesi");
@@ -3565,9 +3525,9 @@ function openEditStudentModal(regNo) {
         if (sesi === student.sesi) opt.selected = true;
         sessionSelect.appendChild(opt);
     });
-    
+
     adminTempProfilePic = student.profilePic || "";
-    
+
     const avatarEl = document.getElementById("edit-student-modal-avatar");
     if (avatarEl) {
         if (student.profilePic) {
@@ -3580,7 +3540,7 @@ function openEditStudentModal(regNo) {
             avatarEl.textContent = getInitials(student.name);
         }
     }
-    
+
     document.getElementById("edit-student-modal").classList.add("active");
 }
 
@@ -3597,7 +3557,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupBulkActionListeners();
     initTheme();
     switchPortalTab('dashboard');
-    
+
     // Theme toggle button click listener
     const toggleBtn = document.getElementById("theme-toggle-btn");
     if (toggleBtn) {
@@ -3607,7 +3567,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             initTheme();
         });
     }
-    
+
     // Edit Student Form Submit (Admin)
     const editForm = document.getElementById("edit-student-form");
     if (editForm) {
@@ -3620,7 +3580,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const tempat = document.getElementById("edit-student-tempat").value.trim();
             const jabatan = document.getElementById("edit-student-jabatan").value;
             const sesi = document.getElementById("edit-student-sesi").value;
-            
+
             const students = getStudents();
             const idx = students.findIndex(s => s.regNo === regNo);
             if (idx !== -1) {
@@ -3631,13 +3591,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 students[idx].jabatan = jabatan;
                 students[idx].sesi = sesi;
                 students[idx].profilePic = adminTempProfilePic;
-                
+
                 saveStudents(students);
                 addLog("info", `Admin mengemaskini profil pelajar ${name} (${regNo})`);
                 showToast(`Profil pelajar ${name} berjaya dikemas kini.`, "success");
-                
+
                 closeEditStudentModal();
-                
+
                 // Refresh views
                 renderAdminStudentsTable();
                 renderAdminDashboard();
@@ -3655,7 +3615,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // and use dbCache for cloud sync. Do NOT redefine them here.
 
 // --- File input: show selected filename on zone label ---
-document.getElementById("rubrik-file-input").addEventListener("change", function() {
+document.getElementById("rubrik-file-input").addEventListener("change", function () {
     const zone = document.getElementById("rubrik-upload-zone");
     if (this.files && this.files[0]) {
         zone.innerHTML = `
@@ -3667,7 +3627,7 @@ document.getElementById("rubrik-file-input").addEventListener("change", function
 });
 
 // --- Handle Rubrik Upload (Admin only) ---
-window.handleRubrikUpload = function() {
+window.handleRubrikUpload = function () {
     if (currentRole !== "admin") {
         showToast("Hanya Admin yang boleh memuat naik rubrik!", "error");
         return;
@@ -3704,7 +3664,7 @@ window.handleRubrikUpload = function() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sedang memuat naik...`;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const now = new Date();
         const formattedTime = now.getFullYear() + "-" +
             String(now.getMonth() + 1).padStart(2, "0") + "-" +
@@ -3748,7 +3708,7 @@ window.handleRubrikUpload = function() {
         renderAdminRubrik();
         renderAdminDashboard();
     };
-    reader.onerror = function() {
+    reader.onerror = function () {
         showToast("Ralat membaca fail. Sila cuba semula.", "error");
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan & Muat Naik Rubrik`;
@@ -3821,10 +3781,10 @@ function renderAdminRubrik() {
 }
 
 // --- Admin: Delete a rubrik ---
-window.deleteRubrik = function(rubrikId) {
+window.deleteRubrik = function (rubrikId) {
     showConfirm(
         "Adakah anda pasti mahu memadam rubrik ini? Tindakan ini tidak boleh diundurkan.",
-        function() {
+        function () {
             const rubriks = getRubriks().filter(r => r.id !== rubrikId);
             saveRubriks(rubriks);
             addLog("danger", `Admin memadam rubrik pemarkahan (ID: ${rubrikId})`);
@@ -3905,11 +3865,11 @@ function renderRubrikViewer() {
 // --------------------------------==========================================
 // N. PUBLIC PORTAL MODULE (DASHBOARD & STATS)
 // --------------------------------==========================================
-window.switchPortalTab = function(tabName) {
+window.switchPortalTab = function (tabName) {
     document.querySelectorAll(".portal-nav-item").forEach(btn => {
         btn.classList.remove("active");
     });
-    
+
     document.querySelectorAll(".portal-tab-pane").forEach(pane => {
         pane.style.display = "none";
     });
@@ -3934,13 +3894,13 @@ window.switchPortalTab = function(tabName) {
     }
 };
 
-window.renderPortalDashboard = function() {
+window.renderPortalDashboard = function () {
     const students = getStudents();
     const activeSesi = getActiveSession();
-    
+
     // Filter students by active session
     const currentSessionStudents = students.filter(s => s.sesi === activeSesi);
-    
+
     // Count complete students
     const completeStudents = currentSessionStudents.filter(s => {
         const requiredDocs = getStudentDocsList(s);
@@ -3949,15 +3909,15 @@ window.renderPortalDashboard = function() {
             return doc && doc.status === "Diterima";
         });
     });
-    
+
     const totalCount = currentSessionStudents.length;
     const completeCount = completeStudents.length;
     const rate = totalCount > 0 ? Math.round((completeCount / totalCount) * 100) : 0;
-    
+
     document.getElementById("portal-total-students").textContent = totalCount;
     document.getElementById("portal-total-complete").textContent = completeCount;
     document.getElementById("portal-completion-rate").textContent = rate + "%";
-    
+
     // Setup department configs
     const depts = [
         {
@@ -3974,7 +3934,7 @@ window.renderPortalDashboard = function() {
             icon: "fa-solid fa-bolt",
             color: "#f59e0b",
             glow: "rgba(245, 158, 11, 0.1)",
-            programs: ["DEP", "DET", "DTK"]
+            programs: ["DEE", "DEP", "DTK"]
         },
         {
             code: "JKM",
@@ -3982,7 +3942,7 @@ window.renderPortalDashboard = function() {
             icon: "fa-solid fa-gears",
             color: "#3b82f6",
             glow: "rgba(59, 130, 246, 0.1)",
-            programs: ["DKM", "DAD", "DTP"]
+            programs: ["DKM", "DTP", "DEM"]
         },
         {
             code: "JP",
@@ -3990,7 +3950,7 @@ window.renderPortalDashboard = function() {
             icon: "fa-solid fa-chart-line",
             color: "#10b981",
             glow: "rgba(16, 185, 129, 0.1)",
-            programs: ["DAT", "DPM", "DPR"]
+            programs: ["DAT", "DLS", "DPR"]
         },
         {
             code: "JPH",
@@ -3998,14 +3958,14 @@ window.renderPortalDashboard = function() {
             icon: "fa-solid fa-utensils",
             color: "#ec4899",
             glow: "rgba(236, 72, 153, 0.1)",
-            programs: ["DHF", "DUP", "DHS"]
+            programs: ["DHR", "KOK", "DHM"]
         }
     ];
-    
+
     const grid = document.getElementById("portal-departments-grid");
     if (!grid) return;
     grid.innerHTML = "";
-    
+
     depts.forEach(d => {
         const deptStudents = currentSessionStudents.filter(s => s.jabatan === d.code);
         const deptComplete = deptStudents.filter(s => {
@@ -4015,9 +3975,9 @@ window.renderPortalDashboard = function() {
                 return studentDoc && studentDoc.status === "Diterima";
             });
         });
-        
+
         const deptRate = deptStudents.length > 0 ? Math.round((deptComplete.length / deptStudents.length) * 100) : 0;
-        
+
         let programsHTML = "";
         d.programs.forEach(prog => {
             const progStudents = deptStudents.filter(s => getStudentProgram(s) === prog);
@@ -4038,13 +3998,13 @@ window.renderPortalDashboard = function() {
                 </div>
             `;
         });
-        
+
         const card = document.createElement("div");
         card.className = "card";
         card.style.cssText = "padding:20px; transition:all 0.2s; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; min-height: 290px;";
         card.onmouseenter = () => { card.style.borderColor = d.color; card.style.boxShadow = `0 4px 20px ${d.glow}`; };
         card.onmouseleave = () => { card.style.borderColor = "var(--border-color)"; card.style.boxShadow = ""; };
-        
+
         card.innerHTML = `
             <div>
                 <!-- Header -->
@@ -4083,13 +4043,13 @@ function getStudentProgram(student) {
     if (!student) return "Lain-lain";
     const regNo = (student.regNo || "").toUpperCase();
     const classVal = (student.class || "").toUpperCase();
-    
+
     const programs = [
         "DKA", "DUB", "DBK",
-        "DEP", "DET", "DTK",
-        "DKM", "DAD", "DTP",
-        "DAT", "DPM", "DPR",
-        "DHF", "DUP", "DHS"
+        "DEE", "DEP", "DTK",
+        "DKM", "DTP", "DEM",
+        "DAT", "DLS", "DPR",
+        "DHR", "KOK", "DHM"
     ];
     for (let p of programs) {
         if (regNo.includes(p) || classVal.includes(p)) {
@@ -4098,6 +4058,6 @@ function getStudentProgram(student) {
     }
     const match = classVal.match(/[A-Z]{3}/);
     if (match) return match[0];
-    
+
     return "Lain-lain";
 }
