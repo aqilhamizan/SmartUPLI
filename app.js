@@ -553,7 +553,6 @@ const headerUserRole = document.getElementById("header-user-role");
 const headerUserAvatar = document.getElementById("header-avatar");
 const currentTabTitle = document.getElementById("current-tab-title");
 const logoutBtn = document.getElementById("logout-btn");
-const menuUtamaHeaderBtn = document.getElementById("btn-menu-utama-header");
 const timeDisplay = document.getElementById("current-time-display");
 
 // Global Session Select Elements
@@ -966,17 +965,7 @@ logoutBtn.addEventListener("click", () => {
     window.scrollTo(0, 0);
 });
 
-if (menuUtamaHeaderBtn) {
-    menuUtamaHeaderBtn.addEventListener("click", () => {
-        if (currentRole === "student") {
-            switchTab("student-dashboard");
-        } else if (currentRole === "lecturer") {
-            switchTab("lecturer-dashboard");
-        } else if (currentRole === "admin") {
-            switchTab("admin-dashboard");
-        }
-    });
-}
+
 
 // --------------------------------------------------------------------------
 // F. TAB ROUTING & RENDERING
