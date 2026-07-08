@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartupli-cache-v4';
+const CACHE_NAME = 'smartupli-cache-v6';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

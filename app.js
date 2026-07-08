@@ -98,6 +98,36 @@ function studentHasPenilai(student) {
     return false;
 }
 
+const DEFAULT_ANNOUNCEMENTS = [
+    {
+        id: "ann_default_1",
+        title: "Taklimat Khas Persediaan Latihan Industri",
+        content: "Taklimat khas akan diadakan secara atas talian menerusi MS Teams pada jam 9:00 Pagi. Kehadiran adalah WAJIB bagi semua pelajar sesi 1:2026/2027.",
+        date: "2026-07-10",
+        category: "Akademik",
+        updatedBy: "Dr. Hamzah bin Salleh",
+        updatedAt: "2026-07-03 08:10"
+    },
+    {
+        id: "ann_default_2",
+        title: "Tarikh Akhir Serahan Borang Jawapan Organisasi",
+        content: "Sila muat naik Borang Jawapan Organisasi yang telah lengkap ditandatangani oleh majikan ke dalam sistem SmartUPLI sebelum jam 5:00 Petang.",
+        date: "2026-07-15",
+        category: "Penting",
+        updatedBy: "Dr. Hamzah bin Salleh",
+        updatedAt: "2026-07-03 08:12"
+    },
+    {
+        id: "ann_default_3",
+        title: "Pendaftaran Sistem SmartUPLI Pelajar Baharu",
+        content: "Sila pastikan maklumat profil peribadi dan nombor telefon yang dikemaskini adalah aktif untuk tujuan agihan pensyarah pemantau.",
+        date: "2026-07-22",
+        category: "Pendaftaran",
+        updatedBy: "Dr. Hamzah bin Salleh",
+        updatedAt: "2026-07-03 08:15"
+    }
+];
+
 const DEFAULT_ADMINS = [
     {
         name: "Dr. Hamzah bin Salleh",
@@ -217,8 +247,19 @@ const DEFAULT_LOGS = [
 const dbCache = {
     admins: [], lecturers: [], students: [],
     logs: [], sessions: [], activeSession: "",
-    rubriks: []
+    rubriks: [], announcements: []
 };
+
+async function writeAnnouncementsToFirestore(data) {
+    try {
+        await db.collection("settings").doc("announcements").set({
+            list: data,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (e) {
+        console.warn("FS writeAnnouncements:", e.message);
+    }
+}
 
 // Show/hide loading overlay while Firestore loads
 function showDBLoading(show) {
@@ -395,6 +436,20 @@ async function initDatabase() {
         const rubriksDoc = await db.collection("settings").doc("rubriks").get();
         dbCache.rubriks = (rubriksDoc.exists && rubriksDoc.data().list) ? rubriksDoc.data().list : [];
 
+        // 7. Announcements
+        try {
+            const announcementsDoc = await db.collection("settings").doc("announcements").get();
+            if (announcementsDoc.exists && announcementsDoc.data().list && announcementsDoc.data().list.length > 0) {
+                dbCache.announcements = announcementsDoc.data().list;
+            } else {
+                dbCache.announcements = DEFAULT_ANNOUNCEMENTS;
+                await writeAnnouncementsToFirestore(DEFAULT_ANNOUNCEMENTS);
+            }
+        } catch (annErr) {
+            console.warn("Firestore announcements load error:", annErr);
+            dbCache.announcements = DEFAULT_ANNOUNCEMENTS;
+        }
+
     } catch (err) {
         console.error("Firebase initDatabase error:", err);
         // Graceful fallback to localStorage if Firestore is unavailable
@@ -405,6 +460,7 @@ async function initDatabase() {
         dbCache.activeSession = localStorage.getItem("upli_active_session") || "Sesi 1:2026/2027";
         dbCache.logs = JSON.parse(localStorage.getItem("upli_logs") || JSON.stringify(DEFAULT_LOGS));
         dbCache.rubriks = JSON.parse(localStorage.getItem("upli_rubriks") || "[]");
+        dbCache.announcements = JSON.parse(localStorage.getItem("upli_announcements") || JSON.stringify(DEFAULT_ANNOUNCEMENTS));
         showToast("⚠️ Gagal menyambung Firebase. Data tempatan digunakan.", "error");
     } finally {
         showDBLoading(false);
@@ -443,6 +499,13 @@ function addLog(type, text) {
 
 function getRubriks() { return dbCache.rubriks; }
 function saveRubriks(data) { dbCache.rubriks = data; writeRubriksToFirestore(data); }
+
+function getAnnouncements() { return dbCache.announcements || []; }
+function saveAnnouncements(data) {
+    dbCache.announcements = data;
+    writeAnnouncementsToFirestore(data);
+    localStorage.setItem("upli_announcements", JSON.stringify(data));
+}
 
 // --------------------------------------------------------------------------
 // A-3. FIRESTORE FILE STORAGE (Chunked base64 — no Firebase Storage needed)
@@ -998,6 +1061,7 @@ function switchTab(tabId) {
     if (tabId === "admin-dashboard") title = "Statistik Keseluruhan Pelajar LI";
     if (tabId === "admin-students") title = "Pengurusan Data Pelajar";
     if (tabId === "admin-lecturers") title = "Agihan Pensyarah Pemantau / Penilai";
+    if (tabId === "admin-announcements") title = "Pengurusan Makluman Penting";
     if (tabId === "admin-admins") title = "Pengurusan Pentadbir Sistem";
     if (tabId === "admin-rubrik") title = "Rubrik Pemarkahan";
     if (tabId === "rubrik-viewer") title = "Rubrik Pemarkahan";
@@ -1030,6 +1094,7 @@ function renderTabData(tabId) {
         if (tabId === "admin-dashboard") renderAdminDashboard();
         if (tabId === "admin-students") renderAdminStudentsTable();
         if (tabId === "admin-lecturers") renderAdminLecturerAssignTable();
+        if (tabId === "admin-announcements") renderAdminAnnouncements();
         if (tabId === "admin-admins") renderAdminAdminsTable();
         if (tabId === "admin-rubrik") renderAdminRubrik();
         if (tabId === "rubrik-viewer") renderRubrikViewer();
@@ -1539,7 +1604,7 @@ function renderLecturerDashboard() {
         });
 
         tbody.innerHTML += `
-            <tr>
+            <tr class="student-table-row" data-dept="${s.jabatan}">
                 <td>
                     <div class="table-student-cell">
                         <div class="avatar mini-avatar">${getInitials(s.name)}</div>
@@ -1664,6 +1729,7 @@ function renderLecturerStudentsList() {
 
         const card = document.createElement("div");
         card.className = "student-card";
+        card.setAttribute("data-dept", s.jabatan);
 
         card.innerHTML = `
             <div class="student-card-header">
@@ -2136,6 +2202,20 @@ function renderAdminDashboard() {
     const completeEl = document.getElementById("admin-stat-complete");
     if (completeEl) completeEl.textContent = completeCount;
 
+    // Count total documents with status "Dalam Semakan"
+    let pendingCount = 0;
+    currentSessionStudents.forEach(s => {
+        const requiredDocs = getStudentDocsList(s);
+        requiredDocs.forEach(d => {
+            const doc = s.documents[d.id];
+            if (doc && doc.status === "Dalam Semakan") {
+                pendingCount++;
+            }
+        });
+    });
+    const pendingEl = document.getElementById("admin-stat-pending");
+    if (pendingEl) pendingEl.textContent = pendingCount;
+
     // Update Department Details inside Dashboard
     document.getElementById("admin-dept-title-display").textContent = `Senarai Pelajar Jabatan: ${activeAdminDept} (${activeSesi})`;
 
@@ -2158,7 +2238,7 @@ function renderAdminDashboard() {
             const pct = Math.round((approvedCount / requiredDocs.length) * 100);
 
             listBody.innerHTML += `
-                <tr>
+                <tr class="student-table-row" data-dept="${s.jabatan}">
                     <td>
                         <div class="table-student-cell">
                             <div class="avatar mini-avatar">${getInitials(s.name)}</div>
@@ -2755,7 +2835,7 @@ function renderAdminStudentsTable() {
               </button>`;
 
         tbody.innerHTML += `
-            <tr>
+            <tr class="student-table-row" data-dept="${s.jabatan}">
                 <td style="text-align: center;">
                     <input type="checkbox" class="student-select-checkbox" data-reg="${s.regNo}" onchange="updateBulkCount()">
                 </td>
@@ -2882,7 +2962,7 @@ function renderAdminLecturerAssignTable() {
 
         if (isKejuruteraanTab) {
             tbody.innerHTML += `
-                <tr>
+                <tr class="student-table-row" data-dept="${s.jabatan}">
                     <td>
                         <strong>${s.name}</strong><br>
                         <code style="font-size:0.75rem;">${s.regNo}</code>
@@ -3088,20 +3168,175 @@ function renderAdminAdminsTable() {
     });
 }
 
-window.deleteAdmin = function (email) {
+// ---------- Admin Pengurusan Makluman Handlers ----------
+window.renderAdminAnnouncements = function () {
+    if (currentRole !== "admin") return;
+
+    const announcements = getAnnouncements();
+    const countBadge = document.getElementById("admin-announcement-count-badge");
+    if (countBadge) {
+        countBadge.textContent = `${announcements.length} Makluman`;
+    }
+
+    const tbody = document.getElementById("admin-announcements-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    // Sort announcements by date descending (latest first for management)
+    const sorted = [...announcements].sort((a, b) => b.date.localeCompare(a.date));
+
+    if (sorted.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align:center; padding:30px; color:var(--text-muted);">
+                    <i class="fa-solid fa-bullhorn" style="font-size:2rem; margin-bottom:10px; display:block; opacity:0.5;"></i>
+                    Tiada rekod makluman ditemui. Sila tambah makluman baharu di sebelah kiri.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    sorted.forEach(a => {
+        let badgeClass = "badge-muted";
+        if (a.category === "Penting") badgeClass = "badge-danger";
+        else if (a.category === "Pendaftaran") badgeClass = "badge-success";
+        else if (a.category === "Akademik") badgeClass = "badge-warning";
+
+        tbody.innerHTML += `
+            <tr>
+                <td style="white-space: nowrap;">
+                    <strong><code>${a.date}</code></strong>
+                </td>
+                <td>
+                    <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">${a.title}</div>
+                    <span class="badge ${badgeClass}" style="font-size:0.65rem; padding:2px 8px;">${a.category}</span>
+                </td>
+                <td>
+                    <span style="font-size:0.8rem; font-weight:600;">${a.updatedBy || 'Admin'}</span>
+                    <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">${a.updatedAt || ''}</div>
+                </td>
+                <td style="white-space: nowrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="editAnnouncement('${a.id}')" style="margin-right:6px; padding:6px 10px; font-size:0.75rem;">
+                        <i class="fa-solid fa-pen text-accent"></i> Edit
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="deleteAnnouncement('${a.id}')" style="padding:6px 10px; font-size:0.75rem;">
+                        <i class="fa-solid fa-trash text-danger"></i> Padam
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+};
+
+window.handleSaveAnnouncement = function (event) {
+    event.preventDefault();
+    if (currentRole !== "admin") return;
+
+    const idInput = document.getElementById("announcement-id-input").value;
+    const title = document.getElementById("announcement-title-input").value.trim();
+    const date = document.getElementById("announcement-date-input").value;
+    const category = document.getElementById("announcement-category-select").value;
+    const content = document.getElementById("announcement-content-input").value.trim();
+
+    if (!title || !date || !category || !content) {
+        showToast("Sila lengkapkan semua medan.", "error");
+        return;
+    }
+
+    const announcements = getAnnouncements();
+    
+    // Format timestamp: YYYY-MM-DD HH:MM
+    const now = new Date();
+    const nowStr = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, '0') + "-" +
+        String(now.getDate()).padStart(2, '0') + " " +
+        String(now.getHours()).padStart(2, '0') + ":" +
+        String(now.getMinutes()).padStart(2, '0');
+
+    const authorName = currentUser ? (currentUser.name || "Admin UPLI") : "Admin UPLI";
+
+    if (idInput) {
+        // Edit mode
+        const idx = announcements.findIndex(a => a.id === idInput);
+        if (idx !== -1) {
+            announcements[idx].title = title;
+            announcements[idx].date = date;
+            announcements[idx].category = category;
+            announcements[idx].content = content;
+            announcements[idx].updatedBy = authorName;
+            announcements[idx].updatedAt = nowStr;
+
+            saveAnnouncements(announcements);
+            addLog("info", `Admin mengemaskini makluman: "${title}"`);
+            showToast("Makluman berjaya dikemaskini.", "success");
+        }
+    } else {
+        // Add new mode
+        const newAnn = {
+            id: "ann_" + Date.now(),
+            title,
+            date,
+            category,
+            content,
+            updatedBy: authorName,
+            updatedAt: nowStr
+        };
+        announcements.push(newAnn);
+        saveAnnouncements(announcements);
+        addLog("success", `Admin menambah makluman baharu: "${title}"`);
+        showToast("Makluman baharu berjaya disimpan.", "success");
+    }
+
+    resetAnnouncementForm();
+    renderAdminAnnouncements();
+};
+
+window.editAnnouncement = function (id) {
+    if (currentRole !== "admin") return;
+    const announcements = getAnnouncements();
+    const ann = announcements.find(a => a.id === id);
+    if (!ann) return;
+
+    document.getElementById("announcement-id-input").value = ann.id;
+    document.getElementById("announcement-title-input").value = ann.title;
+    document.getElementById("announcement-date-input").value = ann.date;
+    document.getElementById("announcement-category-select").value = ann.category;
+    document.getElementById("announcement-content-input").value = ann.content;
+
+    document.getElementById("admin-announcement-form-title").innerHTML = `<i class="fa-solid fa-pen-to-square text-accent"></i>Edit Makluman`;
+    document.getElementById("btn-save-announcement-text").textContent = "Simpan Perubahan";
+    document.getElementById("btn-cancel-announcement-edit").style.display = "inline-flex";
+
+    // Scroll to the form card smoothly
+    document.getElementById("admin-announcement-form").scrollIntoView({ behavior: 'smooth' });
+};
+
+window.resetAnnouncementForm = function () {
+    document.getElementById("admin-announcement-form").reset();
+    document.getElementById("announcement-id-input").value = "";
+    document.getElementById("admin-announcement-form-title").innerHTML = `<i class="fa-solid fa-plus-circle text-primary"></i>Tambah Makluman Baharu`;
+    document.getElementById("btn-save-announcement-text").textContent = "Simpan Makluman";
+    document.getElementById("btn-cancel-announcement-edit").style.display = "none";
+};
+
+window.deleteAnnouncement = function (id) {
+    if (currentRole !== "admin") return;
+    const announcements = getAnnouncements();
+    const ann = announcements.find(a => a.id === id);
+    if (!ann) return;
+
     showConfirm(
-        `Adakah anda pasti mahu membuang admin dengan emel: ${email}? Tindakan ini tidak boleh diundurkan.`,
+        `Adakah anda pasti mahu memadam makluman: "${ann.title}"?`,
         function () {
-            const admins = getAdmins();
-            const updated = admins.filter(a => a.email !== email);
-            saveAdmins(updated);
-            addLog("danger", `Admin memadam admin: ${email}`);
-            showToast("Rekod pentadbir (admin) telah dipadamkan.", "info");
-            renderAdminAdminsTable();
-            renderAdminDashboard();
+            const updated = announcements.filter(a => a.id !== id);
+            saveAnnouncements(updated);
+            addLog("danger", `Admin memadam makluman: "${ann.title}"`);
+            showToast("Makluman telah dipadamkan.", "info");
+            renderAdminAnnouncements();
         },
-        "Buang Admin",
-        "Ya, Buang"
+        "Padam Makluman",
+        "Ya, Padam"
     );
 };
 
@@ -3123,8 +3358,8 @@ function saveDocumentToStudent(studentIdx, docId, docData, students) {
 
 // Helper: upload file to Storage, fallback to base64 if unavailable
 async function uploadFileWithFallback(file, storagePath, onSuccess) {
-    if (typeof storage === 'undefined' || !storage) {
-        console.warn("Firebase Storage is undefined, using base64 fallback.");
+    if (typeof USE_FIREBASE_STORAGE === 'undefined' || !USE_FIREBASE_STORAGE || typeof storage === 'undefined' || !storage) {
+        console.warn("Firebase Storage is disabled or undefined, using base64 fallback.");
         return { useBase64: true };
     }
     try {
@@ -3428,18 +3663,25 @@ function applyDeptTheme(dept) {
 
 // Light & Dark Mode Toggle
 function initTheme() {
-    const savedTheme = localStorage.getItem("upli_theme") || "dark";
+    const savedTheme = localStorage.getItem("upli_theme") || "light";
     const toggleBtn = document.getElementById("theme-toggle-btn");
+    const portalToggleBtn = document.getElementById("portal-theme-toggle-btn");
 
     if (savedTheme === "light") {
         document.body.classList.add("light-mode");
         if (toggleBtn) {
             toggleBtn.innerHTML = `<i class="fa-solid fa-sun" style="color: #eab308;"></i>`;
         }
+        if (portalToggleBtn) {
+            portalToggleBtn.innerHTML = `<i class="fa-solid fa-sun" style="color: #eab308; margin-right: 8px;"></i> Mod Cerah`;
+        }
     } else {
         document.body.classList.remove("light-mode");
         if (toggleBtn) {
             toggleBtn.innerHTML = `<i class="fa-solid fa-moon"></i>`;
+        }
+        if (portalToggleBtn) {
+            portalToggleBtn.innerHTML = `<i class="fa-solid fa-moon" style="margin-right: 8px;"></i> Mod Gelap`;
         }
     }
 }
@@ -3597,6 +3839,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const toggleBtn = document.getElementById("theme-toggle-btn");
     if (toggleBtn) {
         toggleBtn.addEventListener("click", () => {
+            const isLight = document.body.classList.toggle("light-mode");
+            localStorage.setItem("upli_theme", isLight ? "light" : "dark");
+            initTheme();
+        });
+    }
+
+    const portalToggleBtn = document.getElementById("portal-theme-toggle-btn");
+    if (portalToggleBtn) {
+        portalToggleBtn.addEventListener("click", () => {
             const isLight = document.body.classList.toggle("light-mode");
             localStorage.setItem("upli_theme", isLight ? "light" : "dark");
             initTheme();
@@ -3900,6 +4151,10 @@ function renderRubrikViewer() {
 // --------------------------------==========================================
 // N. PUBLIC PORTAL MODULE (DASHBOARD & STATS)
 // --------------------------------==========================================
+let calendarCurrentMonth = new Date().getMonth(); // 0-11
+let calendarCurrentYear = new Date().getFullYear();
+let calendarSelectedDateStr = null; // YYYY-MM-DD
+
 window.switchPortalTab = function (tabName) {
     document.querySelectorAll(".portal-nav-item").forEach(btn => {
         btn.classList.remove("active");
@@ -3920,6 +4175,11 @@ window.switchPortalTab = function (tabName) {
         if (btn) btn.classList.add("active");
         document.getElementById("portal-tab-dashboard").style.display = "block";
         renderPortalDashboard();
+    } else if (tabName === 'announcements') {
+        const btn = document.getElementById("btn-portal-announcements");
+        if (btn) btn.classList.add("active");
+        document.getElementById("portal-tab-announcements").style.display = "block";
+        renderPortalAnnouncements();
     } else if (tabName === 'login') {
         const btn = document.getElementById("btn-portal-login-tab");
         if (btn) btn.classList.add("active");
@@ -3927,6 +4187,196 @@ window.switchPortalTab = function (tabName) {
     } else if (tabName === 'register') {
         document.getElementById("portal-tab-register").style.display = "flex";
     }
+};
+
+// ---------- Portal Calendar & Announcements Rendering ----------
+window.renderPortalAnnouncements = function () {
+    renderCalendar();
+    renderAnnouncementsList();
+};
+
+window.changeMonth = function (dir) {
+    calendarCurrentMonth += dir;
+    if (calendarCurrentMonth < 0) {
+        calendarCurrentMonth = 11;
+        calendarCurrentYear--;
+    } else if (calendarCurrentMonth > 11) {
+        calendarCurrentMonth = 0;
+        calendarCurrentYear++;
+    }
+    // Reset selected date filter on month change
+    calendarSelectedDateStr = null;
+    const clearBtn = document.getElementById("btn-clear-date-filter");
+    if (clearBtn) clearBtn.style.display = "none";
+    renderCalendar();
+    renderAnnouncementsList();
+};
+
+const MALAY_MONTHS = [
+    "Januari", "Februari", "Mac", "April", "Mei", "Jun", 
+    "Julai", "Ogos", "September", "Oktober", "November", "Disember"
+];
+
+window.renderCalendar = function () {
+    const calendarTitle = document.getElementById("calendar-title");
+    if (calendarTitle) {
+        calendarTitle.textContent = `${MALAY_MONTHS[calendarCurrentMonth]} ${calendarCurrentYear}`;
+    }
+
+    const gridBody = document.getElementById("calendar-days-grid");
+    if (!gridBody) return;
+    gridBody.innerHTML = "";
+
+    const announcements = getAnnouncements();
+
+    // First day of the month
+    const firstDayIndex = new Date(calendarCurrentYear, calendarCurrentMonth, 1).getDay();
+    // Total days in the current month
+    const totalDays = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
+
+    // Fill previous empty cells
+    for (let i = 0; i < firstDayIndex; i++) {
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell cell-empty";
+        cell.innerHTML = `<span class="cell-num"></span>`;
+        gridBody.appendChild(cell);
+    }
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    // Fill days of the month
+    for (let day = 1; day <= totalDays; day++) {
+        const dayStr = `${calendarCurrentYear}-${String(calendarCurrentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        // Find announcements on this day
+        const dayAnnouncements = announcements.filter(a => a.date === dayStr);
+
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell";
+        if (dayStr === todayStr) {
+            cell.classList.add("cell-today");
+        }
+        if (dayStr === calendarSelectedDateStr) {
+            cell.classList.add("cell-active");
+        }
+
+        let numHtml = `<span class="cell-num">${day}</span>`;
+        let dotsHtml = `<div class="cell-dots"></div>`;
+
+        if (dayAnnouncements.length > 0) {
+            cell.classList.add("cell-has-announcements");
+            let dots = dayAnnouncements.map(a => {
+                let catClass = "dot-umum";
+                if (a.category === "Penting") catClass = "dot-penting";
+                else if (a.category === "Pendaftaran") catClass = "dot-pendaftaran";
+                else if (a.category === "Akademik") catClass = "dot-akademik";
+                return `<span class="cell-dot ${catClass}" title="${a.category}: ${a.title}"></span>`;
+            }).slice(0, 3).join(""); // limit to 3 dots
+            dotsHtml = `<div class="cell-dots">${dots}</div>`;
+        }
+
+        cell.innerHTML = numHtml + dotsHtml;
+
+        // Click event to filter announcements
+        cell.addEventListener("click", () => {
+            if (calendarSelectedDateStr === dayStr) {
+                // Toggle off
+                calendarSelectedDateStr = null;
+                const clearBtn = document.getElementById("btn-clear-date-filter");
+                if (clearBtn) clearBtn.style.display = "none";
+            } else {
+                calendarSelectedDateStr = dayStr;
+                const clearBtn = document.getElementById("btn-clear-date-filter");
+                if (clearBtn) clearBtn.style.display = "inline-flex";
+            }
+            
+            renderCalendar();
+            renderAnnouncementsList();
+        });
+
+        gridBody.appendChild(cell);
+    }
+};
+
+window.clearCalendarDateFilter = function () {
+    calendarSelectedDateStr = null;
+    const clearBtn = document.getElementById("btn-clear-date-filter");
+    if (clearBtn) clearBtn.style.display = "none";
+    renderCalendar();
+    renderAnnouncementsList();
+};
+
+window.renderAnnouncementsList = function () {
+    const listView = document.getElementById("announcements-list-view");
+    if (!listView) return;
+    listView.innerHTML = "";
+
+    const listTitle = document.getElementById("announcements-list-title");
+    if (listTitle) {
+        if (calendarSelectedDateStr) {
+            const parts = calendarSelectedDateStr.split('-');
+            const dayNum = parseInt(parts[2]);
+            const monthName = MALAY_MONTHS[parseInt(parts[1]) - 1];
+            listTitle.textContent = `Makluman pada ${dayNum} ${monthName} ${parts[0]}`;
+        } else {
+            listTitle.textContent = `Makluman Bulan Ini (${MALAY_MONTHS[calendarCurrentMonth]})`;
+        }
+    }
+
+    const announcements = getAnnouncements();
+    let filtered = announcements;
+
+    if (calendarSelectedDateStr) {
+        // Filter by date
+        filtered = announcements.filter(a => a.date === calendarSelectedDateStr);
+    } else {
+        // Filter by current month & year
+        filtered = announcements.filter(a => {
+            const dateParts = a.date.split("-");
+            return parseInt(dateParts[0]) === calendarCurrentYear && parseInt(dateParts[1]) === (calendarCurrentMonth + 1);
+        });
+    }
+
+    filtered.sort((a, b) => a.date.localeCompare(b.date));
+
+    if (filtered.length === 0) {
+        listView.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; color:var(--text-muted); gap:12px;">
+                <i class="fa-regular fa-calendar-xmark" style="font-size:2.5rem; color:var(--text-muted); opacity:0.6;"></i>
+                <p style="font-size:0.85rem;">Tiada makluman atau acara penting untuk ${calendarSelectedDateStr ? 'tarikh' : 'bulan'} ini.</p>
+            </div>
+        `;
+        return;
+    }
+
+    filtered.forEach(a => {
+        let badgeClass = "badge-muted";
+        let icon = "fa-solid fa-bullhorn";
+        if (a.category === "Penting") { badgeClass = "badge-danger"; icon = "fa-solid fa-triangle-exclamation"; }
+        else if (a.category === "Pendaftaran") { badgeClass = "badge-success"; icon = "fa-solid fa-user-plus"; }
+        else if (a.category === "Akademik") { badgeClass = "badge-warning"; icon = "fa-solid fa-graduation-cap"; }
+
+        // Date format for display (e.g. 15 Julai 2026)
+        const dateParts = a.date.split("-");
+        const displayDate = `${parseInt(dateParts[2])} ${MALAY_MONTHS[parseInt(dateParts[1]) - 1]} ${dateParts[0]}`;
+
+        const card = document.createElement("div");
+        card.className = "announcement-card-item";
+        card.innerHTML = `
+            <div class="announcement-card-meta">
+                <span class="badge ${badgeClass}"><i class="${icon}"></i> ${a.category}</span>
+                <span><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${displayDate}</span>
+            </div>
+            <h4 class="announcement-card-title">${a.title}</h4>
+            <p class="announcement-card-desc">${a.content.replace(/\n/g, '<br>')}</p>
+            <div class="announcement-card-footer">
+                <span><i class="fa-solid fa-user-shield" style="margin-right:4px;"></i>${a.updatedBy || 'UPLI PKK'}</span>
+                <span>Kemaskini: ${a.updatedAt || ''}</span>
+            </div>
+        `;
+        listView.appendChild(card);
+    });
 };
 
 window.renderPortalDashboard = function () {
@@ -4035,10 +4485,10 @@ window.renderPortalDashboard = function () {
         });
 
         const card = document.createElement("div");
-        card.className = "card";
-        card.style.cssText = "padding:20px; transition:all 0.2s; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; min-height: 290px;";
-        card.onmouseenter = () => { card.style.borderColor = d.color; card.style.boxShadow = `0 4px 20px ${d.glow}`; };
-        card.onmouseleave = () => { card.style.borderColor = "var(--border-color)"; card.style.boxShadow = ""; };
+        card.className = `card dept-card-animated dept-card-${d.code}`;
+        card.style.cssText = "padding:20px; transition:all 0.2s; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; min-height: 290px; border:none;";
+        card.onmouseenter = () => { card.style.transform = "translateY(-5px)"; card.style.boxShadow = "0 10px 25px rgba(0,0,0,0.3)"; };
+        card.onmouseleave = () => { card.style.transform = "translateY(0)"; card.style.boxShadow = ""; };
 
         card.innerHTML = `
             <div>

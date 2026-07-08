@@ -383,9 +383,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 .tab-btn.active {
-    background: var(--bg-primary);
-    color: var(--color-primary);
-    box-shadow: var(--shadow-sm);
+    background: linear-gradient(-45deg, #09132b, #172a5a, #264387, #09132b) !important;
+    background-size: 400% 400% !important;
+    animation: darkBlueAnim 15s ease infinite !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
 }
 
 .login-body {
@@ -432,7 +434,18 @@ input:focus, select:focus, textarea:focus {
     transition: all var(--transition-normal);
     z-index: 100;
     flex-shrink: 0;
+    /* Lock sidebar to viewport */
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
 }
+
+/* Sidebar scrollbar styling */
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+body.light-mode .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
 
 .sidebar-header {
     padding: 24px;
@@ -752,7 +765,7 @@ input:focus, select:focus, textarea:focus {
 .card {
     background: var(--bg-card);
     backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--border-color);
+    border: 3px solid #1e3a8a !important;
     border-radius: var(--radius-md);
     padding: 24px;
     box-shadow: var(--shadow-sm);
@@ -885,9 +898,20 @@ input:focus, select:focus, textarea:focus {
 }
 
 .alert-box.info {
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
+    border-left: 6px solid #3b82f6 !important;
+    border-top: 1px solid #bfdbfe !important;
+    border-right: 1px solid #bfdbfe !important;
+    border-bottom: 1px solid #bfdbfe !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+.alert-box.info i {
+    color: #3b82f6 !important;
+    font-size: 1.5rem;
+}
+.alert-box.info strong {
+    color: #1e3a8a !important;
 }
 
 /* Student Industrial Details Info Rows */
@@ -1630,6 +1654,7 @@ input:focus, select:focus, textarea:focus {
     min-width: 300px;
     max-width: 400px;
     animation: slideIn var(--transition-fast) forwards;
+    color: #ffffff !important;
 }
 
 .toast i {
@@ -1646,8 +1671,9 @@ input:focus, select:focus, textarea:focus {
 .toast-info i { color: var(--color-accent); }
 
 .toast-content {
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ffffff !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -2010,12 +2036,10 @@ body.light-mode {
 }
 
 body.light-mode .sidebar {
-    background: #ffffff;
     border-right: 1px solid var(--border-color);
 }
 
 body.light-mode .content-header {
-    background: rgba(255, 255, 255, 0.85);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -2294,12 +2318,13 @@ body.light-mode .portal-nav-item:hover {
 .portal-header-logos-frame {
     display: inline-flex;
     align-items: center;
-    gap: 24px;
-    padding: 12px 24px;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 60px;
+    min-width: 450px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     margin-bottom: 20px;
 }
 
@@ -2347,3 +2372,464 @@ body.light-mode .portal-nav-item:hover {
     max-width: 800px;
     margin: 0 auto;
 }
+
+/* ==========================================================================
+   15. PORTAL CALENDAR & ANNOUNCEMENTS STYLES
+   ========================================================================== */
+
+.portal-announcements-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 30px;
+    margin-top: 24px;
+    align-items: start;
+}
+
+@media (max-width: 992px) {
+    .portal-announcements-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calendar-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(var(--glass-blur));
+}
+
+.calendar-ctrls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-month-year {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.calendar-nav-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.calendar-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+.calendar-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+    font-family: var(--font-display);
+}
+
+.calendar-grid-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-cell {
+    aspect-ratio: 1.1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    min-height: 58px;
+}
+
+.calendar-cell:hover:not(.cell-empty) {
+    background: rgba(20, 184, 166, 0.08);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+.calendar-cell.cell-empty {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+}
+
+.calendar-cell.cell-today {
+    border-color: var(--color-accent);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.calendar-cell.cell-active {
+    background: var(--color-primary-glow) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.25);
+}
+
+.calendar-cell.cell-has-announcements {
+    font-weight: 700;
+}
+
+.cell-num {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    align-self: flex-start;
+}
+
+.calendar-cell.cell-empty .cell-num {
+    color: transparent;
+}
+
+.cell-dots {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.cell-dot {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    border: 1px solid rgba(255,255,255,0.5) !important;
+}
+
+.dot-penting { background-color: #ef4444 !important; }
+.dot-umum { background-color: #64748b !important; }
+.dot-pendaftaran { background-color: #10b981 !important; }
+.dot-akademik { background-color: #f59e0b !important; }
+
+/* Announcement list column */
+.announcements-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.announcements-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.announcements-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.announcements-list-scroll {
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.announcements-list-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.announcements-list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.announcements-list-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.announcement-card-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 12px;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.announcement-card-item:hover {
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+}
+
+.announcement-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.announcement-card-title {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.announcement-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    word-break: break-word;
+}
+
+.announcement-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 8px;
+}
+
+/* Light Mode adaptations */
+body.light-mode .calendar-cell {
+    background: rgba(0, 0, 0, 0.02);
+}
+body.light-mode .calendar-nav-btn {
+    background: rgba(0, 0, 0, 0.03);
+}
+body.light-mode .calendar-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+body.light-mode .announcement-card-item {
+    background: rgba(0, 0, 0, 0.01);
+}
+body.light-mode .announcement-card-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* ================= CUSTOM DARK BLUE GRADIENT ANIMATION ================= */
+@keyframes darkBlueAnim {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.sidebar, .portal-sidebar, .content-header, .login-footer, .portal-header-logos-frame {
+    background: linear-gradient(-45deg, #09132b, #172a5a, #264387, #09132b) !important;
+    background-size: 400% 400% !important;
+    animation: darkBlueAnim 15s ease infinite !important;
+    color: #ffffff !important;
+}
+
+/* Ensure text and icons are white inside the dark blue areas */
+.sidebar *, .portal-sidebar *, .content-header *, .login-footer * {
+    color: #ffffff !important;
+}
+
+/* Ensure profile logos and standard logos stand out on dark blue */
+.avatar, .logo-polikk, .logo-smartupli, .sidebar-logo-container img {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 2px;
+}
+.avatar { border-radius: 50%; }
+
+/* Notifications text color override to ensure readability in the main content area */
+#notification-container .notification {
+    background: rgba(15, 23, 42, 0.95);
+    color: #ffffff;
+}
+body.light-mode #notification-container .notification {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ================= DEPARTMENT CARDS (ANIMATED) ================= */
+.dept-card-animated, .dept-card-animated * {
+    color: #0f172a !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+.dept-card-animated .progress-track-mini {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+.dept-card-animated .progress-fill-mini {
+    background: #0f172a !important;
+}
+.dept-card-animated > div > div:first-child > div:first-child {
+    background: rgba(255, 255, 255, 0.4) !important; /* Icon box background */
+}
+.dept-card-JKA { background: linear-gradient(-45deg, #34d399, #10b981, #059669, #34d399) !important; background-size: 400% 400% !important; animation: darkBlueAnim 10s ease infinite !important; }
+.dept-card-JKE { background: linear-gradient(-45deg, #fb7185, #f43f5e, #e11d48, #fb7185) !important; background-size: 400% 400% !important; animation: darkBlueAnim 10s ease infinite !important; }
+.dept-card-JKM { background: linear-gradient(-45deg, #fde047, #facc15, #eab308, #fde047) !important; background-size: 400% 400% !important; animation: darkBlueAnim 10s ease infinite !important; }
+.dept-card-JP  { background: linear-gradient(-45deg, #60a5fa, #3b82f6, #2563eb, #60a5fa) !important; background-size: 400% 400% !important; animation: darkBlueAnim 10s ease infinite !important; }
+.dept-card-JPH { background: linear-gradient(-45deg, #a78bfa, #8b5cf6, #7c3aed, #a78bfa) !important; background-size: 400% 400% !important; animation: darkBlueAnim 10s ease infinite !important; }
+
+/* ================= STAT CARDS STYLING ================= */
+.stat-card {
+    border: 3px solid #3b82f6 !important; /* Thick blue border */
+    background: #ffffff !important;
+}
+.stat-card h2, .stat-card p {
+    color: #000000 !important; /* Black font */
+    font-weight: 700;
+}
+
+/* ================= SOFT BLUE GRADIENT (CALENDAR & ANNOUNCEMENTS) ================= */
+@keyframes softBlueAnim {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.calendar-card, .announcements-list-container {
+    background: linear-gradient(-45deg, #e0f2fe, #bae6fd, #7dd3fc, #e0f2fe) !important;
+    background-size: 400% 400% !important;
+    animation: softBlueAnim 10s ease infinite !important;
+    border: 3px solid #1e3a8a !important; /* Thick dark blue border */
+    border-radius: 12px;
+}
+.announcements-list-container {
+    padding: 24px;
+}
+.calendar-card, .calendar-card *, .announcements-list-container, .announcements-list-container * {
+    color: #0f172a !important;
+}
+
+/* Make tags pop out more inside announcements */
+.announcements-list-container .badge {
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    padding: 4px 10px !important;
+    color: #ffffff !important; 
+}
+.announcements-list-container .badge-warning { background-color: #f59e0b !important; }
+.announcements-list-container .badge-success { background-color: #10b981 !important; }
+.announcements-list-container .badge-danger { background-color: #ef4444 !important; }
+
+/* Make inner announcement items slightly transparent white to blend well */
+.announcement-card-item {
+    background: rgba(255, 255, 255, 0.45) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+.announcement-card-item:hover {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Calendar specific adjustments to fit the light background */
+.calendar-cell:hover {
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+.calendar-nav-btn {
+    background: rgba(255, 255, 255, 0.4) !important;
+}
+.calendar-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ================= WELCOME BANNER STYLING ================= */
+.welcome-banner {
+    background: linear-gradient(-45deg, #e0f2fe, #bae6fd, #7dd3fc, #e0f2fe) !important;
+    background-size: 400% 400% !important;
+    animation: softBlueAnim 10s ease infinite !important;
+    border: 3px solid #1e3a8a !important;
+}
+.welcome-banner, .welcome-banner h1, .welcome-banner p, .welcome-banner span {
+    color: #000000 !important;
+}
+
+/* ================= AVATAR CLARITY UPGRADES ================= */
+.avatar {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6) !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    font-size: 1.4rem !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+.mini-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.2rem !important;
+    border-width: 1.5px !important;
+}
+
+/* ================= DOCUMENT CARDS STYLING ================= */
+.doc-card {
+    background: linear-gradient(-45deg, #f8fafc, #e0f2fe, #f0f9ff, #f8fafc) !important;
+    background-size: 400% 400% !important;
+    animation: softBlueAnim 10s ease infinite !important;
+    border: 3px solid #1e3a8a !important;
+}
+.doc-card, .doc-card h4, .doc-card p, .doc-card .doc-number {
+    color: #000000 !important;
+}
+.doc-card .badge-muted {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    border: 1px solid #0f172a !important;
+    text-transform: uppercase;
+}
+
+/* ================= DEPARTMENT TAB BUTTONS (ACTIVE) ================= */
+.dept-tab-btn[data-dept="JKA"].active { background: linear-gradient(-45deg, #34d399, #10b981, #059669, #34d399) !important; color: white !important; border: 2px solid #059669 !important; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4) !important;}
+.dept-tab-btn[data-dept="JKE"].active { background: linear-gradient(-45deg, #fb7185, #f43f5e, #e11d48, #fb7185) !important; color: white !important; border: 2px solid #e11d48 !important; box-shadow: 0 4px 8px rgba(244, 63, 94, 0.4) !important;}
+.dept-tab-btn[data-dept="JKM"].active { background: linear-gradient(-45deg, #fde047, #facc15, #eab308, #fde047) !important; color: black !important; border: 2px solid #eab308 !important; box-shadow: 0 4px 8px rgba(250, 204, 21, 0.4) !important;}
+.dept-tab-btn[data-dept="JP"].active  { background: linear-gradient(-45deg, #60a5fa, #3b82f6, #2563eb, #60a5fa) !important; color: white !important; border: 2px solid #2563eb !important; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4) !important;}
+.dept-tab-btn[data-dept="JPH"].active { background: linear-gradient(-45deg, #a78bfa, #8b5cf6, #7c3aed, #a78bfa) !important; color: white !important; border: 2px solid #7c3aed !important; box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4) !important;}
+
+.dept-tab-btn.active {
+    background-size: 400% 400% !important;
+    animation: darkBlueAnim 10s ease infinite !important;
+}
+
+/* ================= SOFT BACKGROUNDS FOR STUDENT LISTS ================= */
+.student-table-row[data-dept="JKA"], .student-card[data-dept="JKA"] { background: linear-gradient(-45deg, rgba(16, 185, 129, 0.03), rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.02), rgba(16, 185, 129, 0.08)) !important; }
+.student-table-row[data-dept="JKE"], .student-card[data-dept="JKE"] { background: linear-gradient(-45deg, rgba(244, 63, 94, 0.03), rgba(244, 63, 94, 0.15), rgba(244, 63, 94, 0.02), rgba(244, 63, 94, 0.08)) !important; }
+.student-table-row[data-dept="JKM"], .student-card[data-dept="JKM"] { background: linear-gradient(-45deg, rgba(250, 204, 21, 0.03), rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.02), rgba(250, 204, 21, 0.08)) !important; }
+.student-table-row[data-dept="JP"], .student-card[data-dept="JP"]   { background: linear-gradient(-45deg, rgba(59, 130, 246, 0.03), rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.02), rgba(59, 130, 246, 0.08)) !important; }
+.student-table-row[data-dept="JPH"], .student-card[data-dept="JPH"] { background: linear-gradient(-45deg, rgba(139, 92, 246, 0.03), rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.02), rgba(139, 92, 246, 0.08)) !important; }
+
+.student-table-row, .student-card {
+    background-size: 400% 400% !important;
+    animation: softBlueAnim 10s ease infinite !important;
+}
+
