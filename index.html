@@ -58,18 +58,27 @@
                     <div class="portal-sidebar-header"
                         style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); text-align: center; width: 100%;">
                         <img src="smartupli_logo.png" alt="Logo My InternMS"
-                            style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-primary); box-shadow: 0 0 12px rgba(20,184,166,0.3);">
+                            style="width: 95px; height: 95px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 8px; border: 2px solid var(--color-primary); box-shadow: 0 0 12px rgba(20,184,166,0.3);">
                         <div style="text-align: center;">
                             <h3
                                 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 0; line-height: 1;">
                                 My Intern<span>MS</span></h3>
                             <p
                                 style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; margin-bottom: 0;">
-                                Sistem Pengurusan Latihan Industri</p>
+                                Internship Management System</p>
                         </div>
                     </div>
 
                     <nav class="portal-nav" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Futuristic Split Digital Clock Card (Design C) in Sidebar -->
+                        <div class="portal-clock-split-card" style="margin: 0 0 16px 0 !important; width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; padding: 10px 14px !important;">
+                            <div class="portal-clock-time-large" style="font-size: 1.4rem !important;" id="portal-time-display">00:00:00</div>
+                            <div class="portal-clock-date-row" style="gap: 4px !important;">
+                                <span class="portal-clock-day-badge" style="font-size: 0.58rem !important; padding: 1px 6px !important;" id="portal-day-display">Isnin</span>
+                                <span class="portal-clock-date-text" style="font-size: 0.65rem !important;" id="portal-date-display">01 Januari 2026</span>
+                            </div>
+                        </div>
+
                         <button class="portal-nav-item active" id="btn-portal-home"
                             onclick="switchPortalTab('dashboard')">
                             <i class="fa-solid fa-chart-pie"></i> Menu Utama
@@ -106,21 +115,8 @@
             <main class="portal-content"
                 style="flex: 1; padding: 40px; box-sizing: border-box; overflow-y: auto; height: 100vh;">
 
-                <!-- Tab 1: Dashboard Utama (Public Stats) -->
                 <div id="portal-tab-dashboard" class="portal-tab-pane active" style="display: block;">
                     <div class="portal-header-box">
-                        <!-- Clock Wrapper to force vertical stacking -->
-                        <div style="display: block; margin-bottom: 15px; width: 100%; text-align: center;">
-                            <!-- Futuristic Split Digital Clock Card (Design C) -->
-                            <div class="portal-clock-split-card" style="margin: 0 auto !important;">
-                                <div class="portal-clock-time-large" id="portal-time-display">00:00:00</div>
-                                <div class="portal-clock-date-row">
-                                    <span class="portal-clock-day-badge" id="portal-day-display">Isnin</span>
-                                    <span class="portal-clock-date-text" id="portal-date-display">01 Januari 2026</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="portal-header-logos-frame">
                             <img src="polikk_logo.png" alt="Logo Politeknik KK" class="logo-polikk">
                             <div style="width: 1px; height: 65px; background: var(--border-color);"></div>
@@ -388,7 +384,7 @@
                     <div class="sidebar-logo-container"
                         style="display: block; width: 100%; margin: 0 auto; text-align: center;">
                         <img src="smartupli_logo.png" alt="Logo My InternMS"
-                            style="height: 72px; width: 72px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-primary); box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(99,102,241,0.15); margin: 0 auto; display: block;">
+                            style="height: 95px; width: 95px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 8px; border: 2px solid var(--color-primary); box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(99,102,241,0.15); margin: 0 auto; display: block;">
                     </div>
                     <span class="role-badge" id="user-role-badge"
                         style="display: block; margin: 8px auto 0 auto; text-align: center; width: max-content; align-self: center;">Pelajar</span>
