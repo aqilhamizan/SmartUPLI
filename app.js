@@ -3178,6 +3178,22 @@ function renderAdminAdminsTable() {
     });
 }
 
+window.deleteAdmin = function (email) {
+    showConfirm(
+        `Adakah anda pasti mahu memadamkan pentadbir ${email}?`,
+        function () {
+            const admins = getAdmins();
+            const updated = admins.filter(a => a.email !== email);
+            saveAdmins(updated);
+            addLog("danger", `Admin memadam maklumat pentadbir: ${email}`);
+            showToast("Maklumat pentadbir berjaya dipadamkan.", "info");
+            renderAdminAdminsTable();
+            renderAdminDashboard();
+        },
+        "Padam Rekod Pentadbir"
+    );
+};
+
 // ---------- Admin Pengurusan Makluman Handlers ----------
 window.renderAdminAnnouncements = function () {
     if (currentRole !== "admin") return;
