@@ -4473,12 +4473,38 @@ window.renderAnnouncementsList = function () {
     });
 };
 
-window.renderPortalDashboard = function () {
+window.renderPortalDashboard = function (selectedSesi) {
     const students = getStudents();
     const activeSesi = getActiveSession();
 
-    // Filter students by active session
-    const currentSessionStudents = students.filter(s => s.sesi === activeSesi);
+    // Auto-populate the portal session dropdown if it is empty or changed
+    const portalSessionSelect = document.getElementById("portal-session-select");
+    if (portalSessionSelect) {
+        const sessions = getSessions();
+        const currentVal = portalSessionSelect.value;
+        
+        if (portalSessionSelect.options.length !== sessions.length) {
+            portalSessionSelect.innerHTML = "";
+            sessions.forEach(s => {
+                const option = document.createElement("option");
+                option.value = s;
+                option.textContent = s;
+                option.style.setProperty('color', '#000000', 'important');
+                option.style.setProperty('background-color', '#ffffff', 'important');
+                if (currentVal ? (s === currentVal) : (s === activeSesi)) option.selected = true;
+                portalSessionSelect.appendChild(option);
+            });
+
+            portalSessionSelect.onchange = function () {
+                window.renderPortalDashboard(this.value);
+            };
+        }
+    }
+
+    const sessionToUse = selectedSesi || (portalSessionSelect ? portalSessionSelect.value : activeSesi);
+
+    // Filter students by selected session
+    const currentSessionStudents = students.filter(s => s.sesi === sessionToUse);
 
     // Count complete students
     const completeStudents = currentSessionStudents.filter(s => {
