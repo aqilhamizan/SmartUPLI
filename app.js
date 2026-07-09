@@ -4512,7 +4512,7 @@ window.renderPortalDashboard = function () {
             <!-- Progress section -->
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-bottom:6px;">
-                    <span style="color:var(--text-muted);">Kemajuan Dokumen</span>
+                    <span style="color:var(--text-muted);">Status Penghantaran</span>
                     <span style="font-weight:700; color:${d.color};">${deptComplete.length} / ${deptStudents.length} Lengkap (${deptRate}%)</span>
                 </div>
                 <div class="progress-track-mini" style="height:6px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
