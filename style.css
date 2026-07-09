@@ -2251,6 +2251,23 @@ body.light-mode .portal-nav-item:hover {
         height: auto !important;
         overflow-y: visible !important;
     }
+    .portal-header-logos-frame {
+        min-width: unset !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 10px 20px !important;
+        gap: 16px !important;
+    }
+    .portal-header-logos-frame img {
+        height: 45px !important;
+    }
+    .portal-header-box h1 {
+        font-size: 1.6rem !important;
+    }
+    .portal-header-box h2 {
+        font-size: 1.1rem !important;
+    }
 }
 
 /* Custom UI Improvements & Reusable Styles */
