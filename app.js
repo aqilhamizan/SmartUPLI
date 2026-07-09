@@ -803,6 +803,7 @@ function startClock() {
     const dateDisplay = document.getElementById("current-date-display");
     const portalDateDisplay = document.getElementById("portal-date-display");
     const portalTimeDisplay = document.getElementById("portal-time-display");
+    const portalDayDisplay = document.getElementById("portal-day-display");
     
     setInterval(() => {
         const now = new Date();
@@ -818,8 +819,12 @@ function startClock() {
             dateDisplay.textContent = dateStr;
         }
         if (portalDateDisplay) {
-            const portalDateOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            const portalDateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
             portalDateDisplay.textContent = now.toLocaleDateString("ms-MY", portalDateOptions);
+        }
+        if (portalDayDisplay) {
+            const portalDayOptions = { weekday: 'long' };
+            portalDayDisplay.textContent = now.toLocaleDateString("ms-MY", portalDayOptions);
         }
     }, 1000);
 }

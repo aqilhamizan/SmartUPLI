@@ -2912,57 +2912,65 @@ body.light-mode #notification-container .notification {
     animation: softBlueAnim 10s ease infinite !important;
 }
 
-/* ================= PORTAL LIVE CLOCK WIDGET & ANIMATIONS ================= */
-.portal-premium-clock-card {
+/* ================= PORTAL SPLIT LIVE CLOCK (DESIGN C) ================= */
+.portal-clock-split-card {
     background: rgba(15, 23, 42, 0.45) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 2px solid rgba(16, 185, 129, 0.25) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: var(--radius-lg) !important;
-    padding: 16px 28px !important;
+    padding: 20px 35px !important;
     display: inline-flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    gap: 6px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(16, 185, 129, 0.05) !important;
+    gap: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.02) !important;
     margin: 15px auto 0 !important;
     position: relative !important;
     overflow: hidden !important;
-    animation: portalClockGlow 3s ease-in-out infinite alternate !important;
+    animation: portalSplitClockAnim 4s ease-in-out infinite alternate !important;
 }
 
-@keyframes portalClockGlow {
-    0% { border-color: rgba(16, 185, 129, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 10px rgba(16, 185, 129, 0.1); }
-    100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.2); }
+@keyframes portalSplitClockAnim {
+    0% { transform: translateY(0); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
+    100% { transform: translateY(-4px); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5); }
 }
 
-.portal-clock-time {
-    font-size: 2.2rem !important;
-    font-weight: 800 !important;
-    font-family: 'Courier New', Courier, monospace !important;
-    color: #10b981 !important;
-    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
-    letter-spacing: 2px !important;
-    line-height: 1 !important;
-}
-
-.portal-clock-date {
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
+.portal-clock-time-large {
+    font-size: 2.6rem !important;
+    font-weight: 900 !important;
+    font-family: var(--font-display) !important;
     color: #ffffff !important;
+    letter-spacing: 1px !important;
+    line-height: 1 !important;
+    background: linear-gradient(135deg, #ffffff, #94a3b8) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.portal-clock-date-row {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 10px !important;
+}
+
+.portal-clock-day-badge {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    padding: 4px 10px !important;
+    border-radius: 30px !important;
+    text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    opacity: 0.95 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
 }
 
-.portal-clock-date i {
-    animation: rotateClockHand 10s linear infinite !important;
-    display: inline-block !important;
-}
-
-@keyframes rotateClockHand {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.portal-clock-date-text {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
 }
 
