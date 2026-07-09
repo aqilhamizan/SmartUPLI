@@ -470,6 +470,63 @@ async function initDatabase() {
     } finally {
         showDBLoading(false);
     }
+    
+    // Attach realtime listeners only once after initial load
+    attachRealtimeListeners();
+}
+
+let realtimeListenersAttached = false;
+function attachRealtimeListeners() {
+    if (realtimeListenersAttached) return;
+    realtimeListenersAttached = true;
+
+    // Helper to process document/collection snapshots
+    function processSnapshot(snapshot, cacheKey, isCollection, processor) {
+        if (snapshot.metadata.hasPendingWrites) return; // Ignore local writes to prevent UI jumping
+        if (isCollection) {
+            dbCache[cacheKey] = snapshot.empty ? [] : snapshot.docs.map(processor);
+        } else {
+            if (snapshot.exists) dbCache[cacheKey] = processor(snapshot);
+        }
+        try { localStorage.setItem(`upli_${cacheKey}`, JSON.stringify(dbCache[cacheKey])); } catch(e){}
+        if (window.activeTab) renderTabData(window.activeTab);
+    }
+
+    let studentsFirst = true;
+    db.collection("students").onSnapshot(snapshot => {
+        if (studentsFirst) { studentsFirst = false; return; }
+        if (snapshot.metadata.hasPendingWrites) return;
+        dbCache.students = snapshot.empty ? [] : snapshot.docs.map(doc => doc.data());
+        normalizeStudentsCache();
+        try { localStorage.setItem("upli_students", JSON.stringify(dbCache.students)); } catch(e){}
+        if (window.activeTab) renderTabData(window.activeTab);
+    }, err => console.warn("Sync error students:", err));
+
+    let logsFirst = true;
+    db.collection("logs").orderBy("createdAt", "desc").limit(50).onSnapshot(snapshot => {
+        if (logsFirst) { logsFirst = false; return; }
+        processSnapshot(snapshot, "logs", true, d => ({ type: d.data().type || "info", text: d.data().text || "", time: d.data().time || "" }));
+    }, err => console.warn("Sync error logs:", err));
+
+    let globalFirst = true;
+    db.collection("settings").doc("global").onSnapshot(doc => {
+        if (globalFirst) { globalFirst = false; return; }
+        if (doc.metadata.hasPendingWrites || !doc.exists) return;
+        const d = doc.data();
+        dbCache.sessions = d.sessions || DEFAULT_SESSIONS;
+        dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027";
+        try { localStorage.setItem("upli_sessions", JSON.stringify(dbCache.sessions)); } catch(e){}
+        try { localStorage.setItem("upli_active_session", dbCache.activeSession); } catch(e){}
+        if (window.activeTab) renderTabData(window.activeTab);
+    }, err => console.warn("Sync error global:", err));
+
+    ['admins', 'lecturers', 'rubriks', 'announcements'].forEach(key => {
+        let first = true;
+        db.collection("settings").doc(key).onSnapshot(doc => {
+            if (first) { first = false; return; }
+            processSnapshot(doc, key, false, d => d.data().list || []);
+        }, err => console.warn(`Sync error ${key}:`, err));
+    });
 }
 
 // ---------- Sync Getters — read from in-memory cache ----------
