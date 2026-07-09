@@ -2307,6 +2307,19 @@ body.light-mode .portal-nav-item:hover {
     .portal-header-box h2 {
         font-size: 1.1rem !important;
     }
+    .calendar-cell {
+        padding: 4px !important;
+        min-height: 48px !important;
+    }
+    .cell-num {
+        font-size: 0.8rem !important;
+    }
+    .calendar-card {
+        padding: 12px !important;
+    }
+    .calendar-grid-body {
+        gap: 4px !important;
+    }
 }
 
 /* Custom UI Improvements & Reusable Styles */
