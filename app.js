@@ -537,10 +537,28 @@ function getLecturers() { return dbCache.lecturers; }
 function saveLecturers(data) { dbCache.lecturers = data; writeLecturersToFirestore(data); }
 
 function getStudents() { return dbCache.students; }
-function saveStudents(data) { 
+function saveStudents(data, modifiedRegNo = null) { 
     dbCache.students = data; 
     try { localStorage.setItem("upli_students", JSON.stringify(data)); } catch(e) {}
-    writeStudentsToFirestore(data); 
+    
+    if (modifiedRegNo === "none") {
+        // Skip Firestore write (already handled via delete operations)
+        return;
+    }
+    
+    if (modifiedRegNo) {
+        if (typeof modifiedRegNo === 'string') {
+            const student = data.find(s => s.regNo === modifiedRegNo);
+            if (student) writeStudentToFirestore(student);
+        } else if (Array.isArray(modifiedRegNo)) {
+            modifiedRegNo.forEach(r => {
+                const student = data.find(s => s.regNo === r);
+                if (student) writeStudentToFirestore(student);
+            });
+        }
+    } else {
+        writeStudentsToFirestore(data); 
+    }
 }
 
 function getSessions() { return dbCache.sessions; }
@@ -1986,7 +2004,7 @@ reviewForm.addEventListener("submit", (e) => {
         students[studentIdx].documents[docId].status = status;
         students[studentIdx].documents[docId].feedback = feedback;
 
-        saveStudents(students);
+        saveStudents(students, studentReg);
         addLog("info", `Semakan [${status}] diberikan kepada ${students[studentIdx].name} bagi dokumen ${getDocMetadata(docId, students[studentIdx]).title}`);
 
         showToast("Semakan dokumen berjaya dikemas kini!", "success");
@@ -3155,7 +3173,7 @@ window.saveAssignment = function (regNo) {
         students[studentIdx].pensyarahPenilai = penilaiEmail;
         students[studentIdx].pensyarahPenilaiName = penilaiName;
 
-        saveStudents(students);
+        saveStudents(students, regNo);
         addLog("info", `Admin mengemas kini agihan pensyarah bagi pelajar ${regNo}: Pemantau(${pemantauName} - ${pemantauEmail || 'Tiada'}), Penilai(${penilaiName} - ${penilaiEmail || 'Tiada'})`);
         showToast("Agihan pensyarah berjaya disimpan!", "success");
 
@@ -3464,7 +3482,7 @@ window.triggerFileUpload = function (docId) {
 // Helper: save file document data to student record + Firestore
 function saveDocumentToStudent(studentIdx, docId, docData, students) {
     students[studentIdx].documents[docId] = docData;
-    saveStudents(students);
+    saveStudents(students, students[studentIdx].regNo);
     currentUser = students[studentIdx];
     addLog("info", `Pelajar ${currentUser.name} memuat naik dokumen: ${getDocMetadata(docId, currentUser).title}`);
     showToast(`Fail "${docData.fileName}" berjaya dimuat naik untuk semakan.`, "success");
@@ -3553,7 +3571,7 @@ window.handleFileSelected = async function (event, docId) {
         if (isImage) {
             window.uploadProgress[docId] = "Mengompresi Gambar...";
             updateUploadProgressDOM(docId, "Mengompresi Gambar...");
-            base64Data = await compressImage(file, 1200, 1200, 0.7);
+            base64Data = await compressImage(file, 1000, 1000, 0.6);
             if (!finalFileName.toLowerCase().endsWith(".jpg") && !finalFileName.toLowerCase().endsWith(".jpeg")) {
                 finalFileName = finalFileName.substring(0, finalFileName.lastIndexOf('.')) + ".jpg";
             }
@@ -3702,7 +3720,7 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
         let finalFileName = file.name;
 
         if (isImage) {
-            base64Data = await compressImage(file, 1200, 1200, 0.7);
+            base64Data = await compressImage(file, 1000, 1000, 0.6);
             if (!finalFileName.toLowerCase().endsWith(".jpg") && !finalFileName.toLowerCase().endsWith(".jpeg")) {
                 finalFileName = finalFileName.substring(0, finalFileName.lastIndexOf('.')) + ".jpg";
             }
@@ -3925,7 +3943,7 @@ function updateSelfProfile() {
     if (idx !== -1) {
         students[idx].email = email;
         students[idx].phone = phone;
-        saveStudents(students);
+        saveStudents(students, currentUser.regNo);
 
         currentUser.email = email;
         currentUser.phone = phone;
@@ -3956,7 +3974,7 @@ function handleProfilePicUploaded(type, input) {
             const idx = students.findIndex(s => s.regNo === currentUser.regNo);
             if (idx !== -1) {
                 students[idx].profilePic = base64;
-                saveStudents(students);
+                saveStudents(students, currentUser.regNo);
                 currentUser.profilePic = base64;
 
                 // Update avatar visuals
@@ -4107,7 +4125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 students[idx].sesi = sesi;
                 students[idx].profilePic = adminTempProfilePic;
 
-                saveStudents(students);
+                saveStudents(students, regNo);
                 addLog("info", `Admin mengemaskini profil pelajar ${name} (${regNo})`);
                 showToast(`Profil pelajar ${name} berjaya dikemas kini.`, "success");
 
