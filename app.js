@@ -1061,6 +1061,8 @@ function populateGlobalSessionSelect() {
         const option = document.createElement("option");
         option.value = s;
         option.textContent = s;
+        option.style.color = "#000000";
+        option.style.backgroundColor = "#ffffff";
         if (s === active) option.selected = true;
         globalSessionSelect.appendChild(option);
     });
@@ -3869,6 +3871,8 @@ function openEditStudentModal(regNo) {
         const opt = document.createElement("option");
         opt.value = sesi;
         opt.textContent = sesi;
+        opt.style.color = "#000000";
+        opt.style.backgroundColor = "#ffffff";
         if (sesi === student.sesi) opt.selected = true;
         sessionSelect.appendChild(opt);
     });
