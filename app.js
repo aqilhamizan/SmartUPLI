@@ -320,6 +320,11 @@ async function writeStudentsToFirestore(data) {
     await Promise.all(data.map(s => writeStudentToFirestore(s)));
 }
 
+async function deleteStudentFromFirestore(regNo) {
+    try { await db.collection("students").doc(sanitizeDocId(regNo)).delete(); }
+    catch (e) { console.warn("FS deleteStudent:", e.message); }
+}
+
 async function writeSettingsToFirestore(updates) {
     try { await db.collection("settings").doc("global").set(updates, { merge: true }); }
     catch (e) { console.warn("FS writeSettings:", e.message); }
@@ -475,7 +480,11 @@ function getLecturers() { return dbCache.lecturers; }
 function saveLecturers(data) { dbCache.lecturers = data; writeLecturersToFirestore(data); }
 
 function getStudents() { return dbCache.students; }
-function saveStudents(data) { dbCache.students = data; writeStudentsToFirestore(data); }
+function saveStudents(data) { 
+    dbCache.students = data; 
+    try { localStorage.setItem("upli_students", JSON.stringify(data)); } catch(e) {}
+    writeStudentsToFirestore(data); 
+}
 
 function getSessions() { return dbCache.sessions; }
 function saveSessions(data) { dbCache.sessions = data; writeSettingsToFirestore({ sessions: data }); }
@@ -2890,6 +2899,7 @@ window.deleteStudent = function (regNo) {
         function () {
             const students = getStudents();
             const updated = students.filter(s => s.regNo !== regNo);
+            deleteStudentFromFirestore(regNo);
             saveStudents(updated);
             addLog("danger", `Admin memadam maklumat pelajar: ${regNo}`);
             showToast("Maklumat pelajar berjaya dipadamkan.", "info");
@@ -3586,7 +3596,13 @@ function setupBulkActionListeners() {
             `Adakah anda pasti mahu memadamkan ${regs.length} rekod pelajar yang dipilih secara pukal? Tindakan ini akan memadamkan fail dan maklumat mereka secara kekal.`,
             function () {
                 const students = getStudents();
-                const updated = students.filter(s => !regs.includes(s.regNo));
+                const updated = students.filter(s => {
+                    if (regs.includes(s.regNo)) {
+                        deleteStudentFromFirestore(s.regNo);
+                        return false;
+                    }
+                    return true;
+                });
                 saveStudents(updated);
                 addLog("danger", `Admin memadam secara pukal ${regs.length} pelajar.`);
                 showToast(`${regs.length} rekod pelajar berjaya dipadamkan secara pukal.`, "info");
@@ -3618,6 +3634,7 @@ function deleteAllStudentsGlobal() {
     showConfirm(
         `⚠️ AMARAN KERAS: Adakah anda pasti mahu memadamkan KESEMUA ${totalCount} rekod pelajar merentas SEMUA jabatan dan semua sesi akademik? Tindakan ini TIDAK BOLEH DIUNDURKAN!`,
         function () {
+            getStudents().forEach(s => deleteStudentFromFirestore(s.regNo));
             saveStudents([]);
             addLog("danger", `Admin memadam SEMUA ${totalCount} rekod pelajar merentas semua jabatan dan sesi.`);
             showToast(`Kesemua ${totalCount} rekod pelajar telah dipadamkan sepenuhnya.`, "info");
