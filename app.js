@@ -1396,7 +1396,20 @@ function renderStudentDocuments() {
                 `;
             }
 
-            if (status === "Belum Dihantar" || status === "Ditolak") {
+            if (window.uploadProgress && window.uploadProgress[key] !== undefined) {
+                const progressVal = window.uploadProgress[key];
+                const progressText = typeof progressVal === 'number' ? `${progressVal}%` : progressVal;
+                const widthPercent = typeof progressVal === 'number' ? `${progressVal}%` : '100%';
+                cardBody += `
+                    <div class="upload-progress-container" id="progress-container-${key}" style="margin-top: 15px; background: rgba(59, 130, 246, 0.05); border: 1px dashed #3b82f6; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
+                        <i class="fa-solid fa-spinner fa-spin text-accent" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);" id="progress-label-${key}">Muat Naik: ${progressText}</span>
+                        <div style="width: 100%; height: 6px; background: rgba(0, 0, 0, 0.1); border-radius: 3px; overflow: hidden;">
+                            <div id="progress-bar-${key}" style="width: ${widthPercent}; height: 100%; background: #3b82f6; transition: width 0.1s ease; border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                `;
+            } else if (status === "Belum Dihantar" || status === "Ditolak") {
                 // slaid_pembentangan: PowerPoint or PDF only; others: PDF/PNG/JPG
                 const isSlaid = key === "slaid_pembentangan";
                 const acceptTypes = isSlaid ? ".ppt,.pptx,.pdf" : ".pdf,.png,.jpg,.jpeg";
@@ -3459,7 +3472,7 @@ function saveDocumentToStudent(studentIdx, docId, docData, students) {
 }
 
 // Helper: upload file to Storage, fallback to base64 if unavailable
-async function uploadFileWithFallback(file, storagePath, onSuccess) {
+async function uploadFileWithFallback(file, storagePath, onProgress) {
     if (typeof USE_FIREBASE_STORAGE === 'undefined' || !USE_FIREBASE_STORAGE || typeof storage === 'undefined' || !storage) {
         console.warn("Firebase Storage is disabled or undefined, using base64 fallback.");
         return { useBase64: true };
@@ -3472,6 +3485,7 @@ async function uploadFileWithFallback(file, storagePath, onSuccess) {
                 (snapshot) => {
                     const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
                     console.log(`Upload Storage: ${pct}%`);
+                    if (onProgress) onProgress(pct);
                 },
                 (error) => {
                     console.warn("Storage unavailable, using base64 fallback:", error.code);
@@ -3528,18 +3542,30 @@ window.handleFileSelected = function (event, docId) {
     const sizeKB = file.size / 1024;
     const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
 
-    showToast(`Memuat naik "${file.name}"...`, "info");
+    showToast(`Membaca fail "${file.name}"...`, "info");
+    
+    // Set global upload progress
+    window.uploadProgress = window.uploadProgress || {};
+    window.uploadProgress[docId] = 0;
+    renderStudentDocuments(); // Render the progress bar
 
     const storagePath = `documents/${currentUser.regNo}/${docId}/${Date.now()}_${file.name}`;
 
-    // Use FileReader to read file — needed for both base64 fallback and for small files
+    // Use FileReader to read file
     const reader = new FileReader();
     reader.onload = async function (e) {
         try {
             const base64Data = e.target.result;
 
+            window.uploadProgress[docId] = 10;
+            updateUploadProgressDOM(docId, 10);
+
             // Try Firebase Storage first
-            const result = await uploadFileWithFallback(file, storagePath, null);
+            const result = await uploadFileWithFallback(file, storagePath, (pct) => {
+                const scaledPct = Math.round(10 + (pct * 0.8));
+                window.uploadProgress[docId] = scaledPct;
+                updateUploadProgressDOM(docId, scaledPct);
+            });
 
             const students = getStudents();
             const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
@@ -3555,24 +3581,46 @@ window.handleFileSelected = function (event, docId) {
 
             if (!result.useBase64) {
                 // Firebase Storage success
+                window.uploadProgress[docId] = 95;
+                updateUploadProgressDOM(docId, 95);
                 docData.fileUrl = result.downloadURL;
             } else {
-                // Firestore chunked file storage (FREE — no Firebase Storage needed)
-                showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
+                // Firestore chunked file storage
+                window.uploadProgress[docId] = "Menyimpan ke pangkalan data...";
+                updateUploadProgressDOM(docId, "Menyimpan ke pangkalan data...");
                 const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
                 docData.fileRef = fileRef;
-                // Also keep in-memory for immediate display (not saved to Firestore student doc)
                 docData.fileData = base64Data;
             }
 
+            window.uploadProgress[docId] = 100;
+            updateUploadProgressDOM(docId, 100);
+
             saveDocumentToStudent(studentIdx, docId, docData, students);
+            showToast(`Fail "${file.name}" berjaya dimuat naik.`, "success");
         } catch (uploadErr) {
             console.error("Gagal memuat naik dokumen:", uploadErr);
             showToast(`Gagal memuat naik fail: ${uploadErr.message}`, "error");
+        } finally {
+            delete window.uploadProgress[docId];
+            renderStudentDocuments();
         }
     };
     reader.readAsDataURL(file);
 };
+
+function updateUploadProgressDOM(docId, val) {
+    const label = document.getElementById(`progress-label-${docId}`);
+    const bar = document.getElementById(`progress-bar-${docId}`);
+    if (label) {
+        const text = typeof val === 'number' ? `${val}%` : val;
+        label.textContent = `Muat Naik: ${text}`;
+    }
+    if (bar) {
+        const width = typeof val === 'number' ? `${val}%` : '100%';
+        bar.style.width = width;
+    }
+}
 
 window.handleLecturerFileUpload = function (regNo, docId, inputEl) {
     const file = inputEl.files[0];
