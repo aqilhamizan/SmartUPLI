@@ -683,8 +683,8 @@ body.light-mode .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15)
 }
 
 .session-select option {
-    background: #0f172a;
-    color: #ffffff;
+    background: #ffffff;
+    color: #000000;
 }
 
 .system-time {
@@ -2065,12 +2065,12 @@ body.light-mode textarea {
 
 body.light-mode select option {
     background: #ffffff;
-    color: #0f172a;
+    color: #000000;
 }
 
 body.light-mode .session-select option {
     background: #ffffff;
-    color: #0f172a;
+    color: #000000;
 }
 
 body.light-mode input:focus,
