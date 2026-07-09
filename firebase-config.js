@@ -22,7 +22,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // Feature Flags & Timeouts
-const USE_FIREBASE_STORAGE = false; // Set to true after enabling Storage in Firebase Console and configuring CORS
+const USE_FIREBASE_STORAGE = true; // Set to true after enabling Storage in Firebase Console and configuring CORS
 if (storage) {
     try {
         storage.setMaxUploadRetryTime(2000); // 2s max upload retry
