@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartupli-cache-v6';
+const CACHE_NAME = 'smartupli-cache-v7';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -42,6 +42,15 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     // Only handle HTTP/HTTPS requests (avoid chrome-extension://, firebase-storage, etc.)
     if (!event.request.url.startsWith('http')) return;
+
+    // JANGAN cache sebarang request ke Firebase / Firestore untuk elak isu data lama
+    if (
+        event.request.url.includes('firestore.googleapis.com') ||
+        event.request.url.includes('firebase') ||
+        event.request.url.includes('google')
+    ) {
+        return; // Biar browser urus request ini tanpa Service Worker
+    }
 
     event.respondWith(
         caches.match(event.request)
