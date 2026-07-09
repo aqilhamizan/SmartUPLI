@@ -4,14 +4,13 @@
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDrJ0MM4hjF3GfJADJxp6QSRC1iO7qIZvg",
-    authDomain: "smartupli.firebaseapp.com",
-    databaseURL: "https://smartupli-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "smartupli",
-    storageBucket: "smartupli.firebasestorage.app",
-    messagingSenderId: "1077469915508",
-    appId: "1:1077469915508:web:9c81a102a11a62dc146421",
-    measurementId: "G-GHHX7MS098"
+    apiKey: "AIzaSyAxorKsLZxypigNSOkFIqdiZoyQy1a4RCI",
+    authDomain: "myinternms.firebaseapp.com",
+    projectId: "myinternms",
+    storageBucket: "myinternms.firebasestorage.app",
+    messagingSenderId: "664284023119",
+    appId: "1:664284023119:web:e4d0328fcb9cbb3a821d3a",
+    measurementId: "G-5DM634B73N"
 };
 
 // Initialize Firebase
@@ -41,4 +40,4 @@ db.enablePersistence({ synchronizeTabs: true }).catch(err => {
     }
 });
 
-console.log("✅ Firebase initialized — Project: smartupli");
+console.log("✅ Firebase initialized — Project: myinternms");
