@@ -119,13 +119,25 @@
                         <p>Paparan status penghantaran dan statistik dokumen UPLI mengikut Jabatan dan Program Pengajian
                         </p>
                         
-                        <!-- Portal Academic Session Selector -->
-                        <div class="portal-session-filter" style="margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; background: #0f172a; border: 2px solid #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); padding: 6px 14px; border-radius: 20px;">
-                            <i class="fa-solid fa-calendar-days text-accent" style="font-size: 1.1rem; color: #3b82f6;"></i>
-                            <span style="font-weight: 600; font-size: 0.85rem; color: #ffffff;">Sesi Akademik:</span>
-                            <select id="portal-session-select" style="font-weight: 700; color: #1e3a8a !important; border: 2px solid #3b82f6 !important; background-color: #eff6ff !important; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; outline: none;">
-                                <!-- Loaded dynamically by JS -->
-                            </select>
+                        <!-- Portal Controls Layout (Session Selector & Live Clock Widget) -->
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
+                            <!-- Portal Academic Session Selector -->
+                            <div class="portal-session-filter" style="display: inline-flex; align-items: center; gap: 8px; background: #0f172a; border: 2px solid #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); padding: 6px 14px; border-radius: 20px; height: 38px; box-sizing: border-box;">
+                                <i class="fa-solid fa-calendar-days text-accent" style="font-size: 1.1rem; color: #3b82f6;"></i>
+                                <span style="font-weight: 600; font-size: 0.85rem; color: #ffffff;">Sesi Akademik:</span>
+                                <select id="portal-session-select" style="font-weight: 700; color: #1e3a8a !important; border: 2px solid #3b82f6 !important; background-color: #eff6ff !important; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; outline: none;">
+                                    <!-- Loaded dynamically by JS -->
+                                </select>
+                            </div>
+                            
+                            <!-- Live Clock Widget -->
+                            <div class="portal-clock-widget" style="display: inline-flex; align-items: center; gap: 8px; background: #0f172a; border: 2px solid #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 20px; height: 38px; box-sizing: border-box; font-family: var(--font-display); font-weight: 700; color: #ffffff; font-size: 0.85rem;">
+                                <i class="fa-solid fa-calendar-days text-accent" style="color: #10b981;"></i>
+                                <span id="portal-date-display">00/00/0000</span>
+                                <span style="opacity: 0.3;">|</span>
+                                <i class="fa-solid fa-clock text-accent" style="color: #10b981;"></i>
+                                <span id="portal-time-display">00:00:00</span>
+                            </div>
                         </div>
                     </div>
 

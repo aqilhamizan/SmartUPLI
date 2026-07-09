@@ -783,12 +783,24 @@ function showConfirm(message, onConfirm, title = "Pengesahan Diperlukan", confir
 // Time display clock
 function startClock() {
     const dateDisplay = document.getElementById("current-date-display");
+    const portalDateDisplay = document.getElementById("portal-date-display");
+    const portalTimeDisplay = document.getElementById("portal-time-display");
+    
     setInterval(() => {
         const now = new Date();
-        timeDisplay.textContent = now.toLocaleTimeString("ms-MY");
+        const timeStr = now.toLocaleTimeString("ms-MY");
+        timeDisplay.textContent = timeStr;
+        if (portalTimeDisplay) {
+            portalTimeDisplay.textContent = timeStr;
+        }
+        
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        const dateStr = now.toLocaleDateString("ms-MY", options);
         if (dateDisplay) {
-            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-            dateDisplay.textContent = now.toLocaleDateString("ms-MY", options);
+            dateDisplay.textContent = dateStr;
+        }
+        if (portalDateDisplay) {
+            portalDateDisplay.textContent = dateStr;
         }
     }, 1000);
 }

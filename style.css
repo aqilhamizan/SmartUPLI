@@ -2912,3 +2912,33 @@ body.light-mode #notification-container .notification {
     animation: softBlueAnim 10s ease infinite !important;
 }
 
+/* ================= PORTAL LIVE CLOCK WIDGET & ANIMATIONS ================= */
+.portal-clock-widget {
+    animation: floatingClock 4s ease-in-out infinite alternate;
+}
+
+@keyframes floatingClock {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-4px); }
+}
+
+.portal-clock-widget .fa-clock {
+    animation: rotateClockHand 8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes rotateClockHand {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.portal-clock-widget .fa-calendar-days {
+    animation: beatCalendar 2s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes beatCalendar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
