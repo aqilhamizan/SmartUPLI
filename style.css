@@ -2929,7 +2929,7 @@ body.light-mode #notification-container .notification {
     position: relative !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
-    min-width: 190px !important;
+    min-width: 230px !important;
     text-align: center !important;
 }
 
