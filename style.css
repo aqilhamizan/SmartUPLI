@@ -1978,7 +1978,46 @@ body.light-mode .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15)
     }
 
     .content-header {
-        padding: 0 20px;
+        height: auto !important;
+        min-height: 70px;
+        padding: 12px 15px !important;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-right {
+        gap: 8px !important;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .system-time {
+        display: none !important;
+    }
+
+    .profile-summary .user-role-label {
+        display: none !important;
+    }
+
+    .btn-logout-header {
+        font-size: 0 !important;
+        padding: 0 !important;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-logout-header i {
+        font-size: 1rem !important;
+    }
+
+    .main-content {
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: hidden !important;
     }
 
     .content-body {
