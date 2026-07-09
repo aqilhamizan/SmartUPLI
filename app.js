@@ -818,7 +818,8 @@ function startClock() {
             dateDisplay.textContent = dateStr;
         }
         if (portalDateDisplay) {
-            portalDateDisplay.textContent = dateStr;
+            const portalDateOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            portalDateDisplay.textContent = now.toLocaleDateString("ms-MY", portalDateOptions);
         }
     }, 1000);
 }

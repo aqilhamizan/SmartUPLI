@@ -2913,32 +2913,56 @@ body.light-mode #notification-container .notification {
 }
 
 /* ================= PORTAL LIVE CLOCK WIDGET & ANIMATIONS ================= */
-.portal-clock-widget {
-    animation: floatingClock 4s ease-in-out infinite alternate;
+.portal-premium-clock-card {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 2px solid rgba(16, 185, 129, 0.25) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 16px 28px !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(16, 185, 129, 0.05) !important;
+    margin: 15px auto 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: portalClockGlow 3s ease-in-out infinite alternate !important;
 }
 
-@keyframes floatingClock {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(-4px); }
+@keyframes portalClockGlow {
+    0% { border-color: rgba(16, 185, 129, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 10px rgba(16, 185, 129, 0.1); }
+    100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.2); }
 }
 
-.portal-clock-widget .fa-clock {
-    animation: rotateClockHand 8s linear infinite;
-    display: inline-block;
+.portal-clock-time {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    color: #10b981 !important;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
+    letter-spacing: 2px !important;
+    line-height: 1 !important;
+}
+
+.portal-clock-date {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    letter-spacing: 1px !important;
+    opacity: 0.95 !important;
+}
+
+.portal-clock-date i {
+    animation: rotateClockHand 10s linear infinite !important;
+    display: inline-block !important;
 }
 
 @keyframes rotateClockHand {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
-}
-
-.portal-clock-widget .fa-calendar-days {
-    animation: beatCalendar 2s ease-in-out infinite;
-    display: inline-block;
-}
-
-@keyframes beatCalendar {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
 }
 
