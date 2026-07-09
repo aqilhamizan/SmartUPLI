@@ -782,9 +782,14 @@ function showConfirm(message, onConfirm, title = "Pengesahan Diperlukan", confir
 
 // Time display clock
 function startClock() {
+    const dateDisplay = document.getElementById("current-date-display");
     setInterval(() => {
         const now = new Date();
         timeDisplay.textContent = now.toLocaleTimeString("ms-MY");
+        if (dateDisplay) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            dateDisplay.textContent = now.toLocaleDateString("ms-MY", options);
+        }
     }, 1000);
 }
 
@@ -3762,7 +3767,7 @@ function initTheme() {
     if (savedTheme === "light") {
         document.body.classList.add("light-mode");
         if (toggleBtn) {
-            toggleBtn.innerHTML = `<i class="fa-solid fa-sun" style="color: #eab308;"></i>`;
+            toggleBtn.innerHTML = `<i class="fa-solid fa-sun" style="color: #eab308; margin-right: 8px;"></i> Mod Cerah`;
         }
         if (portalToggleBtn) {
             portalToggleBtn.innerHTML = `<i class="fa-solid fa-sun" style="color: #eab308; margin-right: 8px;"></i> Mod Cerah`;
@@ -3770,7 +3775,7 @@ function initTheme() {
     } else {
         document.body.classList.remove("light-mode");
         if (toggleBtn) {
-            toggleBtn.innerHTML = `<i class="fa-solid fa-moon"></i>`;
+            toggleBtn.innerHTML = `<i class="fa-solid fa-moon" style="margin-right: 8px;"></i> Mod Gelap`;
         }
         if (portalToggleBtn) {
             portalToggleBtn.innerHTML = `<i class="fa-solid fa-moon" style="margin-right: 8px;"></i> Mod Gelap`;

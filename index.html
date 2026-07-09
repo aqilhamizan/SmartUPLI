@@ -439,8 +439,17 @@
                             <i class="fa-solid fa-book-bookmark"></i> Rubrik Pemarkahan
                         </a>
                     </div>
+                    <!-- Common Actions (Logout & Dark Mode) -->
+                    <div class="sidebar-common-actions" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                        <button class="nav-item" id="logout-btn" style="color: #ef4444 !important; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Log Keluar
+                        </button>
+                        <button class="nav-item" id="theme-toggle-btn" style="border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;">
+                            <i class="fa-solid fa-moon"></i> Mod Gelap
+                        </button>
+                    </div>
                 </nav>
-                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: auto;">
+                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center;">
                     Hakcipta &copy; 2026 UPLI, PKK
                 </div>
             </aside>
@@ -463,21 +472,16 @@
                             </select>
                         </div>
                         <div class="system-time">
-                            <i class="fa-regular fa-clock"></i>
+                            <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>
+                            <span id="current-date-display" style="margin-right: 8px;">00/00/0000</span>
+                            <span style="opacity: 0.3; margin-right: 8px;">|</span>
+                            <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>
                             <span id="current-time-display">00:00:00</span>
                         </div>
-                        <button class="btn-theme-toggle" id="theme-toggle-btn" title="Tukar Mod Gelap/Cerah"
-                            style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); cursor: pointer; font-size: 1rem; transition: var(--transition-fast); outline: none;">
-                            <i class="fa-solid fa-moon"></i>
-                        </button>
                         <div class="profile-summary">
                             <span class="user-role-label" id="header-user-role">Pelajar</span>
                             <div class="avatar mini-avatar" id="header-avatar">P</div>
                         </div>
-
-                        <button class="btn btn-logout-header" id="logout-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i> Log Keluar
-                        </button>
                     </div>
                 </header>
 
