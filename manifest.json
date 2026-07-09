@@ -1,6 +1,6 @@
 {
-  "name": "Smart UPLI Hub",
-  "short_name": "SmartUPLI",
+  "name": "My InternMS Hub",
+  "short_name": "My InternMS",
   "description": "Sistem Pengurusan Dokumen Latihan Industri POLIKK",
   "start_url": "./index.html",
   "display": "standalone",

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SMART UPLI HUB - APPLICATION SCRIPT (VANILLA JS)
+   MY INTERNMS HUB - APPLICATION SCRIPT (VANILLA JS)
    Logic: Role-Based Routing, Database Seeding, LocalStorage Sync, UI Updates
    ========================================================================== */
 
@@ -111,7 +111,7 @@ const DEFAULT_ANNOUNCEMENTS = [
     {
         id: "ann_default_2",
         title: "Tarikh Akhir Serahan Borang Jawapan Organisasi",
-        content: "Sila muat naik Borang Jawapan Organisasi yang telah lengkap ditandatangani oleh majikan ke dalam sistem SmartUPLI sebelum jam 5:00 Petang.",
+        content: "Sila muat naik Borang Jawapan Organisasi yang telah lengkap ditandatangani oleh majikan ke dalam sistem My InternMS sebelum jam 5:00 Petang.",
         date: "2026-07-15",
         category: "Penting",
         updatedBy: "Dr. Hamzah bin Salleh",
@@ -119,7 +119,7 @@ const DEFAULT_ANNOUNCEMENTS = [
     },
     {
         id: "ann_default_3",
-        title: "Pendaftaran Sistem SmartUPLI Pelajar Baharu",
+        title: "Pendaftaran Sistem My InternMS Pelajar Baharu",
         content: "Sila pastikan maklumat profil peribadi dan nombor telefon yang dikemaskini adalah aktif untuk tujuan agihan pensyarah pemantau.",
         date: "2026-07-22",
         category: "Pendaftaran",
@@ -234,7 +234,7 @@ const DEFAULT_STUDENTS = [
 
 
 const DEFAULT_LOGS = [
-    { type: "info", text: "Sistem Smart UPLI Hub berjaya dimulakan.", time: "2026-07-03 08:00" },
+    { type: "info", text: "Sistem My InternMS berjaya dimulakan.", time: "2026-07-03 08:00" },
     { type: "success", text: "Pentadbir sistem utama Hamzah bin Salleh sedia.", time: "2026-07-03 08:05" }
 ];
 
@@ -272,7 +272,7 @@ function showDBLoading(show) {
             <div style="width:54px;height:54px;border:4px solid rgba(99,102,241,0.2);border-top:4px solid #6366f1;border-radius:50%;animation:db-spin 0.8s linear infinite;"></div>
             <div style="text-align:center;">
                 <p style="font-size:1.15rem;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;">Menyambung ke Firebase...</p>
-                <p style="font-size:0.8rem;color:#94a3b8;">Memuatkan data sistem SmartUPLI</p>
+                <p style="font-size:0.8rem;color:#94a3b8;">Memuatkan data sistem My InternMS</p>
             </div>
             <style>@keyframes db-spin{to{transform:rotate(360deg)}}</style>
         `;
@@ -1208,7 +1208,7 @@ function renderTabData(tabId) {
         if (tabId === "admin-rubrik") renderAdminRubrik();
         if (tabId === "rubrik-viewer") renderRubrikViewer();
     } catch (renderErr) {
-        console.error("[SmartUPLI] renderTabData error:", renderErr);
+        console.error("[My InternMS] renderTabData error:", renderErr);
         // Show error message in the active tab section
         const section = document.getElementById(tabId);
         if (section) {

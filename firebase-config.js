@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SMART UPLI HUB - FIREBASE CONFIGURATION & INITIALIZATION
+   MY INTERNMS HUB - FIREBASE CONFIGURATION & INITIALIZATION
    ========================================================================== */
 
 // Firebase configuration
