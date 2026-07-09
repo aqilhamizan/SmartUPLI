@@ -3508,11 +3508,11 @@ async function uploadFileWithFallback(file, storagePath, onProgress) {
     }
 }
 
-window.handleFileSelected = function (event, docId) {
+window.handleFileSelected = async function (event, docId) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Size validation (Fast fail before heavy read)
+    // Size validation (Max 10MB)
     if (file.size > FS_MAX_FILE_SIZE) {
         showToast(`Fail terlalu besar! Had maksimum ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
         return;
@@ -3539,74 +3539,81 @@ window.handleFileSelected = function (event, docId) {
         String(now.getDate()).padStart(2, '0') + " " +
         String(now.getHours()).padStart(2, '0') + ":" +
         String(now.getMinutes()).padStart(2, '0');
-    const sizeKB = file.size / 1024;
-    const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
 
-    showToast(`Membaca fail "${file.name}"...`, "info");
-    
     // Set global upload progress
     window.uploadProgress = window.uploadProgress || {};
     window.uploadProgress[docId] = 0;
-    renderStudentDocuments(); // Render the progress bar
+    renderStudentDocuments();
 
-    const storagePath = `documents/${currentUser.regNo}/${docId}/${Date.now()}_${file.name}`;
+    try {
+        const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png)$/i.test(file.name);
+        let base64Data;
+        let finalFileName = file.name;
 
-    // Use FileReader to read file
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-        try {
-            const base64Data = e.target.result;
-
-            window.uploadProgress[docId] = 10;
-            updateUploadProgressDOM(docId, 10);
-
-            // Try Firebase Storage first
-            const result = await uploadFileWithFallback(file, storagePath, (pct) => {
-                const scaledPct = Math.round(10 + (pct * 0.8));
-                window.uploadProgress[docId] = scaledPct;
-                updateUploadProgressDOM(docId, scaledPct);
-            });
-
-            const students = getStudents();
-            const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
-            if (studentIdx === -1) return;
-
-            const docData = {
-                status: "Dalam Semakan",
-                fileName: file.name,
-                fileSize: sizeStr,
-                uploadDate: formattedTime,
-                feedback: ""
-            };
-
-            if (!result.useBase64) {
-                // Firebase Storage success
-                window.uploadProgress[docId] = 95;
-                updateUploadProgressDOM(docId, 95);
-                docData.fileUrl = result.downloadURL;
-            } else {
-                // Firestore chunked file storage
-                window.uploadProgress[docId] = "Menyimpan ke pangkalan data...";
-                updateUploadProgressDOM(docId, "Menyimpan ke pangkalan data...");
-                const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
-                docData.fileRef = fileRef;
-                docData.fileData = base64Data;
+        if (isImage) {
+            window.uploadProgress[docId] = "Mengompresi Gambar...";
+            updateUploadProgressDOM(docId, "Mengompresi Gambar...");
+            base64Data = await compressImage(file, 1200, 1200, 0.7);
+            if (!finalFileName.toLowerCase().endsWith(".jpg") && !finalFileName.toLowerCase().endsWith(".jpeg")) {
+                finalFileName = finalFileName.substring(0, finalFileName.lastIndexOf('.')) + ".jpg";
             }
-
-            window.uploadProgress[docId] = 100;
-            updateUploadProgressDOM(docId, 100);
-
-            saveDocumentToStudent(studentIdx, docId, docData, students);
-            showToast(`Fail "${file.name}" berjaya dimuat naik.`, "success");
-        } catch (uploadErr) {
-            console.error("Gagal memuat naik dokumen:", uploadErr);
-            showToast(`Gagal memuat naik fail: ${uploadErr.message}`, "error");
-        } finally {
-            delete window.uploadProgress[docId];
-            renderStudentDocuments();
+        } else {
+            window.uploadProgress[docId] = "Membaca Fail...";
+            updateUploadProgressDOM(docId, "Membaca Fail...");
+            base64Data = await readFileAsBase64(file);
         }
-    };
-    reader.readAsDataURL(file);
+
+        const rawSizeKB = (base64Data.length * 3 / 4) / 1024;
+        const sizeStr = rawSizeKB > 1000 ? (rawSizeKB / 1024).toFixed(1) + " MB" : Math.round(rawSizeKB) + " KB";
+
+        window.uploadProgress[docId] = 30;
+        updateUploadProgressDOM(docId, 30);
+
+        const storagePath = `documents/${currentUser.regNo}/${docId}/${Date.now()}_${finalFileName}`;
+
+        // Try Firebase Storage first (will fallback to base64 if false/disabled)
+        const result = await uploadFileWithFallback(file, storagePath, (pct) => {
+            const scaledPct = Math.round(30 + (pct * 0.6));
+            window.uploadProgress[docId] = scaledPct;
+            updateUploadProgressDOM(docId, scaledPct);
+        });
+
+        const students = getStudents();
+        const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
+        if (studentIdx === -1) return;
+
+        const docData = {
+            status: "Dalam Semakan",
+            fileName: finalFileName,
+            fileSize: sizeStr,
+            uploadDate: formattedTime,
+            feedback: ""
+        };
+
+        if (!result.useBase64) {
+            window.uploadProgress[docId] = 95;
+            updateUploadProgressDOM(docId, 95);
+            docData.fileUrl = result.downloadURL;
+        } else {
+            window.uploadProgress[docId] = "Menyimpan ke DB...";
+            updateUploadProgressDOM(docId, "Menyimpan ke DB...");
+            const fileRef = await saveFileToFirestore(currentUser.regNo, docId, base64Data);
+            docData.fileRef = fileRef;
+            docData.fileData = base64Data;
+        }
+
+        window.uploadProgress[docId] = 100;
+        updateUploadProgressDOM(docId, 100);
+
+        saveDocumentToStudent(studentIdx, docId, docData, students);
+        showToast(`Fail "${finalFileName}" berjaya dimuat naik.`, "success");
+    } catch (uploadErr) {
+        console.error("Gagal memuat naik dokumen:", uploadErr);
+        showToast("Gagal memuat naik fail. Sila cuba lagi.", "error");
+    } finally {
+        delete window.uploadProgress[docId];
+        renderStudentDocuments();
+    }
 };
 
 function updateUploadProgressDOM(docId, val) {
@@ -3622,9 +3629,63 @@ function updateUploadProgressDOM(docId, val) {
     }
 }
 
-window.handleLecturerFileUpload = function (regNo, docId, inputEl) {
+// Image compression helper using HTML5 Canvas
+function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressedDataUrl);
+            };
+            img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+    });
+}
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+    });
+}
+
+window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
     const file = inputEl.files[0];
     if (!file) return;
+
+    if (file.size > FS_MAX_FILE_SIZE) {
+        showToast(`Fail terlalu besar! Had ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
+        return;
+    }
 
     const now = new Date();
     const formattedTime = now.getFullYear() + "-" +
@@ -3632,29 +3693,36 @@ window.handleLecturerFileUpload = function (regNo, docId, inputEl) {
         String(now.getDate()).padStart(2, '0') + " " +
         String(now.getHours()).padStart(2, '0') + ":" +
         String(now.getMinutes()).padStart(2, '0');
-    const sizeKB = file.size / 1024;
-    const sizeStr = sizeKB > 1000 ? (sizeKB / 1024).toFixed(1) + " MB" : Math.round(sizeKB) + " KB";
 
-    showToast(`Memuat naik borang markah...`, "info");
-    const storagePath = `lecturer_docs/${regNo}/${docId}/${Date.now()}_${file.name}`;
+    showToast(`Memproses fail...`, "info");
 
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-        const base64Data = e.target.result;
+    try {
+        const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png)$/i.test(file.name);
+        let base64Data;
+        let finalFileName = file.name;
+
+        if (isImage) {
+            base64Data = await compressImage(file, 1200, 1200, 0.7);
+            if (!finalFileName.toLowerCase().endsWith(".jpg") && !finalFileName.toLowerCase().endsWith(".jpeg")) {
+                finalFileName = finalFileName.substring(0, finalFileName.lastIndexOf('.')) + ".jpg";
+            }
+        } else {
+            base64Data = await readFileAsBase64(file);
+        }
+
+        const rawSizeKB = (base64Data.length * 3 / 4) / 1024;
+        const sizeStr = rawSizeKB > 1000 ? (rawSizeKB / 1024).toFixed(1) + " MB" : Math.round(rawSizeKB) + " KB";
+
+        const storagePath = `lecturer_docs/${regNo}/${docId}/${Date.now()}_${finalFileName}`;
         const result = await uploadFileWithFallback(file, storagePath, null);
 
         const students = getStudents();
         const studentIdx = students.findIndex(s => s.regNo === regNo);
         if (studentIdx === -1) return;
 
-        if (file.size > FS_MAX_FILE_SIZE) {
-            showToast(`Fail terlalu besar! Had ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
-            return;
-        }
-
         const docData = {
             status: "Diterima",
-            fileName: file.name,
+            fileName: finalFileName,
             fileSize: sizeStr,
             uploadDate: formattedTime,
             feedback: "Dimuat naik oleh Pensyarah Seliaan"
@@ -3663,19 +3731,21 @@ window.handleLecturerFileUpload = function (regNo, docId, inputEl) {
         if (!result.useBase64) {
             docData.fileUrl = result.downloadURL;
         } else {
-            showToast(`Menyimpan "${file.name}" ke pangkalan data...`, "info");
+            showToast(`Menyimpan "${finalFileName}" ke pangkalan data...`, "info");
             const fileRef = await saveFileToFirestore(regNo, docId, base64Data);
             docData.fileRef = fileRef;
-            docData.fileData = base64Data; // In-memory for immediate display
+            docData.fileData = base64Data;
         }
 
         students[studentIdx].documents[docId] = docData;
         saveStudents(students);
         addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
-        showToast(`Fail "${file.name}" berjaya dimuat naik dan diluluskan.`, "success");
+        showToast(`Fail "${finalFileName}" berjaya dimuat naik dan diluluskan.`, "success");
         renderLecturerStudentsList();
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+        console.error("Gagal memuat naik fail pensyarah:", err);
+        showToast("Gagal memuat naik fail. Sila cuba lagi.", "error");
+    }
 };
 
 
