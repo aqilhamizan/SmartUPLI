@@ -1572,12 +1572,12 @@ window.adminDownloadStudentDocs = async function (regNo) {
 
     const requiredDocs = getStudentDocsList(student);
 
-    // Only collect documents with actual fileData
-    const docsWithData = requiredDocs
+    // Filter documents that have been uploaded
+    const uploadedDocs = requiredDocs
         .map(d => ({ meta: d, doc: (student.documents || {})[d.id] }))
-        .filter(item => item.doc && item.doc.fileData && item.doc.fileData.trim() !== "");
+        .filter(item => item.doc && (item.doc.fileUrl || item.doc.fileRef || item.doc.fileData));
 
-    if (docsWithData.length === 0) {
+    if (uploadedDocs.length === 0) {
         showToast("Tiada fail dokumen yang tersimpan untuk pelajar ini.", "error");
         return;
     }
@@ -1590,6 +1590,7 @@ window.adminDownloadStudentDocs = async function (regNo) {
     }
 
     try {
+        showToast("Menjana fail ZIP... Memuat turun kandungan dari pangkalan data...", "info");
         const zip = new JSZip();
 
         // Folder name: StudentName_RegNo
@@ -1597,16 +1598,42 @@ window.adminDownloadStudentDocs = async function (regNo) {
         const folderName = `${safeName}_${student.regNo}`;
         const folder = zip.folder(folderName);
 
-        docsWithData.forEach(item => {
+        // Fetch all base64 contents in parallel
+        await Promise.all(uploadedDocs.map(async (item) => {
             const { meta, doc } = item;
             let base64Data = doc.fileData;
+
+            // If fileData is deleted but we have fileRef, load it from Firestore chunk storage
+            if (!base64Data && doc.fileRef) {
+                base64Data = await loadFileFromFirestore(regNo, meta.id);
+            }
+
+            // If it's stored as fileUrl (Firebase Storage)
+            if (!base64Data && doc.fileUrl) {
+                const response = await fetch(doc.fileUrl);
+                const blob = await response.blob();
+                base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            if (!base64Data) {
+                console.warn(`Could not resolve file data for doc: ${meta.title}`);
+                return;
+            }
+
+            // Parse base64
+            let cleanBase64 = base64Data;
             let fileExtension = "";
 
-            if (base64Data.startsWith("data:")) {
-                const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+            if (cleanBase64.startsWith("data:")) {
+                const matches = cleanBase64.match(/^data:([^;]+);base64,(.+)$/);
                 if (matches) {
                     const mime = matches[1];
-                    base64Data = matches[2];
+                    cleanBase64 = matches[2];
                     if (mime.includes("pdf")) fileExtension = ".pdf";
                     else if (mime.includes("png")) fileExtension = ".png";
                     else if (mime.includes("jpeg") || mime.includes("jpg")) fileExtension = ".jpg";
@@ -1615,13 +1642,13 @@ window.adminDownloadStudentDocs = async function (regNo) {
 
             let fileName = doc.fileName || `${meta.title}${fileExtension}`;
             fileName = fileName.replace(/[\\/]/g, "_");
-            folder.file(fileName, base64Data, { base64: true });
-        });
+            folder.file(fileName, cleanBase64, { base64: true });
+        }));
 
         const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
         saveAs(blob, `${folderName}.zip`);
 
-        addLog("success", `Admin memuat turun folder dokumen pelajar: ${student.name} (${regNo}) — ${docsWithData.length} fail.`);
+        addLog("success", `Admin memuat turun folder dokumen pelajar: ${student.name} (${regNo}) — ${uploadedDocs.length} fail.`);
         showToast(`Berjaya! Folder ${folderName}.zip telah dimuat turun.`, "success");
 
     } catch (err) {
@@ -2916,10 +2943,10 @@ function renderAdminStudentsTable() {
         });
         const pct = Math.round((approvedCount / requiredDocs.length) * 100);
 
-        // Check if ALL required documents are fully approved ("Diterima") AND have actual file data
+        // Check if ALL required documents are fully approved ("Diterima")
         const allComplete = approvedCount === requiredDocs.length && requiredDocs.every(d => {
             const doc = s.documents[d.id];
-            return doc && doc.status === "Diterima" && doc.fileData && doc.fileData.trim() !== "";
+            return doc && doc.status === "Diterima";
         });
 
         let docsVisual = "";
