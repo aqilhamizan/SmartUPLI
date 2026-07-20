@@ -5108,7 +5108,8 @@ window.updateAdminNotifications = function () {
     const notifContainer = document.getElementById("admin-notification-container");
     if (!notifContainer) return;
 
-    if (currentRole !== "admin" && currentRole !== "lecturer") {
+    // Notifikasi hanya untuk Admin UPLI sahaja
+    if (currentRole !== "admin") {
         notifContainer.style.display = "none";
         return;
     }
@@ -5117,60 +5118,111 @@ window.updateAdminNotifications = function () {
 
     const students = getStudents();
     const activeSesi = getActiveSession();
-    
-    // Find all students of active session with documents "Dalam Semakan"
+    const readNotifs = JSON.parse(localStorage.getItem("admin_read_notifs") || "[]");
+
+    // Kumpul semua dokumen "Dalam Semakan" dari sesi aktif
     const pendingReviews = [];
     students.forEach(s => {
         if (s.sesi === activeSesi && s.documents) {
-            // For lecturers, only show notifications for their own PA students
-            if (currentRole === "lecturer" && s.penasihatAkademik !== currentUser.email) {
-                return;
-            }
-
             Object.keys(s.documents).forEach(docKey => {
                 const doc = s.documents[docKey];
                 if (doc.status === "Dalam Semakan") {
+                    const notifId = `${s.regNo}_${docKey}_${doc.uploadDate || ""}`;
+                    // Kenal pasti jenis pengirim
+                    const isE3 = docKey === "appendix_e3";
+                    const submitterType = isE3 ? "pensyarah" : "pelajar";
+                    const submitterName = isE3
+                        ? (doc.submittedByName || s.pensyarahPenilai || "Pensyarah Penilai")
+                        : s.name;
+
                     pendingReviews.push({
+                        notifId,
                         regNo: s.regNo,
                         studentName: s.name,
-                        class: s.class,
-                        docKey: docKey,
-                        time: doc.uploadDate || ""
+                        studentClass: s.class || s.dept || "-",
+                        docKey,
+                        time: doc.uploadDate || "",
+                        submitterType,
+                        submitterName,
+                        isRead: readNotifs.includes(notifId)
                     });
                 }
             });
         }
     });
 
-    // Update badge count
+    // Kira bilangan yang belum dibaca
+    const unreadCount = pendingReviews.filter(n => !n.isRead).length;
+
+    // Kemaskini badge
     const badge = document.getElementById("admin-notification-count");
+    const bellIcon = notifContainer.querySelector("i.fa-bell");
     if (badge) {
-        if (pendingReviews.length > 0) {
-            badge.textContent = pendingReviews.length;
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount > 99 ? "99+" : unreadCount;
             badge.style.display = "flex";
+            // Animasi loceng bergetar jika ada notifikasi belum dibaca
+            if (bellIcon) {
+                bellIcon.style.color = "var(--color-warning, #f59e0b)";
+                bellIcon.style.animation = "bell-shake 1s ease-in-out";
+                setTimeout(() => { if (bellIcon) bellIcon.style.animation = ""; }, 1000);
+            }
         } else {
             badge.style.display = "none";
+            if (bellIcon) {
+                bellIcon.style.color = "var(--text-secondary)";
+                bellIcon.style.animation = "";
+            }
         }
     }
 
-    // Populate list
+    // Populasi senarai notifikasi
     const list = document.getElementById("admin-notification-list");
     if (list) {
         if (pendingReviews.length === 0) {
-            list.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Tiada notifikasi baharu.</div>`;
+            list.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size:0.82rem;">
+                <i class="fa-regular fa-bell-slash" style="font-size:1.8rem; margin-bottom:8px; display:block; opacity:0.4;"></i>
+                Tiada dokumen menunggu semakan.
+            </div>`;
         } else {
-            // Sort by time descending
-            pendingReviews.sort((a,b) => (b.time || "").localeCompare(a.time || ""));
+            // Susun: belum dibaca dahulu, kemudian ikut masa terkini
+            pendingReviews.sort((a, b) => {
+                if (a.isRead !== b.isRead) return a.isRead ? 1 : -1;
+                return (b.time || "").localeCompare(a.time || "");
+            });
             let html = "";
             pendingReviews.forEach(item => {
+                const unreadDot = !item.isRead
+                    ? `<span style="width:8px;height:8px;border-radius:50%;background:var(--color-danger);display:inline-block;margin-right:6px;flex-shrink:0;"></span>`
+                    : `<span style="width:8px;height:8px;display:inline-block;margin-right:6px;flex-shrink:0;"></span>`;
+
+                const iconHTML = item.submitterType === "pensyarah"
+                    ? `<i class="fa-solid fa-chalkboard-teacher" style="color:var(--color-accent);"></i>`
+                    : `<i class="fa-solid fa-user-graduate" style="color:var(--color-success);"></i>`;
+
+                const typeLabel = item.submitterType === "pensyarah"
+                    ? `<span style="font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(99,102,241,0.15); color:var(--color-accent);">Pensyarah Penilai</span>`
+                    : `<span style="font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(34,197,94,0.15); color:var(--color-success);">Pelajar</span>`;
+
+                const bgStyle = item.isRead ? "background:transparent;" : "background:rgba(99,102,241,0.04);";
+
                 html += `
-                    <div class="notification-item unread" style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'" onclick="handleNotificationClick('${item.regNo}', '${item.docKey}', event)">
-                        <div style="font-weight: 600; color: var(--color-accent); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;">Dokumen Baharu</div>
-                        <div style="font-size: 0.78rem; color: var(--text-primary); line-height: 1.4;">
-                            <strong>${item.studentName} (${item.class || '-'})</strong> telah menghantar: <span style="font-weight:600; color: var(--color-success);">${getFriendlyDocName(item.docKey)}</span>
+                    <div class="notification-item ${item.isRead ? '' : 'unread'}" 
+                        style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 5px; cursor: pointer; transition: background 0.2s; ${bgStyle}" 
+                        onmouseover="this.style.background='rgba(255,255,255,0.04)'" 
+                        onmouseout="this.style.background='${item.isRead ? 'transparent' : 'rgba(99,102,241,0.04)'}'" 
+                        onclick="handleNotificationClick('${item.regNo}', '${item.docKey}', '${item.notifId}', event)">
+                        <div style="display:flex; align-items:center; gap:6px; justify-content:space-between;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                ${unreadDot} ${iconHTML} ${typeLabel}
+                            </div>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">${item.time || 'Baru sahaja'}</span>
                         </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                            <i class="fa-regular fa-clock"></i> ${item.time || 'Baru sahaja'}
+                        <div style="font-size:0.79rem; color:var(--text-primary); line-height:1.4; padding-left:14px;">
+                            ${item.submitterType === 'pensyarah'
+                                ? `<strong>${item.submitterName}</strong> menghantar <span style="color:var(--color-accent); font-weight:600;">${getFriendlyDocName(item.docKey)}</span> bagi pelajar <strong>${item.studentName}</strong>`
+                                : `<strong>${item.studentName}</strong> (${item.studentClass}) menghantar <span style="color:var(--color-success); font-weight:600;">${getFriendlyDocName(item.docKey)}</span>`
+                            }
                         </div>
                     </div>
                 `;
@@ -5178,7 +5230,14 @@ window.updateAdminNotifications = function () {
             list.innerHTML = html;
         }
     }
-}
+
+    // Kemaskini butang "Tandakan Semua Dibaca"
+    const markAllBtn = document.getElementById("notif-mark-all-read");
+    if (markAllBtn) {
+        markAllBtn.style.display = unreadCount > 0 ? "inline-block" : "none";
+    }
+};
+
 
 // Toggle Admin Notification Dropdown
 window.toggleAdminNotificationDropdown = function (event) {
@@ -5190,16 +5249,49 @@ window.toggleAdminNotificationDropdown = function (event) {
     }
 };
 
-// Handle Notification Click
-window.handleNotificationClick = function (regNo, docKey, event) {
+// Handle Notification Click — dengan tandakan dibaca
+window.handleNotificationClick = function (regNo, docKey, notifId, event) {
     if (event) event.stopPropagation();
     const dropdown = document.getElementById("admin-notification-dropdown");
     if (dropdown) dropdown.style.display = "none";
-    
-    // Open the review modal
+
+    // Tandakan notifikasi ini sebagai dibaca
+    if (notifId) {
+        const readNotifs = JSON.parse(localStorage.getItem("admin_read_notifs") || "[]");
+        if (!readNotifs.includes(notifId)) {
+            readNotifs.push(notifId);
+            localStorage.setItem("admin_read_notifs", JSON.stringify(readNotifs));
+        }
+    }
+
+    // Buka modal semakan dokumen
     if (typeof window.openDocumentReviewModal === "function") {
         window.openDocumentReviewModal(regNo, docKey);
     }
+};
+
+// Tandakan semua notifikasi sebagai dibaca
+window.markAllNotificationsRead = function (event) {
+    if (event) event.stopPropagation();
+    const students = getStudents();
+    const activeSesi = getActiveSession();
+    const readNotifs = JSON.parse(localStorage.getItem("admin_read_notifs") || "[]");
+
+    students.forEach(s => {
+        if (s.sesi === activeSesi && s.documents) {
+            Object.keys(s.documents).forEach(docKey => {
+                const doc = s.documents[docKey];
+                if (doc.status === "Dalam Semakan") {
+                    const notifId = `${s.regNo}_${docKey}_${doc.uploadDate || ""}`;
+                    if (!readNotifs.includes(notifId)) readNotifs.push(notifId);
+                }
+            });
+        }
+    });
+
+    localStorage.setItem("admin_read_notifs", JSON.stringify(readNotifs));
+    updateAdminNotifications();
+    showToast("Semua notifikasi telah ditandakan sebagai dibaca.", "success");
 };
 
 // Document click to close notification dropdown when clicking outside

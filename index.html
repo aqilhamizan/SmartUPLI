@@ -496,13 +496,16 @@
                         </div>
                         <!-- Notification Bell (Only for Admin) -->
                         <div class="notification-wrapper" id="admin-notification-container" style="display: none; position: relative; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px;" onclick="toggleAdminNotificationDropdown(event)">
-                            <i class="fa-solid fa-bell" style="font-size: 1.25rem; color: var(--text-secondary); transition: color 0.2s;"></i>
+                            <i class="fa-solid fa-bell" style="font-size: 1.25rem; color: var(--text-secondary); transition: color 0.3s;"></i>
                             <span class="notification-badge" id="admin-notification-count" style="display: none; position: absolute; top: -5px; right: -5px; background: var(--color-danger); color: white; font-size: 0.65rem; font-weight: 800; border-radius: 50%; width: 16px; height: 16px; align-items: center; justify-content: center; border: 1.5px solid var(--bg-card);">0</span>
                             
                             <!-- Dropdown list -->
-                            <div class="notification-dropdown" id="admin-notification-dropdown" style="display: none; position: absolute; top: 45px; right: 0; width: 320px; box-shadow: var(--shadow-lg); z-index: 1000; max-height: 400px; overflow-y: auto; padding: 10px 0; text-align: left;">
-                                <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.9rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
-                                    <span>Notifikasi Dokumen</span>
+                            <div class="notification-dropdown" id="admin-notification-dropdown" style="display: none; position: absolute; top: 45px; right: 0; width: 340px; box-shadow: var(--shadow-lg); z-index: 1000; max-height: 420px; overflow-y: auto; padding: 0; text-align: left;">
+                                <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.9rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-card); z-index: 1;">
+                                    <span><i class="fa-solid fa-bell" style="margin-right:6px; font-size:0.8rem;"></i>Notifikasi Dokumen</span>
+                                    <button id="notif-mark-all-read" onclick="markAllNotificationsRead(event)" style="display:none; background:none; border:none; cursor:pointer; font-size:0.7rem; color:var(--color-accent); font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid var(--color-accent);">
+                                        <i class="fa-solid fa-check-double"></i> Tandakan Dibaca
+                                    </button>
                                 </div>
                                 <div id="admin-notification-list" style="font-size: 0.8rem; color: var(--text-secondary);">
                                     <div style="padding: 20px; text-align: center; color: var(--text-muted);">Tiada notifikasi baharu.</div>
