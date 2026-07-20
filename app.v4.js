@@ -4567,7 +4567,39 @@ function renderAdminStudentsTable() {
     );
 
     if (filteredStudents.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px;" class="text-muted">Tiada rekod ${isPKLIMode ? "pelajar PKLI" : "pelajar berdaftar"} ditemui bagi jabatan ${activeAdminStudentDept} untuk sesi ${activeSesi}.</td></tr>`;
+        const counterpartCount = students.filter(s =>
+            (isPKLIMode ? !s.isPKLI : Boolean(s.isPKLI)) &&
+            (s.jabatan || "").toUpperCase().trim() === (activeAdminStudentDept || "").toUpperCase().trim() &&
+            isStudentInSession(s, activeSesi)
+        ).length;
+
+        let emptyMsg = "";
+        if (!isPKLIMode && counterpartCount > 0) {
+            emptyMsg = `<div style="padding:28px 20px; text-align:center;">
+                <p style="margin:0 0 14px 0; color:var(--text-muted); font-size:0.92rem;">
+                    <i class="fa-solid fa-circle-info text-warning" style="font-size:1.3rem; margin-right:8px; vertical-align:middle;"></i>
+                    Semua (<strong>${counterpartCount}</strong>) pelajar <strong>${activeAdminStudentDept}</strong> bagi sesi ini telah dipindahkan ke <strong>Senarai PKLI</strong>.
+                </p>
+                <button class="btn btn-sm" onclick="switchAdminStudentTabMode('pkli')" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; font-weight:700; border:none; padding:9px 20px; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(245,158,11,0.25);">
+                    <i class="fa-solid fa-user-clock"></i> Lihat Senarai PKLI ${activeAdminStudentDept} (${counterpartCount})
+                </button>
+            </div>`;
+        } else if (isPKLIMode && counterpartCount > 0) {
+            emptyMsg = `<div style="padding:28px 20px; text-align:center;">
+                <p style="margin:0 0 14px 0; color:var(--text-muted); font-size:0.92rem;">
+                    Tiada pelajar PKLI bagi <strong>${activeAdminStudentDept}</strong> untuk sesi ini. Terdapat <strong>${counterpartCount}</strong> pelajar aktif berdaftar.
+                </p>
+                <button class="btn btn-sm" onclick="switchAdminStudentTabMode('active')" style="background:var(--color-primary); color:#fff; font-weight:700; border:none; padding:9px 20px; border-radius:10px; cursor:pointer;">
+                    <i class="fa-solid fa-user-check"></i> Lihat Pelajar Berdaftar (Aktif)
+                </button>
+            </div>`;
+        } else {
+            emptyMsg = `<div style="padding:28px 20px; text-align:center; color:var(--text-muted);">
+                Tiada rekod ${isPKLIMode ? "pelajar PKLI" : "pelajar berdaftar"} ditemui bagi jabatan ${activeAdminStudentDept} untuk sesi ${activeSesi}.
+            </div>`;
+        }
+
+        tbody.innerHTML = `<tr><td colspan="8">${emptyMsg}</td></tr>`;
         const selectAllCheck = document.getElementById("admin-student-select-all");
         if (selectAllCheck) selectAllCheck.checked = false;
         if (window.updateBulkCount) window.updateBulkCount();
@@ -6493,7 +6525,12 @@ function setupBulkActionListeners() {
                     }
                     updateBulkCount();
 
-                    renderAdminStudentsTable();
+                    // Auto switch mode to PKLI if moved to PKLI
+                    if (!isPKLIMode) {
+                        switchAdminStudentTabMode("pkli");
+                    } else {
+                        renderAdminStudentsTable();
+                    }
                     renderAdminDashboard();
                     updatePKLICountBadge();
                 },
@@ -6503,32 +6540,41 @@ function setupBulkActionListeners() {
         });
     }
 
-    // ── SUBTAB MODE LISTENERS (Pelajar Aktif vs Senarai PKLI) ───────────────
+function switchAdminStudentTabMode(mode) {
+    activeAdminStudentTabMode = mode;
     const subtabActive = document.getElementById("subtab-active-students");
     const subtabPKLI   = document.getElementById("subtab-pkli-students");
-
-    if (subtabActive && subtabPKLI) {
-        subtabActive.addEventListener("click", () => {
-            activeAdminStudentTabMode = "active";
-            subtabActive.classList.add("active");
-            subtabPKLI.classList.remove("active");
-            subtabActive.style.background = "var(--color-primary)";
-            subtabActive.style.color = "#ffffff";
-            subtabPKLI.style.background = "rgba(245,158,11,0.08)";
-            subtabPKLI.style.color = "#d97706";
-            renderAdminStudentsTable();
-        });
-
-        subtabPKLI.addEventListener("click", () => {
-            activeAdminStudentTabMode = "pkli";
+    if (mode === "pkli") {
+        if (subtabPKLI && subtabActive) {
             subtabPKLI.classList.add("active");
             subtabActive.classList.remove("active");
             subtabPKLI.style.background = "#d97706";
             subtabPKLI.style.color = "#ffffff";
             subtabActive.style.background = "rgba(255,255,255,0.06)";
             subtabActive.style.color = "var(--text-muted)";
-            renderAdminStudentsTable();
-        });
+        }
+    } else {
+        if (subtabActive && subtabPKLI) {
+            subtabActive.classList.add("active");
+            subtabPKLI.classList.remove("active");
+            subtabActive.style.background = "var(--color-primary)";
+            subtabActive.style.color = "#ffffff";
+            subtabPKLI.style.background = "rgba(245,158,11,0.08)";
+            subtabPKLI.style.color = "#d97706";
+        }
+    }
+    renderAdminStudentsTable();
+    updatePKLICountBadge();
+}
+window.switchAdminStudentTabMode = switchAdminStudentTabMode;
+
+    // ── SUBTAB MODE LISTENERS (Pelajar Aktif vs Senarai PKLI) ───────────────
+    const subtabActive = document.getElementById("subtab-active-students");
+    const subtabPKLI   = document.getElementById("subtab-pkli-students");
+
+    if (subtabActive && subtabPKLI) {
+        subtabActive.addEventListener("click", () => switchAdminStudentTabMode("active"));
+        subtabPKLI.addEventListener("click", () => switchAdminStudentTabMode("pkli"));
     }
 
     // ── PKLI MODAL & LIST LISTENERS ─────────────────────────────────────────
