@@ -446,10 +446,8 @@ function normalizeStudentsCache() {
     // Remove JTMK lecturers in memory
     dbCache.lecturers = dbCache.lecturers.filter(l => l && l.dept !== "JTMK");
 
-    const fallbackSession = dbCache.activeSession || "Sesi 1:2026/2027";
-
     dbCache.students.forEach(s => {
-        if (!s) return;
+        if (!s || typeof s !== 'object') return;
 
         // Map Google Sheet keys to local model keys if needed
         if (s.dept !== undefined && s.jabatan === undefined) {
@@ -480,16 +478,13 @@ function normalizeStudentsCache() {
             s.sesi = fallbackSession;
         }
 
-        // Preserve PKLI status
-        if (s.isPKLI === undefined || s.isPKLI === null) {
-            if (s.statusLI === "PKLI" || String(s.isPKLI) === "true") {
-                s.isPKLI = true;
-                s.statusLI = "PKLI";
-            } else {
-                s.isPKLI = false;
-            }
+        // Lock & preserve PKLI status using standalone set
+        if (pkliSet.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true" || s.isPKLI === true) {
+            s.isPKLI = true;
+            s.statusLI = "PKLI";
+            pkliSet.add(s.regNo);
         } else {
-            s.isPKLI = Boolean(s.isPKLI);
+            s.isPKLI = false;
         }
 
         // Normalize department (jabatan)
@@ -536,7 +531,11 @@ function normalizeStudentsCache() {
                 s.documents[d.id] = { status: "Belum Dihantar", fileName: "", fileSize: "", uploadDate: "", feedback: "", fileUrl: "" };
             }
         });
+        // Ensure regNo is clean
+        if (s.regNo) s.regNo = String(s.regNo).trim().toUpperCase();
     });
+
+    savePKLIRegNoSet(pkliSet);
 }
 
 // ---------- Auto-migrate legacy sessions (add Fasa 1 & Fasa 2) ----------
@@ -594,21 +593,18 @@ function applyRemoteData(data) {
     if (!data) return false;
 
     if (data.students) {
-        // Read existing local students to preserve local isPKLI flags across background syncs
-        let localStudents = [];
-        try { localStudents = JSON.parse(localStorage.getItem("upli_students") || "[]"); } catch(e) {}
-        const pkliRegNos = new Set(localStudents.filter(st => Boolean(st.isPKLI)).map(st => st.regNo));
-
+        const pkliSet = getPKLIRegNoSet();
         data.students.forEach(s => {
-            if (pkliRegNos.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true") {
+            if (!s || !s.regNo) return;
+            if (pkliSet.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true" || s.isPKLI === true) {
                 s.isPKLI = true;
                 s.statusLI = "PKLI";
-            } else if (s.isPKLI === undefined || s.isPKLI === null) {
-                s.isPKLI = false;
+                pkliSet.add(s.regNo);
             } else {
-                s.isPKLI = Boolean(s.isPKLI);
+                s.isPKLI = false;
             }
         });
+        savePKLIRegNoSet(pkliSet);
 
         dbCache.students = data.students;
         normalizeStudentsCache();
@@ -6447,13 +6443,22 @@ function setupBulkActionListeners() {
                 confirmMsg,
                 function () {
                     const students = getStudents();
+                    const pkliSet  = getPKLIRegNoSet();
+
                     regs.forEach(reg => {
                         const st = students.find(s => s.regNo === reg);
                         if (st) {
-                            st.isPKLI = !isPKLIMode;
+                            st.isPKLI   = !isPKLIMode;
                             st.statusLI = isPKLIMode ? "Aktif" : "PKLI";
+                            if (isPKLIMode) {
+                                pkliSet.delete(reg);
+                            } else {
+                                pkliSet.add(reg);
+                            }
                         }
                     });
+
+                    savePKLIRegNoSet(pkliSet);
                     saveStudents(students, regs.length === 1 ? regs[0] : regs);
                     
                     const actionLabel = isPKLIMode ? "mengembalikan dari PKLI" : "memindahkan ke Senarai PKLI";
@@ -6611,8 +6616,13 @@ window.restoreFromPKLI = function(regNo) {
     const students = getStudents();
     const st = students.find(s => s.regNo === regNo);
     if (st) {
-        st.isPKLI = false;
+        st.isPKLI   = false;
         st.statusLI = "Aktif";
+
+        const pkliSet = getPKLIRegNoSet();
+        pkliSet.delete(regNo);
+        savePKLIRegNoSet(pkliSet);
+
         saveStudents(students, regNo);
         addLog("info", `Admin mengembalikan pelajar ${st.name} (${regNo}) dari Senarai PKLI ke senarai pelajar aktif.`);
         showToast(`Pelajar ${st.name} telah dikembalikan ke senarai pelajar aktif.`, "success");
