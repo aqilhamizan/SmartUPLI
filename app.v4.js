@@ -361,6 +361,8 @@ async function writeStudentsToFirestore(data) {
             copy.paName = s.penasihatAkademikName || "";
             copy.session = s.sesi || "";
             copy.sesi = s.sesi || "";
+            copy.isPKLI = Boolean(s.isPKLI);
+            copy.statusLI = s.statusLI || (s.isPKLI ? "PKLI" : "Aktif");
             return copy;
         });
         await callGoogleScript("writeStudents", { data: mappedData });
@@ -478,6 +480,18 @@ function normalizeStudentsCache() {
             s.sesi = fallbackSession;
         }
 
+        // Preserve PKLI status
+        if (s.isPKLI === undefined || s.isPKLI === null) {
+            if (s.statusLI === "PKLI" || String(s.isPKLI) === "true") {
+                s.isPKLI = true;
+                s.statusLI = "PKLI";
+            } else {
+                s.isPKLI = false;
+            }
+        } else {
+            s.isPKLI = Boolean(s.isPKLI);
+        }
+
         // Normalize department (jabatan)
         if (s.jabatan) {
             const j = String(s.jabatan).toUpperCase().trim();
@@ -579,7 +593,26 @@ async function callGoogleScript(action, dataObj = {}) {
 function applyRemoteData(data) {
     if (!data) return false;
 
-    if (data.students)      { dbCache.students      = data.students;      normalizeStudentsCache(); }
+    if (data.students) {
+        // Read existing local students to preserve local isPKLI flags across background syncs
+        let localStudents = [];
+        try { localStudents = JSON.parse(localStorage.getItem("upli_students") || "[]"); } catch(e) {}
+        const pkliRegNos = new Set(localStudents.filter(st => Boolean(st.isPKLI)).map(st => st.regNo));
+
+        data.students.forEach(s => {
+            if (pkliRegNos.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true") {
+                s.isPKLI = true;
+                s.statusLI = "PKLI";
+            } else if (s.isPKLI === undefined || s.isPKLI === null) {
+                s.isPKLI = false;
+            } else {
+                s.isPKLI = Boolean(s.isPKLI);
+            }
+        });
+
+        dbCache.students = data.students;
+        normalizeStudentsCache();
+    }
     if (data.lecturers)     { dbCache.lecturers     = data.lecturers; }
     if (data.admins)        { dbCache.admins        = data.admins; }
     if (data.rubriks)       { dbCache.rubriks       = data.rubriks; }
@@ -6484,16 +6517,29 @@ function setupBulkActionListeners() {
 
     if (btnViewPKLIList) {
         btnViewPKLIList.addEventListener("click", () => {
-            activeAdminStudentTabMode = "pkli";
-            if (subtabPKLI && subtabActive) {
-                subtabPKLI.classList.add("active");
-                subtabActive.classList.remove("active");
-                subtabPKLI.style.background = "#d97706";
-                subtabPKLI.style.color = "#ffffff";
-                subtabActive.style.background = "rgba(255,255,255,0.06)";
-                subtabActive.style.color = "var(--text-muted)";
+            if (activeAdminStudentTabMode === "pkli") {
+                activeAdminStudentTabMode = "active";
+                if (subtabActive && subtabPKLI) {
+                    subtabActive.classList.add("active");
+                    subtabPKLI.classList.remove("active");
+                    subtabActive.style.background = "var(--color-primary)";
+                    subtabActive.style.color = "#ffffff";
+                    subtabPKLI.style.background = "rgba(245,158,11,0.08)";
+                    subtabPKLI.style.color = "#d97706";
+                }
+            } else {
+                activeAdminStudentTabMode = "pkli";
+                if (subtabPKLI && subtabActive) {
+                    subtabPKLI.classList.add("active");
+                    subtabActive.classList.remove("active");
+                    subtabPKLI.style.background = "#d97706";
+                    subtabPKLI.style.color = "#ffffff";
+                    subtabActive.style.background = "rgba(255,255,255,0.06)";
+                    subtabActive.style.color = "var(--text-muted)";
+                }
             }
             renderAdminStudentsTable();
+            updatePKLICountBadge();
             const tableTitle = document.getElementById("admin-students-table-title");
             if (tableTitle) tableTitle.scrollIntoView({ behavior: "smooth", block: "start" });
         });
@@ -6581,10 +6627,27 @@ window.restoreFromPKLI = function(regNo) {
 function updatePKLICountBadge() {
     const students = getStudents();
     const pkliCount = students.filter(s => Boolean(s.isPKLI)).length;
+
     const badge = document.getElementById("pkli-count-badge");
     if (badge) badge.textContent = pkliCount;
+
     const tabBadge = document.getElementById("pkli-tab-count-badge");
     if (tabBadge) tabBadge.textContent = pkliCount;
+
+    const btnViewPKLIList = document.getElementById("btn-view-pkli-list");
+    if (btnViewPKLIList) {
+        if (activeAdminStudentTabMode === "pkli") {
+            btnViewPKLIList.innerHTML = `<i class="fa-solid fa-arrow-left" style="font-size:0.95rem;"></i> Kembali ke Pelajar Berdaftar`;
+            btnViewPKLIList.style.background = "linear-gradient(135deg, #4f46e5, #3730a3)";
+            btnViewPKLIList.style.boxShadow = "0 4px 12px rgba(79, 70, 229, 0.25)";
+            btnViewPKLIList.title = "Kembali ke senarai Pelajar Berdaftar (Aktif / Bukan PKLI)";
+        } else {
+            btnViewPKLIList.innerHTML = `<i class="fa-solid fa-user-clock" style="font-size:0.95rem;"></i> Senarai PKLI <span id="pkli-count-badge" class="badge" style="background:#ffffff; color:#d97706; margin-left:2px; padding:2px 7px; border-radius:10px; font-size:0.75rem;">${pkliCount}</span>`;
+            btnViewPKLIList.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+            btnViewPKLIList.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.25)";
+            btnViewPKLIList.title = "Lihat senarai pelajar Penangguhan Kursus LI (PKLI)";
+        }
+    }
 }
 window.updatePKLICountBadge = updatePKLICountBadge;
 
