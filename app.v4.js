@@ -460,8 +460,7 @@ async function writeStudentsToFirestore(data) {
 
 async function deleteStudentFromFirestore(regNo) {
     if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.trim() !== "") {
-        const students = getStudents().filter(s => s.regNo !== regNo);
-        await callGoogleScript("writeStudents", { data: students });
+        // Google Sheets write is handled cleanly in batch by saveStudents()
         return;
     }
     try { await db.collection("students").doc(sanitizeDocId(regNo)).delete(); }
@@ -4671,6 +4670,7 @@ window.deleteStudent = function (regNo) {
             const updated = students.filter(s => s.regNo !== regNo);
             deleteStudentFromFirestore(regNo);
             saveStudents(updated);
+            try { localStorage.setItem("upli_cache_ts", String(Date.now())); } catch(e) {}
             addLog("danger", `Admin memadam maklumat pelajar: ${regNo}`);
             showToast("Maklumat pelajar berjaya dipadamkan.", "info");
             renderAdminStudentsTable();
