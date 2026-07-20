@@ -4555,7 +4555,7 @@ function renderAdminStudentsTable() {
     const isPKLIMode = activeAdminStudentTabMode === "pkli";
 
     document.getElementById("admin-students-table-title").textContent = isPKLIMode
-        ? `Pelajar PKLI (Penangguhan LI): ${activeAdminStudentDept} (${activeSesi})`
+        ? `Pelajar PKLI (Penilaian Khas LI): ${activeAdminStudentDept} (${activeSesi})`
         : `Pelajar Berdaftar: ${activeAdminStudentDept} (${activeSesi})`;
 
     const students = getStudents();
@@ -6496,7 +6496,7 @@ function setupBulkActionListeners() {
             const isPKLIMode = activeAdminStudentTabMode === "pkli";
             const confirmMsg = isPKLIMode
                 ? `Adakah anda pasti mahu mengembalikan ${regs.length} pelajar PKLI yang dipilih ke senarai Pelajar Aktif?`
-                : `Adakah anda pasti mahu memindahkan ${regs.length} pelajar yang dipilih ke Senarai PKLI (Penangguhan Kursus LI)?`;
+                : `Adakah anda pasti mahu memindahkan ${regs.length} pelajar yang dipilih ke Senarai PKLI (Penilaian Khas LI)?`;
 
             showConfirm(
                 confirmMsg,
@@ -6736,7 +6736,7 @@ function updatePKLICountBadge() {
             btnViewPKLIList.innerHTML = `<i class="fa-solid fa-user-clock" style="font-size:0.95rem;"></i> Senarai PKLI (${activeDept}) <span id="pkli-count-badge" class="badge" style="background:#ffffff; color:#d97706; margin-left:2px; padding:2px 7px; border-radius:10px; font-size:0.75rem;">${deptPKLICount}</span>`;
             btnViewPKLIList.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
             btnViewPKLIList.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.25)";
-            btnViewPKLIList.title = `Lihat senarai pelajar Penangguhan Kursus LI (PKLI) bagi ${activeDept}`;
+            btnViewPKLIList.title = `Lihat senarai pelajar Penilaian Khas LI (PKLI) bagi ${activeDept}`;
         }
     }
 }
