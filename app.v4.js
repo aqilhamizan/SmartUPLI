@@ -6709,13 +6709,21 @@ window.restoreFromPKLI = function(regNo) {
 
 function updatePKLICountBadge() {
     const students = getStudents();
-    const pkliCount = students.filter(s => Boolean(s.isPKLI)).length;
+    const activeSesi = getActiveSession();
+    const activeDept = (activeAdminStudentDept || "JKA").toUpperCase().trim();
+
+    // Filter PKLI students strictly by active department AND active session
+    const deptPKLICount = students.filter(s =>
+        Boolean(s.isPKLI) &&
+        (s.jabatan || "").toUpperCase().trim() === activeDept &&
+        isStudentInSession(s, activeSesi)
+    ).length;
 
     const badge = document.getElementById("pkli-count-badge");
-    if (badge) badge.textContent = pkliCount;
+    if (badge) badge.textContent = deptPKLICount;
 
     const tabBadge = document.getElementById("pkli-tab-count-badge");
-    if (tabBadge) tabBadge.textContent = pkliCount;
+    if (tabBadge) tabBadge.textContent = deptPKLICount;
 
     const btnViewPKLIList = document.getElementById("btn-view-pkli-list");
     if (btnViewPKLIList) {
@@ -6725,10 +6733,10 @@ function updatePKLICountBadge() {
             btnViewPKLIList.style.boxShadow = "0 4px 12px rgba(79, 70, 229, 0.25)";
             btnViewPKLIList.title = "Kembali ke senarai Pelajar Berdaftar (Aktif / Bukan PKLI)";
         } else {
-            btnViewPKLIList.innerHTML = `<i class="fa-solid fa-user-clock" style="font-size:0.95rem;"></i> Senarai PKLI <span id="pkli-count-badge" class="badge" style="background:#ffffff; color:#d97706; margin-left:2px; padding:2px 7px; border-radius:10px; font-size:0.75rem;">${pkliCount}</span>`;
+            btnViewPKLIList.innerHTML = `<i class="fa-solid fa-user-clock" style="font-size:0.95rem;"></i> Senarai PKLI (${activeDept}) <span id="pkli-count-badge" class="badge" style="background:#ffffff; color:#d97706; margin-left:2px; padding:2px 7px; border-radius:10px; font-size:0.75rem;">${deptPKLICount}</span>`;
             btnViewPKLIList.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
             btnViewPKLIList.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.25)";
-            btnViewPKLIList.title = "Lihat senarai pelajar Penangguhan Kursus LI (PKLI)";
+            btnViewPKLIList.title = `Lihat senarai pelajar Penangguhan Kursus LI (PKLI) bagi ${activeDept}`;
         }
     }
 }
