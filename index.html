@@ -14,7 +14,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=2">
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
@@ -45,8 +45,18 @@
         </div>
     </div>
 
+    <!-- Welcome Screen Overlay -->
+    <div id="welcome-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-main); z-index:100000; align-items:center; justify-content:center; flex-direction:column; transition: opacity 0.5s ease, visibility 0.5s ease;">
+        <img src="smartupli_logo.png" alt="Logo My InternMS" style="width: 120px; height: 120px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 12px; border: 3px solid var(--color-primary); box-shadow: 0 0 30px rgba(20,184,166,0.4); margin-bottom: 24px;">
+        <h2 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; text-align:center;" class="app-title-text">Selamat Datang ke My InternMS</h2>
+        <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1rem; text-align:center;" class="app-subtitle-text">Sistem Pengurusan Latihan Industri POLIKK</p>
+        <button id="btn-start-experience" class="btn btn-primary" style="padding: 16px 36px; font-size: 1.15rem; font-weight:700; border-radius: 30px; box-shadow: 0 10px 20px rgba(20,184,166,0.3); transition: transform 0.2s; display:flex; align-items:center; gap:12px;">
+            <i class="fa-solid fa-play"></i> Jom !!!
+        </button>
+    </div>
+
     <!-- MAIN APP WRAPPER -->
-    <div id="app">
+    <div id="app" style="visibility: hidden; opacity: 0; transition: opacity 0.3s ease;">
 
         <!-- ================= PUBLIC PORTAL VIEW ================= -->
         <section id="portal-view" class="view-section active"
@@ -57,11 +67,11 @@
                 <div>
                     <div class="portal-sidebar-header"
                         style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); text-align: center; width: 100%;">
-                        <img src="smartupli_logo.png" alt="Logo My InternMS"
+                        <img src="smartupli_logo.png" alt="Logo My InternMS" class="logo-clickable" onclick="openLogoPreviewModal()"
                             style="width: 95px; height: 95px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 8px; border: 2px solid var(--color-primary); box-shadow: 0 0 12px rgba(20,184,166,0.3);">
                         <div style="text-align: center;">
                             <h3
-                                style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 0; line-height: 1;">
+                                style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 0; line-height: 1;" class="app-title-text">
                                 My Intern<span>MS</span></h3>
                             <p
                                 style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; margin-bottom: 0;">
@@ -72,20 +82,13 @@
                     <nav class="portal-nav" style="display: flex; flex-direction: column; gap: 8px;">
                         <!-- Futuristic Split Digital Clock Card (Design C) in Sidebar -->
                         <div class="portal-clock-split-card" style="margin: 0 0 16px 0 !important; width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; padding: 10px 14px !important;">
-                            <div class="portal-clock-time-large" style="font-size: 1.4rem !important;" id="portal-time-display">00:00:00</div>
-                            <div class="portal-clock-date-row" style="gap: 4px !important;">
-                                <span class="portal-clock-day-badge" style="font-size: 0.58rem !important; padding: 1px 6px !important;" id="portal-day-display">Isnin</span>
-                                <span class="portal-clock-date-text" style="font-size: 0.65rem !important;" id="portal-date-display">01 Januari 2026</span>
-                            </div>
+                            <div class="portal-clock-time-large" style="font-size: 1.35rem !important; color: #ffffff !important; font-weight: 800 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" id="portal-time-display">00:00:00</div>
+                            <div class="portal-clock-date-small" style="font-size: 0.7rem !important; color: #38bdf8 !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px;" id="portal-date-display">Isnin, 01 Jan 2024</div>
                         </div>
 
                         <button class="portal-nav-item active" id="btn-portal-home"
                             onclick="switchPortalTab('dashboard')">
                             <i class="fa-solid fa-chart-pie"></i> Menu Utama
-                        </button>
-                        <button class="portal-nav-item" id="btn-portal-announcements"
-                            onclick="switchPortalTab('announcements')">
-                            <i class="fa-solid fa-calendar-days"></i> Makluman Penting
                         </button>
                         <button class="portal-nav-item" id="btn-portal-login-tab" onclick="switchPortalTab('login')">
                             <i class="fa-solid fa-right-to-bracket"></i> Daftar Masuk
@@ -106,7 +109,7 @@
 
                 <div class="portal-sidebar-footer"
                     style="font-size: 0.75rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                    <p style="margin-bottom: 4px;">Hakcipta © 2026 UPLI, PKK</p>
+                    <p style="margin-bottom: 4px;" class="app-copyright-text">Hakcipta © 2026 UPLI, PKK</p>
                     <p style="font-size: 0.65rem;">Versi 2.2 (Premium)</p>
                 </div>
             </aside>
@@ -122,73 +125,36 @@
                             <div style="width: 1px; height: 65px; background: var(--border-color);"></div>
                             <img src="smartupli_logo.png" alt="Logo My InternMS" class="logo-smartupli">
                         </div>
-                        <h1>Sistem Pengurusan Latihan Industri</h1>
-                        <h2>Politeknik Kota Kinabalu</h2>
-                        <p>Paparan status penghantaran dan statistik dokumen UPLI mengikut Jabatan dan Program Pengajian
-                        </p>
-
-                        <!-- Portal Academic Session Selector -->
-                        <div style="margin-top: 20px; display: inline-flex; align-items: center; gap: 8px; background: #0f172a; border: 2px solid #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); padding: 6px 14px; border-radius: 20px;">
-                            <i class="fa-solid fa-calendar-days text-accent" style="font-size: 1.1rem; color: #3b82f6;"></i>
-                            <span style="font-weight: 600; font-size: 0.85rem; color: #ffffff;">Sesi Akademik:</span>
-                            <select id="portal-session-select" style="font-weight: 700; color: #1e3a8a !important; border: 2px solid #3b82f6 !important; background-color: #eff6ff !important; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; outline: none;">
-                                <!-- Loaded dynamically by JS -->
-                            </select>
-                        </div>
+                        <h1 class="app-subtitle-text">Sistem Pengurusan Latihan Industri</h1>
+                        <h2 class="app-subtitle-2-text">Politeknik Kota Kinabalu</h2>
+                        <p>Sila rujuk kalendar di bawah untuk tarikh-tarikh penting dan makluman terkini mengenai Latihan Industri.</p>
                     </div>
 
-                    <!-- Summary Stats Rows -->
-                    <div class="stats-overview-grid mb-4" style="margin-bottom: 28px;">
-                        <div class="stat-card">
-                            <div class="stat-icon bg-blue"><i class="fa-solid fa-users"></i></div>
-                            <div class="stat-data">
-                                <h2 id="portal-total-students">0</h2>
-                                <p>Jumlah Pelajar Berdaftar</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"
-                                style="background: rgba(16,185,129,0.12); color: var(--color-success);"><i
-                                    class="fa-solid fa-file-circle-check"></i></div>
-                            <div class="stat-data">
-                                <h2 id="portal-total-complete" style="color: var(--color-success);">0</h2>
-                                <p>Jumlah Lengkap Menghantar Dokumen</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"
-                                style="background: rgba(99,102,241,0.12); color: var(--color-primary);"><i
-                                    class="fa-solid fa-percent"></i></div>
-                            <div class="stat-data">
-                                <h2 id="portal-completion-rate" style="color: var(--color-primary);">0%</h2>
-                                <p>Peratusan Penghantaran</p>
-                            </div>
-                        </div>
+                    <!-- Session Select for Public Portal -->
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 24px 0 12px 0;">
+                        <span style="font-size:0.85rem; font-weight:700; color:var(--text-secondary);"><i class="fa-solid fa-calendar-days text-accent" style="margin-right:6px;"></i>Pilih Sesi Akademik:</span>
+                        <select id="portal-session-select" style="font-weight:700; color:#1e3a8a !important; border:2px solid #3b82f6 !important; background-color:#eff6ff !important; padding:6px 12px; border-radius:6px; font-size:0.9rem; cursor:pointer; box-shadow:0 2px 4px rgba(59,130,246,0.15); outline:none;">
+                            <!-- Loaded dynamically -->
+                        </select>
                     </div>
 
-                    <!-- Departments Grid -->
-                    <h3
-                        style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-building-user text-accent"></i> Ringkasan Statistik Mengikut Jabatan
-                    </h3>
-
-                    <div id="portal-departments-grid"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; margin-bottom: 40px;">
-                        <!-- Dynamically loaded department cards -->
-                    </div>
-                </div>
-
-                <!-- Tab 1.5: Makluman Penting (Calendar & Announcements) -->
-                <div id="portal-tab-announcements" class="portal-tab-pane" style="display: none;">
-                    <div class="portal-header-box">
-                        <div class="portal-header-logos-frame">
-                            <img src="polikk_logo.png" alt="Logo Politeknik KK" class="logo-polikk">
-                            <div style="width: 1px; height: 65px; background: var(--border-color);"></div>
-                            <img src="smartupli_logo.png" alt="Logo My InternMS" class="logo-smartupli">
-                        </div>
-                        <h1>Makluman & Takwim Penting</h1>
-                        <h2>Unit Perhubungan & Latihan Industri</h2>
-                        <p>Rujuk kalendar di bawah untuk tarikh-tarikh penting dan makluman terkini mengenai Latihan Industri.</p>
+                    <!-- Department Tabs -->
+                    <div id="portal-dept-tabs" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin: 12px 0 24px 0;">
+                        <button class="portal-dept-tab-btn" data-dept="JKA" onclick="openDeptStatsModal('JKA')" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:30px;border:1.5px solid #10b981;background:rgba(16,185,129,0.1);color:#10b981;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+                            <i class="fa-solid fa-mountain-city"></i> JKA
+                        </button>
+                        <button class="portal-dept-tab-btn" data-dept="JKE" onclick="openDeptStatsModal('JKE')" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:30px;border:1.5px solid #f43f5e;background:rgba(244,63,94,0.1);color:#f43f5e;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+                            <i class="fa-solid fa-bolt"></i> JKE
+                        </button>
+                        <button class="portal-dept-tab-btn" data-dept="JKM" onclick="openDeptStatsModal('JKM')" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:30px;border:1.5px solid #eab308;background:rgba(234,179,8,0.1);color:#eab308;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+                            <i class="fa-solid fa-gears"></i> JKM
+                        </button>
+                        <button class="portal-dept-tab-btn" data-dept="JP" onclick="openDeptStatsModal('JP')" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:30px;border:1.5px solid #3b82f6;background:rgba(59,130,246,0.1);color:#3b82f6;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+                            <i class="fa-solid fa-chart-line"></i> JP
+                        </button>
+                        <button class="portal-dept-tab-btn" data-dept="JPH" onclick="openDeptStatsModal('JPH')" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:30px;border:1.5px solid #8b5cf6;background:rgba(139,92,246,0.1);color:#8b5cf6;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+                            <i class="fa-solid fa-utensils"></i> JPH
+                        </button>
                     </div>
 
                     <!-- Announcements & Calendar Layout Grid -->
@@ -235,6 +201,20 @@
                     </div>
                 </div>
 
+                <!-- Department Stats Modal Popup -->
+                <div id="dept-stats-modal-overlay" onclick="closeDeptStatsModal()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9000;backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+                    <div id="dept-stats-modal-card" onclick="event.stopPropagation()" style="max-width:480px;width:92%;position:relative;animation:fadeInUp 0.3s ease;">
+                        <button onclick="closeDeptStatsModal()" style="position:absolute;top:12px;right:12px;z-index:10;background:rgba(0,0,0,0.2);border:none;color:#ffffff;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <div id="dept-stats-modal-content">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+
+
                 <!-- Tab 2: Login Forms -->
                 <div id="portal-tab-login" class="portal-tab-pane"
                     style="display: none; align-items: center; justify-content: center; min-height: calc(100vh - 80px);">
@@ -276,7 +256,7 @@
                                         Pelajar</label>
                                     <input type="text" id="student-reg" placeholder="Contoh: 07DKA23F1234" required
                                         autocomplete="off">
-                                    <span class="input-desc">Gunakan nombor pendaftaran masing-masing/span>
+                                    <span class="input-desc">Gunakan nombor pendaftaran masing-masing (tanpa kata laluan).</span>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">
                                     Log Masuk <i class="fa-solid fa-right-to-bracket"></i>
@@ -290,13 +270,21 @@
                                         Pensyarah</label>
                                     <input type="email" id="lecturer-email" placeholder="Contoh: nama@polikk.edu.my"
                                         required autocomplete="email">
-                                    <span class="input-desc">Log masuk terus menggunakan emel rasmi @polikk.edu.my
-                                        (Tanpa Kata Laluan).</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lecturer-password"><i class="fa-solid fa-lock"></i> Kata Laluan</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="lecturer-password" placeholder="Masukkan kata laluan"
+                                            required autocomplete="current-password">
+                                        <button type="button" class="toggle-password"><i
+                                                class="fa-solid fa-eye"></i></button>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">
                                     Log Masuk <i class="fa-solid fa-right-to-bracket"></i>
                                 </button>
                             </form>
+
 
                             <!-- Admin Login Form -->
                             <form id="admin-login-form" class="login-form">
@@ -321,9 +309,7 @@
                             </form>
                         </div>
 
-                        <div class="login-footer">
-                            <p>Pegawai UPLI baharu? <a href="#" id="link-to-register">Daftar Admin Baru</a></p>
-                        </div>
+
                     </div>
                 </div>
 
@@ -383,9 +369,16 @@
                     style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
                     <div class="sidebar-logo-container"
                         style="display: block; width: 100%; margin: 0 auto; text-align: center;">
-                        <img src="smartupli_logo.png" alt="Logo My InternMS"
+                        <img src="smartupli_logo.png" alt="Logo My InternMS" class="logo-clickable" onclick="openLogoPreviewModal()"
                             style="height: 95px; width: 95px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 8px; border: 2px solid var(--color-primary); box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(99,102,241,0.15); margin: 0 auto; display: block;">
                     </div>
+
+                    <!-- Dashboard Clock UI -->
+                    <div class="portal-clock-split-card" style="margin: 15px 0 5px 0 !important; width: 100% !important; box-sizing: border-box !important; padding: 10px !important;">
+                        <div class="portal-clock-time-large" style="font-size: 1.35rem !important; color: #ffffff !important; font-weight: 800 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" id="dashboard-time-display">00:00:00</div>
+                        <div class="portal-clock-date-small" style="font-size: 0.7rem !important; color: #38bdf8 !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px;" id="dashboard-date-display">Isnin, 01 Jan 2024</div>
+                    </div>
+
                     <span class="role-badge" id="user-role-badge"
                         style="display: block; margin: 8px auto 0 auto; text-align: center; width: max-content; align-self: center;">Pelajar</span>
                 </div>
@@ -409,7 +402,7 @@
                             <i class="fa-solid fa-file-arrow-up"></i> Penghantaran Dokumen
                         </a>
                         <a href="#" class="nav-item" data-tab="rubrik-viewer">
-                            <i class="fa-solid fa-book-open"></i> Rubrik Pemarkahan
+                            <i class="fa-solid fa-book-open"></i> Dokumen Rujukan
                         </a>
                     </div>
 
@@ -421,8 +414,11 @@
                         <a href="#" class="nav-item" data-tab="lecturer-students">
                             <i class="fa-solid fa-users"></i> Pelajar Seliaan Saya
                         </a>
+                        <a href="#" class="nav-item" data-tab="lecturer-pa">
+                            <i class="fa-solid fa-user-tie"></i> Penasihat Akademik (PA)
+                        </a>
                         <a href="#" class="nav-item" data-tab="rubrik-viewer">
-                            <i class="fa-solid fa-book-open"></i> Rubrik Pemarkahan
+                            <i class="fa-solid fa-book-open"></i> Dokumen Rujukan
                         </a>
                     </div>
 
@@ -434,8 +430,14 @@
                         <a href="#" class="nav-item" data-tab="admin-students">
                             <i class="fa-solid fa-user-graduate"></i> Pengurusan Pelajar
                         </a>
+                        <a href="#" class="nav-item" data-tab="admin-lecturer-list">
+                            <i class="fa-solid fa-address-book"></i> Direktori Pensyarah
+                        </a>
                         <a href="#" class="nav-item" data-tab="admin-lecturers">
-                            <i class="fa-solid fa-chalkboard-user"></i> Pengurusan Pensyarah
+                            <i class="fa-solid fa-chalkboard-user"></i> Agihan Pensyarah
+                        </a>
+                        <a href="#" class="nav-item" data-tab="admin-pa">
+                            <i class="fa-solid fa-users-gear"></i> Pengurusan PA
                         </a>
                         <a href="#" class="nav-item" data-tab="admin-announcements">
                             <i class="fa-solid fa-bullhorn"></i> Pengurusan Makluman
@@ -444,7 +446,10 @@
                             <i class="fa-solid fa-user-shield"></i> Pengurusan Admin
                         </a>
                         <a href="#" class="nav-item" data-tab="admin-rubrik">
-                            <i class="fa-solid fa-book-bookmark"></i> Rubrik Pemarkahan
+                            <i class="fa-solid fa-book-bookmark"></i> Dokumen Rujukan
+                        </a>
+                        <a href="#" class="nav-item" data-tab="admin-developer" id="nav-item-admin-developer" style="display: none;">
+                            <i class="fa-solid fa-code"></i> Panel Pembangun
                         </a>
                     </div>
                     <!-- Common Actions (Logout & Dark Mode) -->
@@ -457,8 +462,8 @@
                         </button>
                     </div>
                 </nav>
-                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center;">
-                    Hakcipta &copy; 2026 UPLI, PKK
+                <div class="sidebar-copyright-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-muted); text-align: center;">
+                    <span class="app-copyright-text">Hakcipta &copy; 2026 UPLI, PKK</span>
                 </div>
             </aside>
 
@@ -467,9 +472,12 @@
 
                 <!-- Top Header -->
                 <header class="content-header">
-                    <div class="header-left">
+                    <div class="header-left" style="display: flex; align-items: center; gap: 12px;">
                         <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
-                        <h2 id="current-tab-title">Dashboard</h2>
+                        <h2 id="current-tab-title" style="margin: 0;">Dashboard</h2>
+                        <button id="btn-refresh-global-data" class="btn btn-primary btn-sm" onclick="refreshGlobalData()" style="display: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; align-items: center; gap: 6px;" title="Kemaskini Data Terkini">
+                            <i class="fa-solid fa-rotate-right"></i> Kemaskini
+                        </button>
                     </div>
                     <div class="header-right">
                         <!-- Global Academic Session Select (Only visible for Lecturer & Admin) -->
@@ -479,13 +487,29 @@
                                 <!-- Loaded dynamically by JS -->
                             </select>
                         </div>
-                        <div class="system-time">
+                        <div class="system-time" style="display: none;">
                             <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>
                             <span id="current-date-display" style="margin-right: 8px;">00/00/0000</span>
                             <span style="opacity: 0.3; margin-right: 8px;">|</span>
                             <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>
                             <span id="current-time-display">00:00:00</span>
                         </div>
+                        <!-- Notification Bell (Only for Admin) -->
+                        <div class="notification-wrapper" id="admin-notification-container" style="display: none; position: relative; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px;" onclick="toggleAdminNotificationDropdown(event)">
+                            <i class="fa-solid fa-bell" style="font-size: 1.25rem; color: var(--text-secondary); transition: color 0.2s;"></i>
+                            <span class="notification-badge" id="admin-notification-count" style="display: none; position: absolute; top: -5px; right: -5px; background: var(--color-danger); color: white; font-size: 0.65rem; font-weight: 800; border-radius: 50%; width: 16px; height: 16px; align-items: center; justify-content: center; border: 1.5px solid var(--bg-card);">0</span>
+                            
+                            <!-- Dropdown list -->
+                            <div class="notification-dropdown" id="admin-notification-dropdown" style="display: none; position: absolute; top: 45px; right: 0; width: 320px; box-shadow: var(--shadow-lg); z-index: 1000; max-height: 400px; overflow-y: auto; padding: 10px 0; text-align: left;">
+                                <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.9rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Notifikasi Dokumen</span>
+                                </div>
+                                <div id="admin-notification-list" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">Tiada notifikasi baharu.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="profile-summary">
                             <span class="user-role-label" id="header-user-role">Pelajar</span>
                             <div class="avatar mini-avatar" id="header-avatar">P</div>
@@ -502,7 +526,7 @@
                         <div class="welcome-banner">
                             <div class="welcome-text">
                                 <h1>Selamat Datang Kembali, <span id="student-welcome-name">Pelajar</span>! 👋</h1>
-                                <p>Sila pastikan semua dokumen latihan industri anda dimuat naik dan diluluskan oleh
+                                <p class="app-student-welcome-desc">Sila pastikan semua dokumen latihan industri anda dimuat naik dan diluluskan oleh
                                     Pegawai UPLI</p>
                             </div>
                             <div class="welcome-icon">
@@ -633,7 +657,7 @@
                         <div class="section-header-box">
                             <div>
                                 <h3>Penghantaran Dokumen UPLI</h3>
-                                <p>Sila muat naik fail dokumen mengikut format yang ditetapkan. Sila klik "Papar" bagi
+                                <p class="app-student-docs-guideline">Sila muat naik fail dokumen mengikut format yang ditetapkan. Sila klik "Papar" bagi
                                     dokumen yang telah diupload.</p>
                             </div>
                         </div>
@@ -703,7 +727,9 @@
                                         <tr>
                                             <th>Nama Pelajar</th>
                                             <th>No. Pendaftaran</th>
+                                            <th>Penasihat Akademik</th>
                                             <th>Tempat Latihan Industri (LI)</th>
+                                            <th>Bandar/Kawasan</th>
                                             <th>Pensyarah Pemantau</th>
                                             <th>Pensyarah Penilai</th>
                                             <th>Status Dokumen</th>
@@ -737,8 +763,41 @@
                         </div>
                     </section>
 
+                    <!-- Lecturer PA (Penasihat Akademik) Tab -->
+                    <section id="lecturer-pa" class="tab-content">
+                        <div class="section-header-box">
+                            <div>
+                                <h3>Pelajar Di Bawah Jagaan PA Anda</h3>
+                                <p>Senarai pelajar yang berada di bawah jagaan dan bimbingan anda sebagai Penasihat Akademik (PA).</p>
+                            </div>
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="lecturer-pa-student-search"
+                                    placeholder="Cari nama atau no. pendaftaran...">
+                            </div>
+                        </div>
 
-                    <!-- ==================== ADMIN TABS ==================== -->
+                        <div class="card mt-4">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Pelajar</th>
+                                            <th style="text-align: center;">No. Pendaftaran</th>
+                                            <th>Tempat Latihan Industri (LI)</th>
+                                            <th>Bandar/Kawasan</th>
+                                            <th style="text-align: center;">Status Dokumen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lecturer-pa-students-table-body">
+                                        <!-- JS will dynamically populate -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
                     <!-- Admin Dashboard Stats -->
                     <section id="admin-dashboard" class="tab-content">
                         <div class="stats-overview-grid mb-4">
@@ -777,46 +836,17 @@
                             </div>
                         </div>
 
-                        <!-- Department Selection for Admin Dashboard Students View -->
-                        <div class="section-header-box">
-                            <div>
-                                <h3>Status Penghantaran Dokumen Mengikut Jabatan</h3>
-                                <p>Sila pilih jabatan untuk melihat status dokumen serta senarai pelajar.</p>
-                            </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; margin-top: 40px; flex-wrap: wrap; gap: 12px; width: 100%;">
+                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-primary);">
+                                <i class="fa-solid fa-building-user text-accent" style="color: var(--color-accent);"></i> Statistik Mengikut Jabatan
+                            </h3>
                         </div>
 
-                        <div class="dept-tabs" id="admin-dashboard-dept-tabs">
-                            <button class="dept-tab-btn active" data-dept="JKA">JKA</button>
-                            <button class="dept-tab-btn" data-dept="JKE">JKE</button>
-                            <button class="dept-tab-btn" data-dept="JKM">JKM</button>
-                            <button class="dept-tab-btn" data-dept="JP">JP</button>
-                            <button class="dept-tab-btn" data-dept="JPH">JPH</button>
+                        <div id="admin-departments-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; margin-bottom: 40px; width: 100%;">
+                            <!-- Dynamically loaded department cards -->
                         </div>
 
-                        <div class="mt-4">
-                            <!-- Full width: List of students in selected department -->
-                            <div class="card">
-                                <div class="card-header-box">
-                                    <h3 id="admin-dept-title-display">Senarai Pelajar Jabatan: JKA</h3>
-                                    <span class="badge badge-success" id="admin-dept-count-badge">0 Pelajar</span>
-                                </div>
-                                <div class="table-responsive" style="max-height: 440px; overflow-y: auto;">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Pelajar</th>
-                                                <th>No. Pendaftaran</th>
-                                                <th>LI</th>
-                                                <th>Kemajuan</th>
-                                                <th>Tindakan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-dashboard-dept-students-list">
-                                            <!-- Dynamically populated -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
                     </section>
 
@@ -866,38 +896,67 @@
                                     <h5 style="font-size:0.8rem; font-weight:700; margin-bottom:8px;"><i
                                             class="fa-solid fa-circle-info"></i> Format CSV yang Diterima:</h5>
                                     <code
-                                        style="font-size:0.65rem; display:block; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; line-height:1.4; overflow-x:auto;">
-                                        Nama,No Pendaftaran,Tempat LI,Pensyarah Pemantau,Pensyarah Penilai,Jabatan,Emel,Sesi<br>
-                                        Ahmad Rafiqi,13DKA23F2026,Petronas,faridah@polikk.edu.my,rizwan@polikk.edu.my,JKA,rafiqi@student.com,Sesi 1:2026/2027
+                                        style="font-size:0.65rem; display:block; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; line-height:1.4; overflow-x:hidden; word-wrap:break-word; white-space:pre-wrap; max-width:100%;">
+                                        Nama,No Pendaftaran,Tempat LI,Bandar/Kawasan,Pensyarah Pemantau,Pensyarah Penilai,Penasihat Akademik,Jabatan,Emel,Sesi<br>
+                                        Ahmad Rafiqi,13DKA23F2026,Petronas,Kuala Lumpur,faridah@polikk.edu.my,rizwan@polikk.edu.my,kamal@polikk.edu.my,JKA,rafiqi@student.com,Sesi 1:2026/2027
                                     </code>
                                 </div>
                             </div>
 
-                            <!-- Add Sesi Form -->
-                            <div class="card">
-                                <div class="card-header-box">
-                                    <h3>Tambah Sesi Akademik</h3>
-                                    <i class="fa-solid fa-calendar-plus text-accent" style="font-size: 1.3rem;"></i>
-                                </div>
-                                <form id="admin-add-session-form" class="dashboard-form">
-                                    <div class="form-group">
-                                        <label for="admin-new-session-name">Nama Sesi Akademik Baharu</label>
-                                        <input type="text" id="admin-new-session-name"
-                                            placeholder="Contoh: Sesi 2:2026/2027" required>
-                                        <span class="input-desc">Format: Sesi [1/2]:[Tahun/Tahun]</span>
+                            <!-- Grouping the Session Cards to balance with Import Card -->
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <!-- Add Sesi Form -->
+                                <div class="card" style="height: fit-content;">
+                                    <div class="card-header-box">
+                                        <h3>Tambah Sesi Akademik</h3>
+                                        <i class="fa-solid fa-calendar-plus text-accent" style="font-size: 1.3rem;"></i>
                                     </div>
-                                    <button type="submit" class="btn btn-accent btn-block">Daftar Sesi <i
-                                            class="fa-solid fa-plus"></i></button>
-                                </form>
+                                    <form id="admin-add-session-form" class="dashboard-form">
+                                        <div class="form-group">
+                                            <label for="admin-new-session-name">Nama Sesi Akademik Baharu</label>
+                                            <input type="text" id="admin-new-session-name"
+                                                placeholder="Contoh: Sesi 2:2026/2027" required>
+                                            <span class="input-desc">Format: Sesi [1/2]:[Tahun/Tahun]</span>
+                                        </div>
+                                        <button type="submit" class="btn btn-accent btn-block">Daftar Sesi <i
+                                                class="fa-solid fa-plus"></i></button>
+                                    </form>
+                                </div>
+
+                                <!-- Delete Sesi Form -->
+                                <div class="card" style="height: fit-content;">
+                                    <div class="card-header-box">
+                                        <h3 style="color: var(--color-danger);">Padam Sesi Akademik</h3>
+                                        <i class="fa-solid fa-calendar-minus" style="font-size: 1.3rem; color: var(--color-danger);"></i>
+                                    </div>
+                                    <form id="admin-delete-session-form" class="dashboard-form">
+                                        <div class="form-group">
+                                            <label for="admin-delete-session-select">Pilih Sesi Untuk Dipadam</label>
+                                            <select id="admin-delete-session-select" class="session-select" required style="width: 100%;">
+                                                <!-- Loaded dynamically -->
+                                            </select>
+                                            <span class="input-desc" style="color: var(--color-danger);">Amaran: Pastikan data pelajar dalam sesi ini telah dibersihkan dahulu. Sesi aktif tidak boleh dipadam.</span>
+                                        </div>
+                                        <button type="submit" class="btn btn-secondary btn-block" style="background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15); color: var(--color-danger);">
+                                            Padam Sesi <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Bulk Action Bar -->
                         <div class="bulk-action-bar card mt-4"
                             style="padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 0px;">
-                            <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                                 <span id="bulk-select-count" class="text-muted"
                                     style="font-size:0.85rem; font-weight:600;">0 pelajar dipilih</span>
+                                <!-- Bulk Approve Borang Pendaftaran LI -->
+                                <button class="btn btn-sm" id="btn-bulk-approve-bp" disabled
+                                    title="Sahkan Borang Pendaftaran LI (BP) secara pukal untuk pelajar yang dipilih"
+                                    style="padding: 6px 14px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: var(--color-success); border-radius: 8px; font-size:0.82rem; font-weight:600; display:flex; align-items:center; gap:7px; transition: all 0.2s; cursor:not-allowed; opacity:0.5;">
+                                    <i class="fa-solid fa-clipboard-check"></i> Sahkan BP Pukal
+                                </button>
                                 <button class="btn btn-secondary btn-sm" id="btn-bulk-delete" disabled
                                     style="padding: 6px 12px; background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15); color: var(--color-danger);">
                                     <i class="fa-solid fa-trash-can"></i> Padam Terpilih
@@ -905,13 +964,82 @@
                             </div>
                         </div>
 
+                        <!-- Bulk Approve BP Modal -->
+                        <div id="bulk-approve-bp-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+                            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:20px; padding:32px 36px; max-width:520px; width:92%; box-shadow:0 30px 80px rgba(0,0,0,0.6); position:relative;">
+                                <!-- Header -->
+                                <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                                    <div style="width:48px;height:48px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fa-solid fa-clipboard-check" style="font-size:1.4rem;color:var(--color-success);"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--text-primary);margin:0;">Pengesahan Pukal: Borang Pendaftaran LI</h3>
+                                        <p id="bulk-bp-modal-subtitle" style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 0;">Mengesahkan BP bagi pelajar terpilih</p>
+                                    </div>
+                                </div>
+
+                                <!-- Summary chips -->
+                                <div id="bulk-bp-student-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;max-height:130px;overflow-y:auto;padding:2px;"></div>
+
+                                <!-- Status options -->
+                                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+                                    <label style="font-size:0.85rem;font-weight:700;color:var(--text-secondary);">Tindakan Pengesahan:</label>
+                                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border-radius:10px;border:1.5px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.06);flex:1;min-width:120px;">
+                                            <input type="radio" name="bulk-bp-action" value="Diterima" checked style="accent-color:var(--color-success);">
+                                            <span style="font-size:0.85rem;font-weight:600;color:var(--color-success);"><i class="fa-solid fa-circle-check"></i> Diterima</span>
+                                        </label>
+                                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border-radius:10px;border:1.5px solid rgba(244,63,94,0.3);background:rgba(244,63,94,0.06);flex:1;min-width:120px;">
+                                            <input type="radio" name="bulk-bp-action" value="Ditolak" style="accent-color:var(--color-danger);">
+                                            <span style="font-size:0.85rem;font-weight:600;color:var(--color-danger);"><i class="fa-solid fa-circle-xmark"></i> Ditolak</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Optional feedback -->
+                                <div style="margin-bottom:22px;">
+                                    <label for="bulk-bp-feedback" style="font-size:0.85rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">Ulasan (pilihan):</label>
+                                    <textarea id="bulk-bp-feedback" rows="2" placeholder="Contoh: Borang telah diterima pejabat UPLI pada..."
+                                        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:10px;padding:10px 14px;color:var(--text-primary);font-family:var(--font-primary);font-size:0.85rem;resize:vertical;outline:none;transition:border-color 0.2s;"
+                                        onfocus="this.style.borderColor='var(--color-success)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+                                </div>
+
+                                <!-- Progress bar (shown during processing) -->
+                                <div id="bulk-bp-progress-wrap" style="display:none;margin-bottom:16px;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                        <span style="font-size:0.78rem;color:var(--text-muted);font-weight:600;">Memproses...</span>
+                                        <span id="bulk-bp-progress-text" style="font-size:0.78rem;color:var(--color-success);font-weight:700;">0%</span>
+                                    </div>
+                                    <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden;">
+                                        <div id="bulk-bp-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:20px;transition:width 0.3s ease;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                                    <button id="btn-bulk-bp-cancel" class="btn btn-secondary" style="min-width:90px;">Batal</button>
+                                    <button id="btn-bulk-bp-confirm" class="btn" style="min-width:140px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;font-weight:700;border-radius:10px;padding:10px 20px;display:flex;align-items:center;gap:8px;justify-content:center;">
+                                        <i class="fa-solid fa-clipboard-check"></i> Sahkan Sekarang
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
                         <div class="card mt-4">
-                            <div class="card-header-box">
-                                <h3 id="admin-students-table-title">Pelajar Berdaftar: JKA</h3>
-                                <div class="search-box">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                    <input type="text" id="admin-student-search-input"
-                                        placeholder="Cari nama atau no. pendaftaran...">
+                            <div class="card-header-box" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+                                <h3 id="admin-students-table-title" style="margin:0;">Pelajar Berdaftar: JKA</h3>
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                    <button class="btn btn-sm" id="btn-header-bulk-approve-bp"
+                                        title="Sahkan Borang Pendaftaran LI (BP) secara pukal untuk pelajar terpilih"
+                                        style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; padding: 7px 15px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; display: flex; align-items: center; gap: 7px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); transition: all 0.2s;">
+                                        <i class="fa-solid fa-clipboard-check" style="font-size: 0.95rem;"></i> Sahkan BP Pukal
+                                    </button>
+                                    <div class="search-box">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="admin-student-search-input"
+                                            placeholder="Cari nama atau no. pendaftaran...">
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -922,7 +1050,9 @@
                                                     id="admin-student-select-all"></th>
                                             <th>Nama Pelajar</th>
                                             <th>No. Pendaftaran</th>
+                                            <th>Penasihat Akademik</th>
                                             <th>Tempat Latihan Industri (LI)</th>
+                                            <th>Bandar/Kawasan</th>
                                             <th>Kemajuan Semakan</th>
                                             <th>Tindakan</th>
                                         </tr>
@@ -935,13 +1065,106 @@
                         </div>
                     </section>
 
+                    <!-- Admin Lecturer Directory Tab -->
+                    <section id="admin-lecturer-list" class="tab-content">
+                        <div class="section-header-box">
+                            <div>
+                                <h3>Direktori Pensyarah POLIKK</h3>
+                                <p>Urus senarai pensyarah. Emel akan dipadankan secara automatik apabila nama pensyarah muncul dalam fail CSV/Excel yang dimuat naik.</p>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                                <button class="btn btn-secondary btn-sm" id="btn-download-lecturer-template" style="white-space:nowrap;">
+                                    <i class="fa-solid fa-file-arrow-down"></i> Muat Turun Template CSV
+                                </button>
+                                <button class="btn btn-primary" id="btn-show-add-lecturer-modal">
+                                    <i class="fa-solid fa-user-plus"></i> Tambah Pensyarah
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CSV Bulk Upload Zone -->
+                        <div class="card mt-4" style="padding:20px 24px;">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <i class="fa-solid fa-file-csv" style="font-size:1.3rem; color:var(--color-primary);"></i>
+                                <div>
+                                    <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">Import Pukal Pensyarah</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">Format: <code>Nama, Emel, Jabatan</code> — Fail .csv, .xlsx atau .xls — rekod pendua dilangkau.</div>
+                                </div>
+                            </div>
+                            <div class="upload-zone" id="lecturer-csv-upload-zone" onclick="document.getElementById('lecturer-csv-file-input').click()" style="padding:24px; text-align:center; cursor:pointer;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem; color:var(--color-primary); margin-bottom:8px;"></i>
+                                <div style="font-weight:600; color:var(--text-primary); font-size:0.9rem;">Klik atau seret fail di sini</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Format diterima: <code>.csv</code> &nbsp; <code>.xlsx</code> &nbsp; <code>.xls</code></div>
+                            </div>
+                            <input type="file" id="lecturer-csv-file-input" accept=".csv,.xlsx,.xls" style="display:none;">
+                            <div id="lecturer-csv-result" style="margin-top:12px; display:none;"></div>
+                        </div>
+
+                        <div class="card mt-4" style="padding:20px 24px;">
+                            <div class="search-box" style="margin-bottom:16px;">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="lecturer-list-search" placeholder="Cari nama atau emel pensyarah...">
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Pensyarah</th>
+                                            <th>Emel</th>
+                                            <th>Jabatan</th>
+                                            <th>Tindakan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-lecturer-list-body">
+                                        <!-- JS will dynamically populate -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- Add Lecturer Modal -->
+                    <div class="modal-overlay" id="add-lecturer-modal">
+                        <div class="modal-box" style="max-width:480px;">
+                            <div class="modal-header">
+                                <h4><i class="fa-solid fa-user-plus" style="margin-right:8px;"></i>Tambah Pensyarah Baharu</h4>
+                                <button class="close-modal-btn" id="close-add-lecturer-modal"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <form id="add-lecturer-form" style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+                                <div class="form-group">
+                                    <label for="modal-lecturer-name"><i class="fa-solid fa-user"></i> Nama Penuh</label>
+                                    <input type="text" id="modal-lecturer-name" placeholder="Contoh: Pn. Faridah binti Masri" required style="padding:10px 14px;">
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-lecturer-email"><i class="fa-solid fa-envelope"></i> Emel POLIKK</label>
+                                    <input type="email" id="modal-lecturer-email" placeholder="nama@polikk.edu.my" required style="padding:10px 14px;">
+                                    <small style="color:var(--text-muted); font-size:0.75rem;">Mestilah berakhir dengan @polikk.edu.my</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modal-lecturer-dept"><i class="fa-solid fa-building-columns"></i> Jabatan</label>
+                                    <select id="modal-lecturer-dept" style="padding:10px 14px;">
+                                        <option value="JKA">JKA - Jabatan Kejuruteraan Awam</option>
+                                        <option value="JKE">JKE - Jabatan Kejuruteraan Elektrik</option>
+                                        <option value="JKM">JKM - Jabatan Kejuruteraan Mekanikal</option>
+                                        <option value="JP">JP - Jabatan Perdagangan</option>
+                                        <option value="JPH">JPH - Jabatan Pengajian Am &amp; Hospitaliti</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:8px;">
+                                    <button type="button" class="btn btn-secondary" id="cancel-add-lecturer">Batal</button>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <!-- Admin Lecturers Management Tab (Assign Lecturer to Student) -->
                     <section id="admin-lecturers" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Agihan Pensyarah Pemantau & Penilai</h3>
-                                <p>Sila masukkan emel pensyarah secara langsung untuk agihan pemantau dan penilai bagi
-                                    setiap pelajar.</p>
+                                <h3>Agihan Pensyarah Pemantau &amp; Penilai</h3>
+                                <p>Masukkan nama pensyarah — emel akan diisi secara automatik jika pensyarah telah berdaftar dalam <strong>Direktori Pensyarah</strong>.</p>
                             </div>
                             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                                 <div class="search-box">
@@ -949,7 +1172,9 @@
                                     <input type="text" id="admin-assign-search-input" placeholder="Cari pelajar...">
                                 </div>
                                 <button class="btn btn-danger btn-sm" id="btn-delete-all-from-lecturers"
-                                    style="padding: 8px 14px; background: #7f1d1d; border-color: #991b1b; white-space:nowrap;">
+                                    style="padding: 8px 14px; background: #ffffff; color: #dc2626; border: 1.5px solid #dc2626; white-space:nowrap; font-weight: 600; transition: all 0.2s;"
+                                    onmouseover="this.style.background='#fef2f2'"
+                                    onmouseout="this.style.background='#ffffff'">
                                     <i class="fa-solid fa-skull-crossbones"></i> Padam Semua Pelajar
                                 </button>
                             </div>
@@ -971,6 +1196,52 @@
                                         <!-- JS will dynamically populate -->
                                     </thead>
                                     <tbody id="admin-lecturer-assign-table-body">
+                                        <!-- JS will dynamically populate -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Admin PA Management Tab -->
+                    <section id="admin-pa" class="tab-content">
+                        <div class="section-header-box">
+                            <div>
+                                <h3>Pengurusan Penasihat Akademik (PA)</h3>
+                                <p>Agihkan Penasihat Akademik (PA) kepada pelajar mengikut jabatan dan sesi akademik.</p>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                <div class="search-box">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="admin-pa-search-input" placeholder="Cari pelajar...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Department Selection for Admin PA Assignment -->
+                        <div class="dept-tabs mt-4" id="admin-pa-dept-tabs">
+                            <button class="dept-tab-btn active" data-dept="JKA">JKA</button>
+                            <button class="dept-tab-btn" data-dept="JKE">JKE</button>
+                            <button class="dept-tab-btn" data-dept="JKM">JKM</button>
+                            <button class="dept-tab-btn" data-dept="JP">JP</button>
+                            <button class="dept-tab-btn" data-dept="JPH">JPH</button>
+                        </div>
+
+
+
+                        <div class="card mt-4">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Pelajar &amp; No. Pendaftaran</th>
+                                            <th>Kelas</th>
+                                            <th>Tempat Latihan Industri</th>
+                                            <th>Penasihat Akademik (PA)</th>
+                                            <th>Tindakan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-pa-table-body">
                                         <!-- JS will dynamically populate -->
                                     </tbody>
                                 </table>
@@ -1019,7 +1290,7 @@
                             </div>
                         </div>
 
-                        <div class="dashboard-grid" style="grid-template-columns: 1fr 1.8fr; gap: 24px; margin-top: 20px;">
+                        <div class="dashboard-grid announcements-grid" style="gap: 24px; margin-top: 20px;">
                             <!-- Form to Add/Edit Announcement -->
                             <div class="card" style="align-self: start;">
                                 <h3 id="admin-announcement-form-title" style="margin-bottom: 20px; font-family: var(--font-display); font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -1042,10 +1313,9 @@
                                         <div class="form-group">
                                             <label for="announcement-category-select"><i class="fa-solid fa-tags"></i> Kategori</label>
                                             <select id="announcement-category-select" required style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; width: 100%;">
-                                                <option value="Penting">Penting (Merah)</option>
-                                                <option value="Pendaftaran">Pendaftaran (Hijau)</option>
-                                                <option value="Akademik">Akademik (Kuning)</option>
-                                                <option value="Umum">Umum (Kelabu)</option>
+                                                <option value="Makluman Pelajar">Makluman Pelajar (Merah)</option>
+                                                <option value="Makluman Pensyarah">Makluman Pensyarah (Hijau)</option>
+                                                <option value="Makluman Umum">Makluman Umum (Kuning)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1091,29 +1361,29 @@
                         </div>
                     </section>
 
-                    <!-- Admin Rubrik Pemarkahan Tab -->
+                    <!-- Admin Dokumen Rujukan Tab -->
                     <section id="admin-rubrik" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Rubrik Pemarkahan</h3>
-                                <p>Muat naik fail PDF rubrik pemarkahan untuk rujukan pelajar dan pensyarah. Semua
-                                    pengguna boleh memuat turun rubrik yang telah dimuat naik.</p>
+                                <h3>Dokumen Rujukan</h3>
+                                <p>Muat naik fail PDF Dokumen Rujukan untuk rujukan pelajar dan pensyarah. Semua
+                                    pengguna boleh memuat turun dokumen yang telah dimuat naik.</p>
                             </div>
                         </div>
 
                         <!-- Upload Zone -->
                         <div class="card mt-4" style="margin-bottom: 24px;">
                             <div class="card-header-box">
-                                <h3><i class="fa-solid fa-cloud-arrow-up text-primary"></i> Muat Naik Rubrik Baharu</h3>
+                                <h3><i class="fa-solid fa-cloud-arrow-up text-primary"></i> Muat Naik Dokumen Baharu</h3>
                             </div>
                             <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                                <div class="form-group">
-                                    <label for="rubrik-title-input"><i class="fa-solid fa-tag"></i> Tajuk Rubrik</label>
+                                <div class="form-group" id="single-rubrik-title-group">
+                                    <label for="rubrik-title-input"><i class="fa-solid fa-tag"></i> Tajuk Fail</label>
                                     <input type="text" id="rubrik-title-input"
-                                        placeholder="Contoh: Rubrik Penilaian Appendix E1 (Kejuruteraan)"
+                                        placeholder="Contoh: Dokumen Penilaian Appendix E1 (Kejuruteraan)"
                                         autocomplete="off">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" id="single-rubrik-category-group">
                                     <label for="rubrik-category-select"><i class="fa-solid fa-layer-group"></i>
                                         Kategori</label>
                                     <select id="rubrik-category-select"
@@ -1128,13 +1398,17 @@
                                     onclick="document.getElementById('rubrik-file-input').click()"
                                     style="cursor:pointer;">
                                     <i class="fa-solid fa-file-pdf" style="font-size: 2rem; color: #ef4444;"></i>
-                                    <span>Klik untuk pilih fail PDF Rubrik</span>
-                                    <span class="file-constraint">Format: PDF sahaja (Maks: 10MB)</span>
+                                    <span>Klik untuk pilih fail PDF Dokumen</span>
+                                    <span class="file-constraint">Format: PDF sahaja (Maks: 20MB) (Boleh pilih berbilang fail)</span>
                                 </div>
-                                <input type="file" id="rubrik-file-input" style="display:none;" accept=".pdf">
+                                <input type="file" id="rubrik-file-input" style="display:none;" accept=".pdf" multiple>
+                                
+                                <!-- Container untuk Senarai Pukal (Bulk List) -->
+                                <div id="rubrik-bulk-list" style="display:none; flex-direction: column; gap: 16px; border-top: 1px dashed var(--border-color); padding-top: 16px; margin-top: 4px;"></div>
+                                
                                 <button class="btn btn-primary" id="btn-upload-rubrik" onclick="handleRubrikUpload()"
                                     style="align-self: flex-start; gap: 8px;">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan & Muat Naik Rubrik
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan & Muat Naik Dokumen
                                 </button>
                             </div>
                         </div>
@@ -1142,8 +1416,8 @@
                         <!-- Rubrik List -->
                         <div class="card">
                             <div class="card-header-box">
-                                <h3><i class="fa-solid fa-list-ul text-accent"></i> Senarai Rubrik Dimuat Naik</h3>
-                                <span class="badge badge-success" id="rubrik-count-badge">0 Rubrik</span>
+                                <h3><i class="fa-solid fa-list-ul text-accent"></i> Senarai Dokumen Dimuat Naik Naik</h3>
+                                <span class="badge badge-success" id="rubrik-count-badge">0 Dokumen</span>
                             </div>
                             <div id="admin-rubrik-list"
                                 style="padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 80px;">
@@ -1152,13 +1426,260 @@
                         </div>
                     </section>
 
+                    <!-- Developer Panel Section (Admin only) -->
+                    <section id="admin-developer" class="tab-content">
+                        <div class="section-header-box">
+                            <div>
+                                <h3><i class="fa-solid fa-code text-primary"></i> Panel Pembangun Sistem (Developer Panel)</h3>
+                                <p>Ubah penjenamaan, warna tema, label menu sidebar, saiz fail maksimum, dan arahan panduan dashboard tanpa coding.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                            <!-- Card 1: UI & Branding -->
+                            <div class="card">
+                                <div class="card-header-box">
+                                    <h3><i class="fa-solid fa-palette text-accent"></i> Warna Tema & Penjenamaan</h3>
+                                </div>
+                                <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <div class="form-group">
+                                            <label for="dev-primary-color"><i class="fa-solid fa-fill-drip"></i> Warna Utama</label>
+                                            <div style="display: flex; gap: 8px;">
+                                                <input type="color" id="dev-primary-color" value="#14b8a6" style="width: 50px; height: 38px; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px; cursor: pointer;">
+                                                <input type="text" id="dev-primary-color-hex" value="#14b8a6" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; width: 100%;">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="dev-accent-color"><i class="fa-solid fa-fill-drip"></i> Warna Aksen</label>
+                                            <div style="display: flex; gap: 8px;">
+                                                <input type="color" id="dev-accent-color" value="#6366f1" style="width: 50px; height: 38px; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px; cursor: pointer;">
+                                                <input type="text" id="dev-accent-color-hex" value="#6366f1" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; width: 100%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-app-title"><i class="fa-solid fa-heading"></i> Nama Aplikasi (Branding)</label>
+                                        <input type="text" id="dev-app-title" placeholder="Contoh: My InternMS" value="My InternMS" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; width: 100%;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-app-subtitle"><i class="fa-solid fa-paragraph"></i> Sub-Slogan Aplikasi</label>
+                                        <input type="text" id="dev-app-subtitle" placeholder="Contoh: Sistem Pengurusan Latihan Industri" value="Sistem Pengurusan Latihan Industri" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; width: 100%;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-copyright"><i class="fa-solid fa-copyright"></i> Teks Footer Hak Cipta</label>
+                                        <textarea id="dev-copyright" rows="2" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Had Saiz & Mod Penyelenggaraan -->
+                            <div class="card" style="display: flex; flex-direction: column;">
+                                <div class="card-header-box">
+                                    <h3><i class="fa-solid fa-sliders text-accent"></i> Had Saiz & Mod Kawalan</h3>
+                                </div>
+                                <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; flex: 1;">
+                                    <div class="form-group">
+                                        <label for="dev-max-file-size"><i class="fa-solid fa-file-shield"></i> Had Maksimum Saiz Fail Pelajar (MB)</label>
+                                        <input type="number" id="dev-max-file-size" min="1" max="100" value="20" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; width: 100%;">
+                                        <span class="input-desc">Mengawal saiz muat naik fail PDF bagi Pelajar dan Rubrik Dokumen Rujukan.</span>
+                                    </div>
+
+                                    <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; background-color: rgba(244,63,94,0.05); display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <div>
+                                                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-danger); margin: 0;"><i class="fa-solid fa-triangle-exclamation"></i> Mod Penyelenggaraan</h4>
+                                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px;">Menghalang Pelajar & Pensyarah daripada log masuk.</p>
+                                            </div>
+                                            <!-- Toggle Switch UI -->
+                                            <label class="switch">
+                                                <input type="checkbox" id="dev-maintenance-toggle">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <span class="input-desc" style="color: var(--color-danger); font-weight: 600;">Penting: Pentadbir Sistem / Developer sahaja yang masih boleh mendaftar masuk untuk menonaktifkan mod ini semula.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Sidebar Customizer -->
+                            <div class="card" style="grid-column: span 2;">
+                                <div class="card-header-box">
+                                    <h3><i class="fa-solid fa-list-check text-accent"></i> Kustomasi Menu Sidebar & Fungsi (Buka/Tutup & Ubah Label)</h3>
+                                </div>
+                                <div style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+                                    <!-- Pelajar Menus -->
+                                    <div style="display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--border-color); padding-right: 16px;">
+                                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin: 0;"><i class="fa-solid fa-user-graduate"></i> Portal Pelajar</h4>
+                                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Muat Naik Dokumen</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-student-documents-label" value="Penghantaran Dokumen" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-student-documents-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Dokumen Rujukan</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-rubrik-viewer-label" value="Dokumen Rujukan" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-rubrik-viewer-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pensyarah Menus -->
+                                    <div style="display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--border-color); padding-right: 16px;">
+                                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin: 0;"><i class="fa-solid fa-chalkboard-user"></i> Portal Pensyarah</h4>
+                                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Ringkasan Jabatan</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-lecturer-dashboard-label" value="Ringkasan Jabatan" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-lecturer-dashboard-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Pelajar Seliaan</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-lecturer-students-label" value="Pelajar Seliaan Saya" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-lecturer-students-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Penasihat Akademik (PA)</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-lecturer-pa-label" value="Penasihat Akademik (PA)" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-lecturer-pa-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Admin Menus -->
+                                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin: 0;"><i class="fa-solid fa-user-shield"></i> Portal Admin</h4>
+                                        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto; padding-right: 8px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Statistik</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-dashboard-label" value="Statistik" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-dashboard-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Pengurusan Pelajar</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-students-label" value="Pengurusan Pelajar" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-students-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Direktori Pensyarah</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-lecturer-list-label" value="Direktori Pensyarah" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-lecturer-list-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Agihan Pensyarah</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-lecturers-label" value="Agihan Pensyarah" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-lecturers-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Pengurusan PA</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-pa-label" value="Pengurusan PA" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-pa-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Pengurusan Makluman</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-announcements-label" value="Pengurusan Makluman" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-announcements-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Pengurusan Admin</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-admins-label" value="Pengurusan Admin" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-admins-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.75rem; font-weight: 600;">Dokumen Rujukan</label>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <input type="text" id="menu-admin-rubrik-label" value="Dokumen Rujukan" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; flex: 1; color:#000 !important; background:#fff !important;">
+                                                    <label class="switch"><input type="checkbox" id="menu-admin-rubrik-show" checked><span class="slider"></span></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: CMS Text Guidelines -->
+                            <div class="card" style="grid-column: span 2;">
+                                <div class="card-header-box">
+                                    <h3><i class="fa-solid fa-file-signature text-accent"></i> Kustomasi Teks Arahan & Panduan Paparan (CMS Teks)</h3>
+                                </div>
+                                <div style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+                                    <div class="form-group">
+                                        <label for="dev-portal-desc"><i class="fa-solid fa-align-left text-primary"></i> Info Portal Awam</label>
+                                        <textarea id="dev-portal-desc" rows="4" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                        <span class="input-desc">Teks panduan di portal hadapan di bawah nama Politeknik.</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-student-welcome"><i class="fa-solid fa-align-left text-primary"></i> Info Alu-aluan Pelajar</label>
+                                        <textarea id="dev-student-welcome" rows="4" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                        <span class="input-desc">Teks huraian alu-aluan pada kad sambutan Pelajar.</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-student-docs-guide"><i class="fa-solid fa-align-left text-primary"></i> Panduan Upload Pelajar</label>
+                                        <textarea id="dev-student-docs-guide" rows="4" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                        <span class="input-desc">Teks arahan di atas senarai penghantaran dokumen pelajar.</span>
+                                    </div>
+                            </div>
+
+                            <!-- Card 5: Survey Links -->
+                            <div class="card" style="grid-column: span 2;">
+                                <div class="card-header-box">
+                                    <h3><i class="fa-solid fa-link text-accent"></i> Pautan Soal Selidik & Maklum Balas Pelajar</h3>
+                                </div>
+                                <div style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                    <div class="form-group">
+                                        <label for="dev-link-pes"><i class="fa-solid fa-square-poll-vertical text-primary"></i> Pautan & Maklumat Programme Exit Survey (PES)</label>
+                                        <textarea id="dev-link-pes" placeholder="Contoh:&#10;DKA: https://forms.gle/dka-pes&#10;DUB: https://forms.gle/dub-pes" rows="4" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                        <span class="input-desc">Masukkan maklumat dan pautan survey PES. Boleh masukkan teks berbilang baris mengikut program pengajian.</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dev-link-maklum-balas"><i class="fa-solid fa-square-poll-horizontal text-primary"></i> Pautan & Maklumat Maklum Balas Pelajar LI</label>
+                                        <textarea id="dev-link-maklum-balas" placeholder="Contoh:&#10;DKA: https://forms.gle/dka-mb&#10;DUB: https://forms.gle/dub-mb" rows="4" style="padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; width: 100%; resize: vertical; color:#000 !important; background:#fff !important;"></textarea>
+                                        <span class="input-desc">Masukkan maklumat dan pautan survey Maklum Balas Pelajar LI. Boleh masukkan teks berbilang baris mengikut program pengajian.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Save Button -->
+                            <div style="grid-column: span 2; display: flex; justify-content: flex-end; margin-top: 10px;">
+                                <button class="btn btn-primary" id="btn-save-developer-settings" onclick="saveDeveloperSettings()" style="gap: 8px; padding: 12px 32px; font-size: 1rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);">
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Semua Tetapan Pembangun
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Rubrik Viewer (Student & Lecturer) -->
                     <section id="rubrik-viewer" class="tab-content">
                         <div class="section-header-box">
                             <div>
-                                <h3>Rubrik Pemarkahan</h3>
-                                <p>Senarai rubrik pemarkahan yang telah dimuat naik oleh Admin UPLI. Anda boleh memuat
-                                    turun mana-mana rubrik untuk rujukan.</p>
+                                <h3>Dokumen Rujukan</h3>
+                                <p>Senarai Dokumen Rujukan yang telah dimuat naik oleh Admin UPLI. Anda boleh memuat
+                                    turun mana-mana dokumen untuk rujukan.</p>
                             </div>
                         </div>
                         <div id="rubrik-viewer-list"
@@ -1353,6 +1874,10 @@
                         <input type="text" id="edit-student-tempat" placeholder="Syarikat Latihan Industri">
                     </div>
                     <div class="form-group">
+                        <label for="edit-student-daerah">Bandar/Kawasan</label>
+                        <input type="text" id="edit-student-daerah" placeholder="Contoh: Kota Kinabalu, Papar, Labuan">
+                    </div>
+                    <div class="form-group">
                         <label for="edit-student-jabatan">Jabatan</label>
                         <select id="edit-student-jabatan" required>
                             <option value="JKA">JKA</option>
@@ -1365,6 +1890,12 @@
                     <div class="form-group">
                         <label for="edit-student-sesi">Sesi Akademik</label>
                         <select id="edit-student-sesi" class="session-select" required style="width:100%;">
+                            <!-- Loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-student-pa">Penasihat Akademik (PA)</label>
+                        <select id="edit-student-pa" style="width:100%;">
                             <!-- Loaded dynamically -->
                         </select>
                     </div>
@@ -1390,8 +1921,20 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <!-- Firebase Configuration & Initialization -->
     <script src="firebase-config.js"></script>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Main JavaScript Logic -->
-    <script src="app.js"></script>
+    <script src="students_seed.js"></script>
+    <script src="app.v4.js?v=9"></script>
+    <!-- Logo Preview Modal -->
+    <div id="logo-preview-modal" onclick="closeLogoPreviewModal()" style="display: none; align-items: center; justify-content: center; z-index: 100000; background: rgba(15, 23, 42, 0.92); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(8px);">
+        <div onclick="event.stopPropagation()" style="position: relative; max-width: 90%; max-height: 90%; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <span onclick="closeLogoPreviewModal()" style="position: absolute; top: -45px; right: 0; color: #ffffff; font-size: 2.2rem; cursor: pointer; opacity: 0.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">&times;</span>
+            <img src="smartupli_logo.png" alt="My InternMS Full Logo" style="max-width: 500px; width: 90%; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: #ffffff; padding: 25px;">
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 15px; font-weight: 600; letter-spacing: 0.5px;">My Internship Management System</p>
+        </div>
+    </div>
+
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {

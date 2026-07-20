@@ -1,21 +1,20 @@
 {
-  "name": "My InternMS Hub",
+  "name": "My InternMS",
   "short_name": "My InternMS",
   "description": "Sistem Pengurusan Dokumen Latihan Industri POLIKK",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
-  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./smartupli_logo.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./smartupli_logo.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
