@@ -444,7 +444,7 @@ function normalizeStudentsCache() {
     // Remove JTMK lecturers in memory
     dbCache.lecturers = dbCache.lecturers.filter(l => l && l.dept !== "JTMK");
 
-    const fallbackSession = dbCache.activeSession || "Sesi 1:2026/2027 - Fasa 1";
+    const fallbackSession = dbCache.activeSession || "Sesi 1:2026/2027";
 
     dbCache.students.forEach(s => {
         if (!s) return;
@@ -595,9 +595,17 @@ function applyRemoteData(data) {
     if (data.announcements) { dbCache.announcements = data.announcements; }
     if (data.logs)          { dbCache.logs          = data.logs; }
     if (data.settings) {
-        dbCache.settings      = data.settings;
-        dbCache.sessions      = data.settings.sessions      || DEFAULT_SESSIONS;
-        dbCache.activeSession = data.settings.activeSession || "Sesi 1:2026/2027 - Fasa 1";
+        dbCache.settings = data.settings;
+        dbCache.sessions = data.settings.sessions || DEFAULT_SESSIONS;
+        // Preserve user's local active session choice in browser
+        const localActive = localStorage.getItem("upli_active_session");
+        if (localActive && localActive.trim()) {
+            dbCache.activeSession = localActive.trim();
+        } else if (data.settings.activeSession) {
+            dbCache.activeSession = data.settings.activeSession;
+        } else {
+            dbCache.activeSession = "Sesi 1:2026/2027";
+        }
         localStorage.setItem("upli_settings", JSON.stringify(dbCache.settings));
         applySystemBranding();
     }
@@ -687,7 +695,7 @@ async function initDatabase() {
         dbCache.lecturers     = JSON.parse(localStorage.getItem("upli_lecturers")     || JSON.stringify(DEFAULT_LECTURERS));
         dbCache.students      = JSON.parse(localStorage.getItem("upli_students")      || "[]");
         dbCache.sessions      = JSON.parse(localStorage.getItem("upli_sessions")      || JSON.stringify(DEFAULT_SESSIONS));
-        dbCache.activeSession = localStorage.getItem("upli_active_session")           || "Sesi 1:2026/2027 - Fasa 1";
+        dbCache.activeSession = localStorage.getItem("upli_active_session")           || "Sesi 1:2026/2027";
         dbCache.logs          = JSON.parse(localStorage.getItem("upli_logs")          || JSON.stringify(DEFAULT_LOGS));
         dbCache.rubriks       = JSON.parse(localStorage.getItem("upli_rubriks")       || "[]");
         dbCache.announcements = JSON.parse(localStorage.getItem("upli_announcements") || JSON.stringify(DEFAULT_ANNOUNCEMENTS));
@@ -751,13 +759,13 @@ async function initDatabase() {
         if (settingsDoc.exists) {
             const d = settingsDoc.data();
             dbCache.sessions = d.sessions || DEFAULT_SESSIONS;
-            dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027 - Fasa 1";
+            dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027";
             dbCache.settings = d || {};
         } else {
             dbCache.sessions = DEFAULT_SESSIONS;
-            dbCache.activeSession = "Sesi 1:2026/2027 - Fasa 1";
-            dbCache.settings = { sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027 - Fasa 1" };
-            writeSettingsToFirestore({ sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027 - Fasa 1" });
+            dbCache.activeSession = "Sesi 1:2026/2027";
+            dbCache.settings = { sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027" };
+            writeSettingsToFirestore({ sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027" });
         }
         localStorage.setItem("upli_sessions", JSON.stringify(dbCache.sessions));
         localStorage.setItem("upli_active_session", dbCache.activeSession);
@@ -847,7 +855,7 @@ function attachRealtimeListeners() {
         if (doc.metadata.hasPendingWrites || !doc.exists) return;
         const d = doc.data();
         dbCache.sessions = d.sessions || DEFAULT_SESSIONS;
-        dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027 - Fasa 1";
+        dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027";
         autoMigrateSessions();
         try { localStorage.setItem("upli_sessions", JSON.stringify(dbCache.sessions)); } catch(e){}
         try { localStorage.setItem("upli_active_session", dbCache.activeSession); } catch(e){}
@@ -948,7 +956,7 @@ window.refreshGlobalData = async function() {
                 if (data.settings) {
                     dbCache.settings = data.settings || {};
                     dbCache.sessions = data.settings.sessions || DEFAULT_SESSIONS;
-                    dbCache.activeSession = data.settings.activeSession || "Sesi 1:2026/2027 - Fasa 1";
+                    dbCache.activeSession = data.settings.activeSession || "Sesi 1:2026/2027";
                     localStorage.setItem("upli_settings", JSON.stringify(dbCache.settings));
                     applySystemBranding();
                 }
@@ -6638,7 +6646,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dbCache.students     = JSON.parse(ls.getItem("upli_students")      || "[]");
         normalizeStudentsCache();
         dbCache.sessions     = JSON.parse(ls.getItem("upli_sessions")      || JSON.stringify(DEFAULT_SESSIONS));
-        dbCache.activeSession = ls.getItem("upli_active_session")          || "Sesi 1:2026/2027 - Fasa 1";
+        dbCache.activeSession = ls.getItem("upli_active_session")          || "Sesi 1:2026/2027";
         dbCache.logs         = JSON.parse(ls.getItem("upli_logs")          || JSON.stringify(DEFAULT_LOGS));
         dbCache.rubriks      = JSON.parse(ls.getItem("upli_rubriks")       || "[]");
         dbCache.announcements= JSON.parse(ls.getItem("upli_announcements") || JSON.stringify(DEFAULT_ANNOUNCEMENTS));
