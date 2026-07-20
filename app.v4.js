@@ -3535,6 +3535,7 @@ document.querySelectorAll("#admin-students-dept-tabs .dept-tab-btn").forEach(btn
         const importLabel = document.getElementById("import-target-dept-label");
         if (importLabel) importLabel.textContent = activeAdminStudentDept;
         renderAdminStudentsTable();
+        updatePKLICountBadge();
     });
 });
 
@@ -6724,6 +6725,22 @@ function updatePKLICountBadge() {
 
     const tabBadge = document.getElementById("pkli-tab-count-badge");
     if (tabBadge) tabBadge.textContent = deptPKLICount;
+
+    // Update individual department tab buttons with their respective PKLI counts when in PKLI mode
+    document.querySelectorAll("#admin-students-dept-tabs .dept-tab-btn").forEach(btn => {
+        const d = (btn.dataset.dept || "").toUpperCase().trim();
+        const count = students.filter(s =>
+            Boolean(s.isPKLI) &&
+            (s.jabatan || "").toUpperCase().trim() === d &&
+            isStudentInSession(s, activeSesi)
+        ).length;
+
+        if (activeAdminStudentTabMode === "pkli") {
+            btn.innerHTML = `${d} <span class="badge" style="background:${d === activeDept ? '#ffffff' : '#d97706'}; color:${d === activeDept ? '#d97706' : '#ffffff'}; margin-left:4px; padding:1px 6px; border-radius:10px; font-size:0.72rem;">${count}</span>`;
+        } else {
+            btn.textContent = d;
+        }
+    });
 
     const btnViewPKLIList = document.getElementById("btn-view-pkli-list");
     if (btnViewPKLIList) {
