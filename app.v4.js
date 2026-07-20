@@ -433,12 +433,29 @@ async function writeRubriksToFirestore(data) {
     } catch (e) { console.warn("FS writeRubriks:", e.message); }
 }
 
+// ── Standalone PKLI Persistence Lock ──────────────────────────────────
+function getPKLIRegNoSet() {
+    try {
+        const arr = JSON.parse(localStorage.getItem("upli_pkli_ids") || "[]");
+        return new Set(Array.isArray(arr) ? arr : []);
+    } catch(e) { return new Set(); }
+}
+
+function savePKLIRegNoSet(pkliSet) {
+    try {
+        localStorage.setItem("upli_pkli_ids", JSON.stringify(Array.from(pkliSet)));
+    } catch(e) {}
+}
+
 // ---------- Normalize students cache (ensure required doc fields) ----------
 function normalizeStudentsCache() {
     const OLD_DOC_IDS = ["resume", "reply_letter", "weekly_reports", "final_report", "completion_cert"];
 
     if (!dbCache.students) dbCache.students = [];
     if (!dbCache.lecturers) dbCache.lecturers = [];
+
+    const fallbackSession = dbCache.activeSession || "Sesi 1:2026/2027";
+    const pkliSet = getPKLIRegNoSet();
 
     // Remove JTMK dept students in memory
     dbCache.students = dbCache.students.filter(s => s && s.jabatan !== "JTMK" && s.dept !== "JTMK");
