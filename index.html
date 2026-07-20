@@ -961,6 +961,12 @@
                                     style="padding: 6px 12px; background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15); color: var(--color-danger);">
                                     <i class="fa-solid fa-trash-can"></i> Padam Terpilih
                                 </button>
+                                <!-- Pindah ke PKLI (Penangguhan Kursus LI) -->
+                                <button class="btn btn-sm" id="btn-bulk-move-pkli" disabled
+                                    title="Pindahkan pelajar terpilih ke Senarai PKLI (Penangguhan Kursus LI)"
+                                    style="padding: 6px 14px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #d97706; border-radius: 8px; font-size:0.82rem; font-weight:600; display:flex; align-items:center; gap:7px; transition: all 0.2s; cursor:not-allowed; opacity:0.5;">
+                                    <i class="fa-solid fa-user-clock"></i> Pindah ke PKLI
+                                </button>
                             </div>
                         </div>
 
@@ -1023,8 +1029,52 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        <!-- PKLI Student List Modal -->
+                        <div id="pkli-list-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+                            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:20px; padding:28px 32px; max-width:880px; width:92%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 30px 80px rgba(0,0,0,0.6); position:relative; overflow:hidden;">
+                                <!-- Header -->
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border-color);">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div style="width:44px; height:44px; border-radius:12px; background:rgba(245,158,11,0.15); display:flex; align-items:center; justify-content:center;">
+                                            <i class="fa-solid fa-user-clock" style="font-size:1.3rem; color:#f59e0b;"></i>
+                                        </div>
+                                        <div>
+                                            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Senarai Pelajar PKLI</h3>
+                                            <p style="margin:2px 0 0 0; font-size:0.82rem; color:var(--text-muted);">Pelajar yang ditangguh / dilepaskan Kursus Latihan Industri (PKLI)</p>
+                                        </div>
+                                    </div>
+                                    <button id="btn-close-pkli-modal" style="background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer; padding:4px 8px; border-radius:8px;">&times;</button>
+                                </div>
 
+                                <!-- Search & Info Bar -->
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                                    <div class="search-box" style="flex:1; max-width:360px;">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="pkli-search-input" placeholder="Cari nama atau no. pendaftaran PKLI...">
+                                    </div>
+                                    <span id="pkli-modal-count-text" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">0 Pelajar PKLI</span>
+                                </div>
+
+                                <!-- Table Container -->
+                                <div style="flex:1; overflow-y:auto; border:1px solid var(--border-color); border-radius:12px;">
+                                    <table class="table" style="margin:0;">
+                                        <thead>
+                                            <tr>
+                                                <th>Nama Pelajar</th>
+                                                <th style="text-align:center;">No. Pendaftaran</th>
+                                                <th>Jabatan</th>
+                                                <th>Sesi</th>
+                                                <th>Tempat LI</th>
+                                                <th style="text-align:center;">Tindakan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pkli-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="card mt-4">
                             <div class="card-header-box" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
@@ -1034,6 +1084,11 @@
                                         title="Sahkan Borang Pendaftaran LI (BP) secara pukal untuk pelajar terpilih"
                                         style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; padding: 7px 15px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; display: flex; align-items: center; gap: 7px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); transition: all 0.2s;">
                                         <i class="fa-solid fa-clipboard-check" style="font-size: 0.95rem;"></i> Sahkan BP Pukal
+                                    </button>
+                                    <button class="btn btn-sm" id="btn-view-pkli-list"
+                                        title="Lihat senarai pelajar Penangguhan Kursus LI (PKLI)"
+                                        style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; padding: 7px 15px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; display: flex; align-items: center; gap: 7px; cursor: pointer; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25); transition: all 0.2s;">
+                                        <i class="fa-solid fa-user-clock" style="font-size: 0.95rem;"></i> Senarai PKLI <span id="pkli-count-badge" class="badge" style="background:#ffffff; color:#d97706; margin-left:2px; padding:2px 7px; border-radius:10px; font-size:0.75rem;">0</span>
                                     </button>
                                     <div class="search-box">
                                         <i class="fa-solid fa-magnifying-glass"></i>

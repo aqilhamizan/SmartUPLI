@@ -4502,8 +4502,9 @@ function renderAdminStudentsTable() {
     const tbody = document.getElementById("admin-students-table-body");
     let rowsHtml = "";
 
-    // FILTER: Filter students strictly by department AND active session AND search query
+    // FILTER: Filter students strictly by department AND active session AND search query (Exclude PKLI students)
     const filteredStudents = students.filter(s =>
+        !s.isPKLI &&
         (s.jabatan || "").toUpperCase().trim() === (activeAdminStudentDept || "").toUpperCase().trim() &&
         isStudentInSession(s, activeSesi) &&
         (
@@ -6141,6 +6142,24 @@ function setupBulkActionListeners() {
             }
         }
 
+        // --- Bulk Move to PKLI button ---
+        const bulkMovePKLIBtn = document.getElementById("btn-bulk-move-pkli");
+        if (bulkMovePKLIBtn) {
+            if (checkedCount > 0) {
+                bulkMovePKLIBtn.disabled          = false;
+                bulkMovePKLIBtn.style.opacity     = "1";
+                bulkMovePKLIBtn.style.cursor      = "pointer";
+                bulkMovePKLIBtn.style.background  = "rgba(245,158,11,0.18)";
+                bulkMovePKLIBtn.style.borderColor = "rgba(245,158,11,0.5)";
+            } else {
+                bulkMovePKLIBtn.disabled          = true;
+                bulkMovePKLIBtn.style.opacity     = "0.5";
+                bulkMovePKLIBtn.style.cursor      = "not-allowed";
+                bulkMovePKLIBtn.style.background  = "rgba(245,158,11,0.1)";
+                bulkMovePKLIBtn.style.borderColor = "rgba(245,158,11,0.3)";
+            }
+        }
+
         // Update Select All checkbox state
         if (checkboxes.length > 0 && checkedCount === checkboxes.length) {
             selectAllCheck.checked       = true;
@@ -6341,10 +6360,150 @@ function setupBulkActionListeners() {
 
                 renderAdminStudentsTable();
                 renderAdminDashboard();
+                updatePKLICountBadge();
             }, 900);
         });
     }
+
+    // ── BULK MOVE TO PKLI ───────────────────────────────────────────────────
+    const bulkMovePKLIBtn = document.getElementById("btn-bulk-move-pkli");
+    if (bulkMovePKLIBtn) {
+        bulkMovePKLIBtn.addEventListener("click", () => {
+            const checkboxes = document.querySelectorAll(".student-select-checkbox:checked");
+            const regs = Array.from(checkboxes).map(cb => cb.dataset.reg);
+            if (regs.length === 0) return;
+
+            showConfirm(
+                `Adakah anda pasti mahu memindahkan ${regs.length} pelajar yang dipilih ke Senarai PKLI (Penangguhan Kursus LI)?`,
+                function () {
+                    const students = getStudents();
+                    regs.forEach(reg => {
+                        const st = students.find(s => s.regNo === reg);
+                        if (st) {
+                            st.isPKLI = true;
+                            st.statusLI = "PKLI";
+                        }
+                    });
+                    saveStudents(students, regs.length === 1 ? regs[0] : regs);
+                    addLog("warning", `Admin memindahkan ${regs.length} pelajar ke Senarai PKLI.`);
+                    showToast(`Berjaya! ${regs.length} pelajar telah dipindahkan ke Senarai PKLI.`, "warning");
+
+                    document.querySelectorAll(".student-select-checkbox").forEach(cb => cb.checked = false);
+                    if (selectAllCheck) {
+                        selectAllCheck.checked       = false;
+                        selectAllCheck.indeterminate = false;
+                    }
+                    updateBulkCount();
+
+                    renderAdminStudentsTable();
+                    renderAdminDashboard();
+                    updatePKLICountBadge();
+                },
+                "⚠️ Pindah ke PKLI",
+                "Ya, Pindahkan"
+            );
+        });
+    }
+
+    // ── PKLI MODAL & LIST LISTENERS ─────────────────────────────────────────
+    const btnViewPKLIList = document.getElementById("btn-view-pkli-list");
+    const pkliModal       = document.getElementById("pkli-list-modal");
+    const btnClosePKLI    = document.getElementById("btn-close-pkli-modal");
+    const pkliSearchInput = document.getElementById("pkli-search-input");
+
+    if (btnViewPKLIList && pkliModal) {
+        btnViewPKLIList.addEventListener("click", () => {
+            pkliModal.style.display = "flex";
+            renderPKLITable();
+        });
+    }
+    if (btnClosePKLI && pkliModal) {
+        btnClosePKLI.addEventListener("click", () => {
+            pkliModal.style.display = "none";
+        });
+    }
+    if (pkliSearchInput) {
+        pkliSearchInput.addEventListener("input", renderPKLITable);
+    }
+    updatePKLICountBadge();
 }
+
+// Render PKLI Table inside Modal
+function renderPKLITable() {
+    const tbody     = document.getElementById("pkli-table-body");
+    const countEl   = document.getElementById("pkli-modal-count-text");
+    const searchVal = (document.getElementById("pkli-search-input") ? document.getElementById("pkli-search-input").value : "").trim().toLowerCase();
+    const students  = getStudents();
+
+    const pkliStudents = students.filter(s =>
+        Boolean(s.isPKLI) &&
+        (
+            (s.name || "").toLowerCase().includes(searchVal) ||
+            (s.regNo || "").toLowerCase().includes(searchVal) ||
+            (s.jabatan || "").toLowerCase().includes(searchVal) ||
+            (s.tempatLI || "").toLowerCase().includes(searchVal)
+        )
+    );
+
+    if (countEl) countEl.textContent = `${pkliStudents.length} Pelajar PKLI`;
+
+    if (!tbody) return;
+
+    if (pkliStudents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: var(--text-muted);">Tiada pelajar di dalam Senarai PKLI.</td></tr>`;
+        return;
+    }
+
+    let rowsHtml = "";
+    pkliStudents.forEach(s => {
+        rowsHtml += `
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="avatar mini-avatar">${getInitials(s.name)}</div>
+                        <strong>${s.name}</strong>
+                    </div>
+                </td>
+                <td style="text-align:center;"><code>${s.regNo}</code></td>
+                <td><span class="badge" style="background:rgba(99,102,241,0.1); color:#6366f1;">${s.jabatan || '-'}</span></td>
+                <td><span style="font-size:0.8rem; color:var(--text-muted);">${s.sesi || '-'}</span></td>
+                <td><span style="font-size:0.85rem;">${s.tempatLI || 'Belum Ditentukan'}</span></td>
+                <td style="text-align:center;">
+                    <button class="btn btn-sm" onclick="restoreFromPKLI('${s.regNo}')"
+                        style="padding: 5px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #059669; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">
+                        <i class="fa-solid fa-rotate-left"></i> Pulihkan
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = rowsHtml;
+}
+
+window.restoreFromPKLI = function(regNo) {
+    const students = getStudents();
+    const st = students.find(s => s.regNo === regNo);
+    if (st) {
+        st.isPKLI = false;
+        st.statusLI = "Aktif";
+        saveStudents(students, regNo);
+        addLog("info", `Admin mengembalikan pelajar ${st.name} (${regNo}) dari Senarai PKLI ke senarai pelajar aktif.`);
+        showToast(`Pelajar ${st.name} telah dikembalikan ke senarai pelajar aktif.`, "success");
+
+        renderPKLITable();
+        renderAdminStudentsTable();
+        renderAdminDashboard();
+        updatePKLICountBadge();
+    }
+};
+
+function updatePKLICountBadge() {
+    const students = getStudents();
+    const pkliCount = students.filter(s => Boolean(s.isPKLI)).length;
+    const badge = document.getElementById("pkli-count-badge");
+    if (badge) badge.textContent = pkliCount;
+}
+window.updatePKLICountBadge = updatePKLICountBadge;
 
 // Shared: Delete ALL students globally — used by both Pengurusan Pelajar & Pengurusan Pensyarah
 function deleteAllStudentsGlobal() {
