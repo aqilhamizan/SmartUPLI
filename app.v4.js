@@ -3089,21 +3089,40 @@ function renderLecturerStudentsList() {
 
         let uploadControlsHTML = "";
         targetDocs.forEach(td => {
-            const hasDoc = s.documents[td.id] && (s.documents[td.id].fileUrl || s.documents[td.id].fileData);
+            const docEntry = s.documents[td.id];
+            const hasDoc = docEntry && (docEntry.fileUrl || docEntry.fileData);
+            const docStatus = docEntry ? (docEntry.status || "Belum Dihantar") : "Belum Dihantar";
+
+            // Badge status khas untuk Appendix E3
+            let statusBadgeHTML = "";
+            if (td.id === "appendix_e3" && hasDoc) {
+                if (docStatus === "Diterima") {
+                    statusBadgeHTML = `<span class="badge badge-success" style="font-size:0.6rem; padding:2px 6px;">✅ Disahkan</span>`;
+                } else if (docStatus === "Ditolak") {
+                    statusBadgeHTML = `<span class="badge badge-danger" style="font-size:0.6rem; padding:2px 6px;">❌ Ditolak</span>`;
+                } else {
+                    statusBadgeHTML = `<span class="badge badge-warning" style="font-size:0.6rem; padding:2px 6px; color:#000;">🟡 Menunggu Pengesahan</span>`;
+                }
+            } else if (hasDoc) {
+                statusBadgeHTML = `<span class="badge badge-success" style="font-size:0.6rem; padding:2px 6px;">Selesai</span>`;
+            } else {
+                statusBadgeHTML = `<span class="badge badge-secondary" style="font-size:0.6rem; padding:2px 6px; background:rgba(255,255,255,0.05); color:var(--text-muted);">Belum</span>`;
+            }
+
+            // Butang upload: E3 yang sudah disahkan tidak boleh ditukar ganti
+            const isE3Verified = td.id === "appendix_e3" && docStatus === "Diterima";
+            const uploadBtnHTML = isE3Verified
+                ? `<button class="btn btn-sm" style="padding:2px 6px; font-size:0.65rem; opacity:0.4; cursor:not-allowed;" title="Appendix E3 telah disahkan oleh Admin UPLI. Tidak boleh ditukar." disabled><i class="fa-solid fa-lock"></i></button>`
+                : `<button class="btn btn-primary btn-sm" onclick="document.getElementById('lecturer-upload-${td.id}-${s.regNo}').click()" style="padding:2px 6px; font-size:0.65rem;" title="Upload Fail"><i class="fa-solid fa-upload"></i></button>
+                   <input type="file" id="lecturer-upload-${td.id}-${s.regNo}" style="display:none;" onchange="handleLecturerFileUpload('${s.regNo}', '${td.id}', this)">`;
+
             uploadControlsHTML += `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; background:rgba(255,255,255,0.02); padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); gap: 10px;">
                     <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary);">${td.title}</span>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        ${hasDoc ? `
-                            <span class="badge badge-success" style="font-size:0.6rem; padding:2px 6px;">Selesai</span>
-                            <a href="${s.documents[td.id].fileUrl || s.documents[td.id].fileData}" ${s.documents[td.id].fileUrl ? 'target="_blank"' : `download="${s.documents[td.id].fileName}"`} class="btn btn-sm btn-info" style="padding: 2px 6px; font-size: 0.65rem;" title="Muat Turun"><i class="fa-solid fa-download"></i></a>
-                        ` : `
-                            <span class="badge badge-secondary" style="font-size:0.6rem; padding:2px 6px; background:rgba(255,255,255,0.05); color:var(--text-muted);">Belum</span>
-                        `}
-                        <button class="btn btn-primary btn-sm" onclick="document.getElementById('lecturer-upload-${td.id}-${s.regNo}').click()" style="padding:2px 6px; font-size:0.65rem;" title="Upload Fail">
-                            <i class="fa-solid fa-upload"></i>
-                        </button>
-                        <input type="file" id="lecturer-upload-${td.id}-${s.regNo}" style="display:none;" onchange="handleLecturerFileUpload('${s.regNo}', '${td.id}', this)">
+                        ${statusBadgeHTML}
+                        ${hasDoc ? `<a href="${docEntry.fileUrl || docEntry.fileData}" ${docEntry.fileUrl ? 'target="_blank"' : `download="${docEntry.fileName}"`} class="btn btn-sm btn-info" style="padding: 2px 6px; font-size: 0.65rem;" title="Muat Turun"><i class="fa-solid fa-download"></i></a>` : ""}
+                        ${uploadBtnHTML}
                     </div>
                 </div>
             `;
@@ -3185,11 +3204,17 @@ window.openDocumentReviewModal = function (studentReg, docId) {
     document.getElementById("doc-modal-student-reg").textContent = student.regNo;
     document.getElementById("doc-modal-doc-type").textContent = docMeta.title;
     document.getElementById("doc-modal-file-name").textContent = doc.fileName || (docMeta.isPhysical ? "(Borang Fizikal)" : "");
-    document.getElementById("doc-modal-file-size").textContent = doc.fileSize ? `${doc.fileSize} • Dimuat naik pada ${doc.uploadDate}` : (docMeta.isPhysical ? "Penyerahan fizikal ke pejabat UPLI" : "");
+
+    // Paparan maklumat siapa yang menghantar (untuk Appendix E3)
+    let fileSizeText = doc.fileSize ? `${doc.fileSize} • Dimuat naik pada ${doc.uploadDate}` : (docMeta.isPhysical ? "Penyerahan fizikal ke pejabat UPLI" : "");
+    if (docId === "appendix_e3" && doc.submittedByName) {
+        fileSizeText += ` • Dihantar oleh: ${doc.submittedByName}`;
+    }
+    document.getElementById("doc-modal-file-size").textContent = fileSizeText;
 
     const badgeEl = document.getElementById("doc-modal-current-status-badge");
     badgeEl.className = "badge " + (doc.status === "Diterima" ? "badge-success" : (doc.status === "Ditolak" ? "badge-danger" : "badge-warning"));
-    badgeEl.textContent = doc.status;
+    badgeEl.textContent = doc.status || "Dalam Semakan";
 
     document.getElementById("doc-review-status").value = doc.status === "Diterima" ? "Diterima" : (doc.status === "Ditolak" ? "Ditolak" : "Diterima");
     document.getElementById("doc-review-feedback").value = doc.feedback || "";
@@ -6220,6 +6245,24 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
     const file = inputEl.files[0];
     if (!file) return;
 
+    // === SEMAKAN KHAS: Appendix E3 hanya boleh dihantar oleh Pensyarah Penilai yang dilantik ===
+    if (docId === "appendix_e3") {
+        const students = getStudents();
+        const student = students.find(s => s.regNo === regNo);
+        if (!student) {
+            showToast("Pelajar tidak ditemui.", "error");
+            inputEl.value = "";
+            return;
+        }
+        const assignedPenilai = (student.pensyarahPenilai || "").trim().toLowerCase();
+        const uploaderEmail = (currentUser?.email || "").trim().toLowerCase();
+        if (!assignedPenilai || assignedPenilai !== uploaderEmail) {
+            showToast("❌ Anda tidak dibenarkan menghantar Appendix E3. Hanya Pensyarah Penilai yang dilantik bagi pelajar ini sahaja yang boleh menghantar dokumen ini.", "error");
+            inputEl.value = "";
+            return;
+        }
+    }
+
     if (file.size > FS_MAX_FILE_SIZE) {
         showToast(`Fail terlalu besar! Had ialah ${FS_MAX_FILE_SIZE / 1024 / 1024}MB.`, "error");
         return;
@@ -6254,12 +6297,17 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
         const studentIdx = students.findIndex(s => s.regNo === regNo);
         if (studentIdx === -1) return;
 
+        // Appendix E3 → status "Dalam Semakan" menunggu pengesahan Admin UPLI
+        // Dokumen lain → terus "Diterima"
+        const isE3 = docId === "appendix_e3";
         const docData = {
-            status: "Diterima",
+            status: isE3 ? "Dalam Semakan" : "Diterima",
             fileName: finalFileName,
             fileSize: sizeStr,
             uploadDate: formattedTime,
-            feedback: "Dimuat naik oleh Pensyarah Seliaan"
+            feedback: isE3 ? "Menunggu pengesahan Admin UPLI" : "Dimuat naik oleh Pensyarah Seliaan",
+            submittedBy: currentUser?.email || "",
+            submittedByName: currentUser?.name || currentUser?.displayName || "Pensyarah Penilai"
         };
 
         if (!result.useBase64) {
@@ -6284,8 +6332,14 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
 
         students[studentIdx].documents[docId] = docData;
         saveStudents(students);
-        addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
-        showToast(`Fail "${finalFileName}" berjaya dimuat naik dan diluluskan.`, "success");
+
+        if (isE3) {
+            addLog("info", `Pensyarah Penilai (${currentUser?.email}) menghantar Appendix E3 bagi pelajar ${students[studentIdx].name} (${regNo}) — menunggu pengesahan Admin UPLI`);
+            showToast(`✅ Appendix E3 berjaya dihantar dan sedang menunggu pengesahan Admin UPLI.`, "success");
+        } else {
+            addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
+            showToast(`Fail "${finalFileName}" berjaya dimuat naik dan diluluskan.`, "success");
+        }
         renderLecturerStudentsList();
     } catch (err) {
         console.error("Gagal memuat naik fail pensyarah:", err);
