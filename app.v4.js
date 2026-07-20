@@ -6050,8 +6050,15 @@ window.handleFileSelected = async function (event, docId) {
                 window.uploadProgress[docId] = "Menyimpan ke Google Drive...";
                 updateUploadProgressDOM(docId, "Menyimpan ke Google Drive...");
 
+                const studentDept = (currentUser.jabatan || currentUser.dept || activeAdminStudentDept || "JKA").toUpperCase().trim();
+                const studentSesi = currentUser.sesi || getActiveSession() || "Sesi 1:2026/2027";
+                const studentName = (currentUser.name || currentUser.nama || "Pelajar").toUpperCase().trim();
+
                 const res = await callGoogleScript("uploadFile", {
                     regNo: currentUser.regNo,
+                    studentName: studentName,
+                    dept: studentDept,
+                    sesi: studentSesi,
                     docId: docId,
                     fileName: finalFileName,
                     base64Data: base64Data
