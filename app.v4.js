@@ -469,22 +469,13 @@ function normalizeStudentsCache() {
         // Normalize session (sesi)
         if (s.sesi) {
             let str = String(s.sesi).trim();
-            if (/Fasa\s*2/i.test(str) && /-\s*Fasa\s*1$/i.test(str)) {
-                str = str.replace(/\s*-\s*Fasa\s*1$/i, "").trim();
-            }
-            str = str.replace(/^SESI/i, "Sesi").replace(/FASA/i, "Fasa");
+            str = str.replace(/\s*-\s*Fasa\s*\d+/gi, "").trim();
+            str = str.replace(/^SESI/i, "Sesi");
             s.sesi = str;
         }
 
         if (!s.sesi || String(s.sesi).trim() === "") {
             s.sesi = fallbackSession;
-        } else {
-            const sStr = String(s.sesi).toUpperCase();
-            if ((sStr.includes("2026") || sStr.includes("26")) && !sStr.includes("FASA")) {
-                s.sesi = fallbackSession;
-            } else if (!sStr.includes("FASA")) {
-                s.sesi = `${s.sesi} - Fasa 1`;
-            }
         }
 
         // Normalize department (jabatan)
@@ -1722,15 +1713,14 @@ function populateGlobalSessionSelect() {
     const students    = getStudents() || [];
 
     // Unique sessions directly from registered student records
-    const studentSessions = [...new Set(students.map(st => (st.sesi || "").trim()).filter(Boolean))];
+    const studentSessions = [...new Set(students.map(st => (st.sesi || "").replace(/\s*-\s*Fasa\s*\d+/gi, "").trim()).filter(Boolean))];
 
     let cleanSessions = [];
 
     // 1. Add all registered sessions from dbCache.sessions
     rawSessions.forEach(s => {
-        const trimmed = (s || "").trim();
+        let trimmed = (s || "").replace(/\s*-\s*Fasa\s*\d+/gi, "").trim();
         if (!trimmed) return;
-        // Only purge old hardcoded legacy string '2025/2026' if it has no students
         if (trimmed.includes("2025/2026") && !studentSessions.includes(trimmed)) return;
         if (!cleanSessions.includes(trimmed)) cleanSessions.push(trimmed);
     });
@@ -1745,7 +1735,7 @@ function populateGlobalSessionSelect() {
         cleanSessions = ["Sesi 1:2026/2027"];
     }
 
-    let active = getActiveSession();
+    let active = (getActiveSession() || "").replace(/\s*-\s*Fasa\s*\d+/gi, "").trim();
     if (!active || !cleanSessions.includes(active)) {
         active = cleanSessions[0];
         saveActiveSession(active);
