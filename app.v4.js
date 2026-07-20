@@ -5968,46 +5968,51 @@ window.handleFileSelected = async function (event, docId) {
             window.uploadProgress[docId] = "Membaca Fail...";
             updateUploadProgressDOM(docId, "Membaca Fail...");
             let base64Data;
-            if (isImage) {
-                base64Data = await compressImage(file, 1000, 1000, 0.6);
-            } else {
-                base64Data = await readFileAsBase64(file);
-            }
-            
-            if (base64Data.includes(";base64,")) {
-                base64Data = base64Data.split(";base64,")[1];
-            }
-
-            window.uploadProgress[docId] = "Menyimpan ke Google Drive...";
-            updateUploadProgressDOM(docId, "Menyimpan ke Google Drive...");
-
-            const res = await callGoogleScript("uploadFile", {
-                regNo: currentUser.regNo,
-                docId: docId,
-                fileName: finalFileName,
-                base64Data: base64Data
-            });
-
-            if (res && res.fileId) {
-                const students = getStudents();
-                const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
-                if (studentIdx !== -1) {
-                    const docData = {
-                        status: "Dalam Semakan",
-                        fileName: finalFileName,
-                        fileSize: res.fileSize || sizeStr,
-                        uploadDate: formattedTime,
-                        fileId: res.fileId,
-                        feedback: ""
-                    };
-                    window.uploadProgress[docId] = 100;
-                    updateUploadProgressDOM(docId, 100);
-                    saveDocumentToStudent(studentIdx, docId, docData, students);
+            try {
+                if (isImage) {
+                    base64Data = await compressImage(file, 1000, 1000, 0.6);
+                } else {
+                    base64Data = await readFileAsBase64(file);
                 }
-            } else {
-                showToast("Gagal menyimpan dokumen ke Google Drive.", "error");
+                
+                if (base64Data.includes(";base64,")) {
+                    base64Data = base64Data.split(";base64,")[1];
+                }
+
+                window.uploadProgress[docId] = "Menyimpan ke Google Drive...";
+                updateUploadProgressDOM(docId, "Menyimpan ke Google Drive...");
+
+                const res = await callGoogleScript("uploadFile", {
+                    regNo: currentUser.regNo,
+                    docId: docId,
+                    fileName: finalFileName,
+                    base64Data: base64Data
+                });
+
+                if (res && (res.fileId || res.fileUrl || res.status === "success")) {
+                    const students = getStudents();
+                    const studentIdx = students.findIndex(s => s.regNo === currentUser.regNo);
+                    if (studentIdx !== -1) {
+                        const docData = {
+                            status: "Dalam Semakan",
+                            fileName: finalFileName,
+                            fileSize: res.fileSize || sizeStr,
+                            uploadDate: formattedTime,
+                            fileId: res.fileId || "",
+                            fileUrl: res.fileUrl || "",
+                            feedback: ""
+                        };
+                        window.uploadProgress[docId] = 100;
+                        updateUploadProgressDOM(docId, 100);
+                        saveDocumentToStudent(studentIdx, docId, docData, students);
+                        return;
+                    }
+                } else {
+                    console.warn("Google Drive upload response invalid/failed, switching to Firebase Storage fallback...", res);
+                }
+            } catch (gdErr) {
+                console.warn("Google Drive upload exception, switching to Firebase Storage fallback...", gdErr);
             }
-            return;
         }
 
         window.uploadProgress[docId] = 30;
