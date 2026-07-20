@@ -644,10 +644,10 @@ function applyRemoteData(data) {
     if (data.settings) {
         dbCache.settings = data.settings;
         dbCache.sessions = data.settings.sessions || DEFAULT_SESSIONS;
-        // Preserve user's local active session choice in browser
-        const localActive = localStorage.getItem("upli_active_session");
-        if (localActive && localActive.trim()) {
-            dbCache.activeSession = localActive.trim();
+        // Preserve user's locked session choice in browser
+        const userLocked = localStorage.getItem("upli_locked_active_session");
+        if (userLocked && userLocked.trim()) {
+            dbCache.activeSession = userLocked.trim();
         } else if (data.settings.activeSession) {
             dbCache.activeSession = data.settings.activeSession;
         } else {
@@ -805,13 +805,8 @@ async function initDatabase() {
         // Settings
         if (settingsDoc.exists) {
             const d = settingsDoc.data();
+            dbCache.settings = d;
             dbCache.sessions = d.sessions || DEFAULT_SESSIONS;
-            dbCache.activeSession = d.activeSession || "Sesi 1:2026/2027";
-            dbCache.settings = d || {};
-        } else {
-            dbCache.sessions = DEFAULT_SESSIONS;
-            dbCache.activeSession = "Sesi 1:2026/2027";
-            dbCache.settings = { sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027" };
             writeSettingsToFirestore({ sessions: DEFAULT_SESSIONS, activeSession: "Sesi 1:2026/2027" });
         }
         localStorage.setItem("upli_sessions", JSON.stringify(dbCache.sessions));
@@ -1003,7 +998,12 @@ window.refreshGlobalData = async function() {
                 if (data.settings) {
                     dbCache.settings = data.settings || {};
                     dbCache.sessions = data.settings.sessions || DEFAULT_SESSIONS;
-                    dbCache.activeSession = data.settings.activeSession || "Sesi 1:2026/2027";
+                    const userLocked = localStorage.getItem("upli_locked_active_session");
+                    if (userLocked && userLocked.trim()) {
+                        dbCache.activeSession = userLocked.trim();
+                    } else {
+                        dbCache.activeSession = data.settings.activeSession || "Sesi 1:2026/2027";
+                    }
                     localStorage.setItem("upli_settings", JSON.stringify(dbCache.settings));
                     applySystemBranding();
                 }
@@ -1119,8 +1119,22 @@ function isStudentInSession(student, activeSession) {
     return cleanS1 === cleanS2;
 }
 
-function getActiveSession() { return dbCache.activeSession; }
-function saveActiveSession(val) { dbCache.activeSession = val; writeSettingsToFirestore({ activeSession: val }); }
+function getActiveSession() {
+    const locked = localStorage.getItem("upli_locked_active_session");
+    if (locked && locked.trim()) return locked.trim();
+    return dbCache.activeSession || "Sesi 1:2026/2027";
+}
+
+function saveActiveSession(val, isUserAction = true) {
+    if (!val) return;
+    const cleanVal = val.trim();
+    dbCache.activeSession = cleanVal;
+    if (isUserAction) {
+        try { localStorage.setItem("upli_locked_active_session", cleanVal); } catch(e){}
+    }
+    try { localStorage.setItem("upli_active_session", cleanVal); } catch(e){}
+    writeSettingsToFirestore({ activeSession: cleanVal });
+}
 
 function getLogs() { return dbCache.logs; }
 function addLog(type, text) {
@@ -1791,10 +1805,9 @@ function populateGlobalSessionSelect() {
         cleanSessions = ["Sesi 1:2026/2027"];
     }
 
-    let active = (getActiveSession() || "").replace(/\s*-\s*Fasa\s*\d+/gi, "").trim();
+    let active = getActiveSession();
     if (!active || !cleanSessions.includes(active)) {
         active = cleanSessions[0];
-        saveActiveSession(active);
     }
 
     dbCache.sessions = cleanSessions;
