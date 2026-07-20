@@ -248,10 +248,7 @@ const DEFAULT_LECTURERS = [
 ];
 
 const DEFAULT_SESSIONS = [
-    "Sesi 2:2025/2026 - Fasa 1",
-    "Sesi 2:2025/2026 - Fasa 2",
-    "Sesi 1:2026/2027 - Fasa 1",
-    "Sesi 1:2026/2027 - Fasa 2"
+    "Sesi 1:2026/2027"
 ];
 
 const DEFAULT_STUDENTS = [
@@ -605,43 +602,7 @@ function normalizeStudentsCache() {
 
 // ---------- Auto-migrate legacy sessions (add Fasa 1 & Fasa 2) ----------
 function autoMigrateSessions() {
-    let changed = false;
-    const newSessions = [];
-    
-    dbCache.sessions.forEach(s => {
-        if (!s.includes("Fasa")) {
-            const fasa1 = `${s} - Fasa 1`;
-            const fasa2 = `${s} - Fasa 2`;
-            if (!newSessions.includes(fasa1)) newSessions.push(fasa1);
-            if (!newSessions.includes(fasa2)) newSessions.push(fasa2);
-            changed = true;
-        } else {
-            if (!newSessions.includes(s)) newSessions.push(s);
-        }
-    });
-    
-    if (changed) {
-        dbCache.sessions = newSessions;
-        saveSessions(newSessions);
-    }
-    
-    if (dbCache.activeSession && !dbCache.activeSession.includes("Fasa")) {
-        const migratedActive = `${dbCache.activeSession} - Fasa 1`;
-        dbCache.activeSession = migratedActive;
-        saveActiveSession(migratedActive);
-    }
-    
-    let studentsChanged = false;
-    dbCache.students.forEach(student => {
-        if (student.sesi && !student.sesi.includes("Fasa")) {
-            student.sesi = `${student.sesi} - Fasa 1`;
-            studentsChanged = true;
-        }
-    });
-    
-    if (studentsChanged) {
-        try { localStorage.setItem("upli_students", JSON.stringify(dbCache.students)); } catch(e) {}
-    }
+    // Keep exact session strings from user uploads / database without forcing legacy suffixes
 }
 
 // ==========================================================================
@@ -1796,27 +1757,44 @@ function loginUser(user, role) {
 }
 
 function populateGlobalSessionSelect() {
-    // ── Auto-sync: extract all unique sessions from student records ──
-    const sessions = getSessions() || [];
-    const students = getStudents() || [];
-    let changed = false;
+    const rawSessions = getSessions() || [];
+    const students    = getStudents() || [];
 
-    students.forEach(st => {
-        if (st.sesi && st.sesi.trim() !== "") {
-            const trimmedSesi = st.sesi.trim();
-            if (!sessions.includes(trimmedSesi)) {
-                sessions.push(trimmedSesi);
-                changed = true;
-            }
+    // Unique sessions directly from registered student records
+    const studentSessions = [...new Set(students.map(st => (st.sesi || "").trim()).filter(Boolean))];
+
+    // Filter sessions: keep if present in student data, active session, or manually created
+    let active = getActiveSession();
+    let cleanSessions = [];
+
+    // Add student sessions
+    studentSessions.forEach(s => {
+        if (!cleanSessions.includes(s)) cleanSessions.push(s);
+    });
+
+    // Add remaining custom sessions from rawSessions EXCEPT legacy hardcoded defaults if unused
+    rawSessions.forEach(s => {
+        const trimmed = (s || "").trim();
+        if (!trimmed) return;
+        const isLegacyUnused = (trimmed.includes("2025/2026") || trimmed.includes("Fasa")) && !studentSessions.includes(trimmed);
+        if (!isLegacyUnused && !cleanSessions.includes(trimmed)) {
+            cleanSessions.push(trimmed);
         }
     });
 
-    if (changed) {
-        dbCache.sessions = sessions;
-        saveSessions(sessions);
+    // Fallback if empty
+    if (cleanSessions.length === 0) {
+        cleanSessions = ["Sesi 1:2026/2027"];
     }
 
-    const active = getActiveSession();
+    // Ensure active session is valid
+    if (!active || !cleanSessions.includes(active)) {
+        active = cleanSessions[0];
+        saveActiveSession(active);
+    }
+
+    dbCache.sessions = cleanSessions;
+    try { localStorage.setItem("upli_sessions", JSON.stringify(cleanSessions)); } catch(e) {}
 
     globalSessionSelect.innerHTML = "";
     const deleteSessionSelect = document.getElementById("admin-delete-session-select");
@@ -1825,7 +1803,7 @@ function populateGlobalSessionSelect() {
     const portalSessionSelect = document.getElementById("portal-session-select");
     if (portalSessionSelect) portalSessionSelect.innerHTML = "";
 
-    sessions.forEach(s => {
+    cleanSessions.forEach(s => {
         const option = document.createElement("option");
         option.value = s;
         option.textContent = s;
