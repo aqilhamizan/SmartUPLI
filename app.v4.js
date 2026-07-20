@@ -963,7 +963,15 @@ function attachGlobalStudentsRealtimeListener() {
                 showDBLoading(false);
             }
         } else {
-            dbCache.students = snap.docs.map(doc => doc.data());
+            const incomingDocs = snap.docs.map(doc => doc.data());
+            const studentMap = new Map();
+            (dbCache.students || []).forEach(st => {
+                if (st && st.regNo) studentMap.set(st.regNo, st);
+            });
+            incomingDocs.forEach(st => {
+                if (st && st.regNo) studentMap.set(st.regNo, st);
+            });
+            dbCache.students = Array.from(studentMap.values());
         }
         normalizeStudentsCache();
         try { localStorage.setItem("upli_students", JSON.stringify(dbCache.students)); } catch(e){}
@@ -972,10 +980,20 @@ function attachGlobalStudentsRealtimeListener() {
         // Start listener after initial fetch
         activeGlobalStudentsListener = db.collection("students").onSnapshot(snapshot => {
             if (snapshot.metadata.hasPendingWrites) return;
-            dbCache.students = snapshot.empty ? [] : snapshot.docs.map(doc => doc.data());
-            normalizeStudentsCache();
-            try { localStorage.setItem("upli_students", JSON.stringify(dbCache.students)); } catch(e){}
-            if (activeTab) renderTabData(activeTab);
+            if (!snapshot.empty) {
+                const incomingDocs = snapshot.docs.map(doc => doc.data());
+                const studentMap = new Map();
+                (dbCache.students || []).forEach(st => {
+                    if (st && st.regNo) studentMap.set(st.regNo, st);
+                });
+                incomingDocs.forEach(st => {
+                    if (st && st.regNo) studentMap.set(st.regNo, st);
+                });
+                dbCache.students = Array.from(studentMap.values());
+                normalizeStudentsCache();
+                try { localStorage.setItem("upli_students", JSON.stringify(dbCache.students)); } catch(e){}
+                if (activeTab) renderTabData(activeTab);
+            }
         }, err => console.warn("Sync error all students:", err));
     }).catch(err => {
         console.error("Failed to load global students:", err);
