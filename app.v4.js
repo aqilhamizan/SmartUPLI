@@ -1053,6 +1053,25 @@ function saveStudents(data, modifiedRegNo = null) {
 function getSessions() { return dbCache.sessions; }
 function saveSessions(data) { dbCache.sessions = data; writeSettingsToFirestore({ sessions: data }); }
 
+/**
+ * Semak secara strictly sama ada pelajar berdaftar di bawah sesi akademik pilihan.
+ * Menghalang penggabungan data pelajar daripada sesi berbeza.
+ */
+function isStudentInSession(student, activeSession) {
+    if (!student || !activeSession) return false;
+    const sSesi = String(student.sesi || "").toUpperCase().trim();
+    const target = String(activeSession || "").toUpperCase().trim();
+    if (!sSesi || !target) return false;
+
+    if (sSesi === target) return true;
+
+    // Normalize potential legacy suffixes
+    const cleanS1 = sSesi.replace(/\s*-\s*FASA\s*\d+/gi, "").trim();
+    const cleanS2 = target.replace(/\s*-\s*FASA\s*\d+/gi, "").trim();
+
+    return cleanS1 === cleanS2;
+}
+
 function getActiveSession() { return dbCache.activeSession; }
 function saveActiveSession(val) { dbCache.activeSession = val; writeSettingsToFirestore({ activeSession: val }); }
 
@@ -2783,10 +2802,10 @@ function renderLecturerDashboard() {
     const tableEl = tbody.closest("table");
     const thead = tableEl.querySelector("thead");
 
-    // FILTER: Filter students by department AND active academic session AND search query
+    // FILTER: Filter students strictly by department AND active academic session AND search query
     const filteredStudents = students.filter(s =>
         s.jabatan === activeLecturerDept &&
-        s.sesi === activeSesi &&
+        isStudentInSession(s, activeSesi) &&
         ((s.name || "").toLowerCase().includes(searchQuery) || (s.regNo || "").toLowerCase().includes(searchQuery))
     );
 
@@ -3508,17 +3527,8 @@ function renderAdminDashboard() {
 
     applyDeptTheme(activeAdminDept);
 
-    // Filter students by active session with robust/fuzzy matching
-    const normActiveSesi = (activeSesi || "").toUpperCase().trim();
-    const baseActiveSesi = normActiveSesi.split("-")[0].trim();
-
-    let currentSessionStudents = students.filter(s => {
-        const sSesi = (s.sesi || "").toUpperCase().trim();
-        if (!sSesi) return true; // Include if student session is unassigned
-        if (sSesi === normActiveSesi) return true;
-        const baseStudentSesi = sSesi.split("-")[0].trim();
-        return baseStudentSesi === baseActiveSesi || sSesi.includes(baseActiveSesi) || normActiveSesi.includes(baseStudentSesi);
-    });
+    // Filter students strictly by active session
+    let currentSessionStudents = students.filter(s => isStudentInSession(s, activeSesi));
 
     // Total stats update (filtered by academic session for students)
     document.getElementById("admin-total-students").textContent = currentSessionStudents.length;
@@ -4502,10 +4512,10 @@ function renderAdminStudentsTable() {
     const tbody = document.getElementById("admin-students-table-body");
     let rowsHtml = "";
 
-    // FILTER: Filter students by department AND active session AND search query
+    // FILTER: Filter students strictly by department AND active session AND search query
     const filteredStudents = students.filter(s =>
         (s.jabatan || "").toUpperCase().trim() === (activeAdminStudentDept || "").toUpperCase().trim() &&
-        (s.sesi || "").toUpperCase().trim() === (activeSesi || "").toUpperCase().trim() &&
+        isStudentInSession(s, activeSesi) &&
         (
             (s.name || "").toLowerCase().includes(searchVal) ||
             (s.regNo || "").toLowerCase().includes(searchVal) ||
@@ -7606,17 +7616,8 @@ window.openDeptStatsModal = function(deptCode) {
     const activeSession = (portalSelect && portalSelect.value) ? portalSelect.value : (dbCache.activeSession || "");
     const allStudents = getStudents();
     
-    // Robust session matching
-    const normActiveSesi = (activeSession || "").toUpperCase().trim();
-    const baseActiveSesi = normActiveSesi.split("-")[0].trim();
-
-    const sessionStudents = activeSession ? allStudents.filter(s => {
-        const sSesi = (s.sesi || "").toUpperCase().trim();
-        if (!sSesi) return true;
-        if (sSesi === normActiveSesi) return true;
-        const baseStudentSesi = sSesi.split("-")[0].trim();
-        return baseStudentSesi === baseActiveSesi || sSesi.includes(baseActiveSesi) || normActiveSesi.includes(baseStudentSesi);
-    }) : allStudents;
+    // Strict session matching
+    const sessionStudents = activeSession ? allStudents.filter(s => isStudentInSession(s, activeSession)) : allStudents;
 
     // Robust department matching
     const deptStudents = sessionStudents.filter(s => {
