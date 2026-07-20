@@ -2,7 +2,7 @@
 // Letakkan URL Web App Google Apps Script anda di sini jika ingin menggunakan
 // Google Sheets (sebagai database) & Google Drive (sebagai storan fail PDF).
 // Contoh: const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/.../exec";
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfAId1AxYWR7dIWpFBGdmYfGtzSBiEpcS77Yc--732KxvWGuLOk2Y79yzitS0GmLgCjA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxoG76mTacW6KQ-UQN_pSf1jzBvn95meCQfppKBc7Qq_gEpuEj9Iz1WFF7CXlxlTTRhqw/exec";
 
 // Firebase configuration
 const firebaseConfig = {
