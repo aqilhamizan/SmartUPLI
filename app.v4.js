@@ -1796,7 +1796,26 @@ function loginUser(user, role) {
 }
 
 function populateGlobalSessionSelect() {
-    const sessions = getSessions();
+    // ── Auto-sync: extract all unique sessions from student records ──
+    const sessions = getSessions() || [];
+    const students = getStudents() || [];
+    let changed = false;
+
+    students.forEach(st => {
+        if (st.sesi && st.sesi.trim() !== "") {
+            const trimmedSesi = st.sesi.trim();
+            if (!sessions.includes(trimmedSesi)) {
+                sessions.push(trimmedSesi);
+                changed = true;
+            }
+        }
+    });
+
+    if (changed) {
+        dbCache.sessions = sessions;
+        saveSessions(sessions);
+    }
+
     const active = getActiveSession();
 
     globalSessionSelect.innerHTML = "";
@@ -3965,6 +3984,14 @@ excelFileInput.addEventListener("change", (e) => {
                 localStorage.setItem("upli_students", JSON.stringify(dbCache.students));
                 localStorage.setItem("upli_cache_ts", String(Date.now()));
             } catch(e) {}
+
+            // ── Auto-sync sesi daripada fail CSV ke dropdown & sesi aktif ──────────────
+            const csvSessions = [...new Set(results.map(r => r.sesi).filter(Boolean))];
+            if (csvSessions.length > 0) {
+                const targetSesi = csvSessions[0].trim();
+                saveActiveSession(targetSesi);
+            }
+            populateGlobalSessionSelect();
 
             // ── Auto-switch ke tab jabatan yang betul ──────────────────────────────────
             let importedDept = activeAdminStudentDept;
