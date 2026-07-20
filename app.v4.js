@@ -619,21 +619,50 @@ async function callGoogleScript(action, dataObj = {}) {
 function applyRemoteData(data) {
     if (!data) return false;
 
-    if (data.students) {
+    if (data.students && Array.isArray(data.students)) {
         const pkliSet = getPKLIRegNoSet();
-        data.students.forEach(s => {
-            if (!s || !s.regNo) return;
-            if (pkliSet.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true" || s.isPKLI === true) {
-                s.isPKLI = true;
-                s.statusLI = "PKLI";
-                pkliSet.add(s.regNo);
+
+        // Read current local students from memory & localStorage to preserve uploaded students
+        let localStudents = dbCache.students || [];
+        try {
+            const lsStudents = JSON.parse(localStorage.getItem("upli_students") || "[]");
+            if (Array.isArray(lsStudents) && lsStudents.length > localStudents.length) {
+                localStudents = lsStudents;
+            }
+        } catch(e) {}
+
+        const studentMap = new Map();
+        // Load local uploaded students first
+        localStudents.forEach(st => {
+            if (st && st.regNo) studentMap.set(String(st.regNo).trim().toUpperCase(), st);
+        });
+
+        // Merge incoming remote students without wiping local uploaded students
+        data.students.forEach(st => {
+            if (!st || !st.regNo) return;
+            const reg = String(st.regNo).trim().toUpperCase();
+
+            if (!studentMap.has(reg)) {
+                studentMap.set(reg, st);
             } else {
-                s.isPKLI = false;
+                const existing = studentMap.get(reg);
+                const merged = { ...st, ...existing };
+                if (existing.documents && Object.keys(existing.documents).length > 0) {
+                    merged.documents = { ...(st.documents || {}), ...existing.documents };
+                }
+                studentMap.set(reg, merged);
+            }
+
+            const current = studentMap.get(reg);
+            if (pkliSet.has(reg) || current.statusLI === "PKLI" || String(current.isPKLI) === "true" || current.isPKLI === true) {
+                current.isPKLI = true;
+                current.statusLI = "PKLI";
+                pkliSet.add(reg);
             }
         });
-        savePKLIRegNoSet(pkliSet);
 
-        dbCache.students = data.students;
+        savePKLIRegNoSet(pkliSet);
+        dbCache.students = Array.from(studentMap.values());
         normalizeStudentsCache();
     }
     if (data.lecturers)     { dbCache.lecturers     = data.lecturers; }
@@ -1006,8 +1035,29 @@ window.refreshGlobalData = async function() {
         try {
             const data = await callGoogleScript("init");
             if (data) {
-                dbCache.students = data.students || [];
-                normalizeStudentsCache();
+                if (data.students && Array.isArray(data.students)) {
+                    const studentMap = new Map();
+                    (dbCache.students || []).forEach(st => {
+                        if (st && st.regNo) studentMap.set(String(st.regNo).trim().toUpperCase(), st);
+                    });
+                    data.students.forEach(st => {
+                        if (st && st.regNo) {
+                            const reg = String(st.regNo).trim().toUpperCase();
+                            if (!studentMap.has(reg)) {
+                                studentMap.set(reg, st);
+                            } else {
+                                const existing = studentMap.get(reg);
+                                const merged = { ...st, ...existing };
+                                if (existing.documents && Object.keys(existing.documents).length > 0) {
+                                    merged.documents = { ...(st.documents || {}), ...existing.documents };
+                                }
+                                studentMap.set(reg, merged);
+                            }
+                        }
+                    });
+                    dbCache.students = Array.from(studentMap.values());
+                    normalizeStudentsCache();
+                }
                 dbCache.lecturers = data.lecturers || [];
                 dbCache.admins = data.admins || [];
                 dbCache.rubriks = data.rubriks || [];
