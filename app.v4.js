@@ -4487,6 +4487,8 @@ if (deleteSessionForm) {
     });
 }
 
+let activeAdminStudentTabMode = "active"; // "active" or "pkli"
+
 // Render Admin Students Tab Table (with Department & Session Filtering & Checkbox Selections)
 function renderAdminStudentsTable() {
     if (currentRole !== "admin") return;
@@ -4494,7 +4496,11 @@ function renderAdminStudentsTable() {
     applyDeptTheme(activeAdminStudentDept);
 
     const activeSesi = getActiveSession();
-    document.getElementById("admin-students-table-title").textContent = `Pelajar Berdaftar: ${activeAdminStudentDept} (${activeSesi})`;
+    const isPKLIMode = activeAdminStudentTabMode === "pkli";
+
+    document.getElementById("admin-students-table-title").textContent = isPKLIMode
+        ? `Pelajar PKLI (Penangguhan LI): ${activeAdminStudentDept} (${activeSesi})`
+        : `Pelajar Berdaftar: ${activeAdminStudentDept} (${activeSesi})`;
 
     const students = getStudents();
     const searchVal = document.getElementById("admin-student-search-input").value.trim().toLowerCase();
@@ -4502,9 +4508,9 @@ function renderAdminStudentsTable() {
     const tbody = document.getElementById("admin-students-table-body");
     let rowsHtml = "";
 
-    // FILTER: Filter students strictly by department AND active session AND search query (Exclude PKLI students)
+    // FILTER: Filter students strictly by department AND active session AND search query AND tab mode
     const filteredStudents = students.filter(s =>
-        !s.isPKLI &&
+        (isPKLIMode ? Boolean(s.isPKLI) : !s.isPKLI) &&
         (s.jabatan || "").toUpperCase().trim() === (activeAdminStudentDept || "").toUpperCase().trim() &&
         isStudentInSession(s, activeSesi) &&
         (
@@ -4515,7 +4521,7 @@ function renderAdminStudentsTable() {
     );
 
     if (filteredStudents.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">Tiada rekod pelajar berdaftar ditemui bagi jabatan ${activeAdminStudentDept} untuk sesi ${activeSesi}.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px;" class="text-muted">Tiada rekod ${isPKLIMode ? "pelajar PKLI" : "pelajar berdaftar"} ditemui bagi jabatan ${activeAdminStudentDept} untuk sesi ${activeSesi}.</td></tr>`;
         const selectAllCheck = document.getElementById("admin-student-select-all");
         if (selectAllCheck) selectAllCheck.checked = false;
         if (window.updateBulkCount) window.updateBulkCount();
@@ -4565,6 +4571,28 @@ function renderAdminStudentsTable() {
                 <i class="fa-solid fa-folder-arrow-down"></i> Belum Lengkap
               </button>`;
 
+        const actionButtonsHtml = isPKLIMode
+            ? `
+                <button class="btn btn-sm" onclick="restoreFromPKLI('${s.regNo}')" title="Kembalikan Pelajar ke Senarai Aktif" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#059669; border-radius:6px; padding:5px 10px; font-size:0.75rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap;">
+                    <i class="fa-solid fa-rotate-left"></i> Pulihkan
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openEditStudentModal('${s.regNo}')">
+                    <i class="fa-solid fa-user-pen text-primary"></i> Sunting
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="deleteStudent('${s.regNo}')">
+                    <i class="fa-solid fa-trash text-danger"></i> Padam
+                </button>
+              `
+            : `
+                ${downloadBtn}
+                <button class="btn btn-secondary btn-sm" onclick="openEditStudentModal('${s.regNo}')">
+                    <i class="fa-solid fa-user-pen text-primary"></i> Sunting
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="deleteStudent('${s.regNo}')">
+                    <i class="fa-solid fa-trash text-danger"></i> Padam
+                </button>
+              `;
+
         rowsHtml += `
             <tr class="student-table-row" data-dept="${s.jabatan}">
                 <td style="text-align: center;">
@@ -4575,6 +4603,7 @@ function renderAdminStudentsTable() {
                         <div class="avatar mini-avatar" ${avatarStyle}>${avatarContent}</div>
                         <div>
                             <strong>${s.name}</strong>
+                            ${isPKLIMode ? `<span class="badge" style="background:rgba(245,158,11,0.15); color:#d97706; font-size:0.7rem; margin-left:6px;">PKLI</span>` : ""}
                         </div>
                     </div>
                 </td>
@@ -4597,13 +4626,7 @@ function renderAdminStudentsTable() {
                 </td>
                 <td>
                     <div style="display:flex; gap:5px; align-items:center;">
-                        ${downloadBtn}
-                        <button class="btn btn-secondary btn-sm" onclick="openEditStudentModal('${s.regNo}')">
-                            <i class="fa-solid fa-user-pen text-primary"></i> Sunting
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="deleteStudent('${s.regNo}')">
-                            <i class="fa-solid fa-trash text-danger"></i> Padam
-                        </button>
+                        ${actionButtonsHtml}
                     </div>
                 </td>
             </tr>
@@ -6142,21 +6165,30 @@ function setupBulkActionListeners() {
             }
         }
 
-        // --- Bulk Move to PKLI button ---
+        // --- Bulk Move to PKLI / Restore button ---
         const bulkMovePKLIBtn = document.getElementById("btn-bulk-move-pkli");
         if (bulkMovePKLIBtn) {
+            const isPKLIMode = activeAdminStudentTabMode === "pkli";
+            if (isPKLIMode) {
+                bulkMovePKLIBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> Pulihkan Terpilih`;
+            } else {
+                bulkMovePKLIBtn.innerHTML = `<i class="fa-solid fa-user-clock"></i> Pindah ke PKLI`;
+            }
+
             if (checkedCount > 0) {
                 bulkMovePKLIBtn.disabled          = false;
                 bulkMovePKLIBtn.style.opacity     = "1";
                 bulkMovePKLIBtn.style.cursor      = "pointer";
-                bulkMovePKLIBtn.style.background  = "rgba(245,158,11,0.18)";
-                bulkMovePKLIBtn.style.borderColor = "rgba(245,158,11,0.5)";
+                bulkMovePKLIBtn.style.background  = isPKLIMode ? "rgba(16,185,129,0.18)" : "rgba(245,158,11,0.18)";
+                bulkMovePKLIBtn.style.borderColor = isPKLIMode ? "rgba(16,185,129,0.5)"  : "rgba(245,158,11,0.5)";
+                bulkMovePKLIBtn.style.color       = isPKLIMode ? "#059669" : "#d97706";
             } else {
                 bulkMovePKLIBtn.disabled          = true;
                 bulkMovePKLIBtn.style.opacity     = "0.5";
                 bulkMovePKLIBtn.style.cursor      = "not-allowed";
-                bulkMovePKLIBtn.style.background  = "rgba(245,158,11,0.1)";
-                bulkMovePKLIBtn.style.borderColor = "rgba(245,158,11,0.3)";
+                bulkMovePKLIBtn.style.background  = isPKLIMode ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.1)";
+                bulkMovePKLIBtn.style.borderColor = isPKLIMode ? "rgba(16,185,129,0.2)"  : "rgba(245,158,11,0.3)";
+                bulkMovePKLIBtn.style.color       = isPKLIMode ? "#059669" : "#d97706";
             }
         }
 
@@ -6365,7 +6397,7 @@ function setupBulkActionListeners() {
         });
     }
 
-    // ── BULK MOVE TO PKLI ───────────────────────────────────────────────────
+    // ── BULK MOVE / RESTORE PKLI ───────────────────────────────────────────
     const bulkMovePKLIBtn = document.getElementById("btn-bulk-move-pkli");
     if (bulkMovePKLIBtn) {
         bulkMovePKLIBtn.addEventListener("click", () => {
@@ -6373,20 +6405,31 @@ function setupBulkActionListeners() {
             const regs = Array.from(checkboxes).map(cb => cb.dataset.reg);
             if (regs.length === 0) return;
 
+            const isPKLIMode = activeAdminStudentTabMode === "pkli";
+            const confirmMsg = isPKLIMode
+                ? `Adakah anda pasti mahu mengembalikan ${regs.length} pelajar PKLI yang dipilih ke senarai Pelajar Aktif?`
+                : `Adakah anda pasti mahu memindahkan ${regs.length} pelajar yang dipilih ke Senarai PKLI (Penangguhan Kursus LI)?`;
+
             showConfirm(
-                `Adakah anda pasti mahu memindahkan ${regs.length} pelajar yang dipilih ke Senarai PKLI (Penangguhan Kursus LI)?`,
+                confirmMsg,
                 function () {
                     const students = getStudents();
                     regs.forEach(reg => {
                         const st = students.find(s => s.regNo === reg);
                         if (st) {
-                            st.isPKLI = true;
-                            st.statusLI = "PKLI";
+                            st.isPKLI = !isPKLIMode;
+                            st.statusLI = isPKLIMode ? "Aktif" : "PKLI";
                         }
                     });
                     saveStudents(students, regs.length === 1 ? regs[0] : regs);
-                    addLog("warning", `Admin memindahkan ${regs.length} pelajar ke Senarai PKLI.`);
-                    showToast(`Berjaya! ${regs.length} pelajar telah dipindahkan ke Senarai PKLI.`, "warning");
+                    
+                    const actionLabel = isPKLIMode ? "mengembalikan dari PKLI" : "memindahkan ke Senarai PKLI";
+                    addLog("warning", `Admin ${actionLabel} bagi ${regs.length} pelajar.`);
+                    
+                    const toastMsg = isPKLIMode
+                        ? `Berjaya! ${regs.length} pelajar telah dikembalikan ke senarai Pelajar Aktif.`
+                        : `Berjaya! ${regs.length} pelajar telah dipindahkan ke Senarai PKLI.`;
+                    showToast(toastMsg, isPKLIMode ? "success" : "warning");
 
                     document.querySelectorAll(".student-select-checkbox").forEach(cb => cb.checked = false);
                     if (selectAllCheck) {
@@ -6399,9 +6442,37 @@ function setupBulkActionListeners() {
                     renderAdminDashboard();
                     updatePKLICountBadge();
                 },
-                "⚠️ Pindah ke PKLI",
-                "Ya, Pindahkan"
+                isPKLIMode ? "Pulihkan Terpilih" : "⚠️ Pindah ke PKLI",
+                isPKLIMode ? "Ya, Pulihkan" : "Ya, Pindahkan"
             );
+        });
+    }
+
+    // ── SUBTAB MODE LISTENERS (Pelajar Aktif vs Senarai PKLI) ───────────────
+    const subtabActive = document.getElementById("subtab-active-students");
+    const subtabPKLI   = document.getElementById("subtab-pkli-students");
+
+    if (subtabActive && subtabPKLI) {
+        subtabActive.addEventListener("click", () => {
+            activeAdminStudentTabMode = "active";
+            subtabActive.classList.add("active");
+            subtabPKLI.classList.remove("active");
+            subtabActive.style.background = "var(--color-primary)";
+            subtabActive.style.color = "#ffffff";
+            subtabPKLI.style.background = "rgba(245,158,11,0.08)";
+            subtabPKLI.style.color = "#d97706";
+            renderAdminStudentsTable();
+        });
+
+        subtabPKLI.addEventListener("click", () => {
+            activeAdminStudentTabMode = "pkli";
+            subtabPKLI.classList.add("active");
+            subtabActive.classList.remove("active");
+            subtabPKLI.style.background = "#d97706";
+            subtabPKLI.style.color = "#ffffff";
+            subtabActive.style.background = "rgba(255,255,255,0.06)";
+            subtabActive.style.color = "var(--text-muted)";
+            renderAdminStudentsTable();
         });
     }
 
@@ -6502,6 +6573,8 @@ function updatePKLICountBadge() {
     const pkliCount = students.filter(s => Boolean(s.isPKLI)).length;
     const badge = document.getElementById("pkli-count-badge");
     if (badge) badge.textContent = pkliCount;
+    const tabBadge = document.getElementById("pkli-tab-count-badge");
+    if (tabBadge) tabBadge.textContent = pkliCount;
 }
 window.updatePKLICountBadge = updatePKLICountBadge;
 

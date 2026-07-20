@@ -868,6 +868,20 @@
                             <button class="dept-tab-btn" data-dept="JPH">JPH</button>
                         </div>
 
+                        <!-- Sub-tab Mode: Pelajar Berdaftar (Aktif) vs Senarai PKLI -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:16px;">
+                            <div class="sub-view-tabs" style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button class="sub-tab-btn active" id="subtab-active-students"
+                                    style="padding:8px 18px; border-radius:10px; font-weight:700; font-size:0.85rem; border:1px solid var(--border-color); background:var(--color-primary); color:#ffffff; cursor:pointer; display:flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(0,0,0,0.1); transition:all 0.2s;">
+                                    <i class="fa-solid fa-user-check"></i> Pelajar Berdaftar (Aktif)
+                                </button>
+                                <button class="sub-tab-btn" id="subtab-pkli-students"
+                                    style="padding:8px 18px; border-radius:10px; font-weight:700; font-size:0.85rem; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.08); color:#d97706; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.2s;">
+                                    <i class="fa-solid fa-user-clock"></i> Senarai PKLI <span id="pkli-tab-count-badge" class="badge" style="background:#d97706; color:#ffffff; padding:2px 7px; border-radius:10px; font-size:0.75rem; margin-left:2px;">0</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Import CSV Widget (tied to active dept tab) -->
                         <div class="dashboard-grid mt-4" style="margin-bottom: 0;">
                             <div class="card">
