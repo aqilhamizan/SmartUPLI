@@ -6482,10 +6482,20 @@ function setupBulkActionListeners() {
     const btnClosePKLI    = document.getElementById("btn-close-pkli-modal");
     const pkliSearchInput = document.getElementById("pkli-search-input");
 
-    if (btnViewPKLIList && pkliModal) {
+    if (btnViewPKLIList) {
         btnViewPKLIList.addEventListener("click", () => {
-            pkliModal.style.display = "flex";
-            renderPKLITable();
+            activeAdminStudentTabMode = "pkli";
+            if (subtabPKLI && subtabActive) {
+                subtabPKLI.classList.add("active");
+                subtabActive.classList.remove("active");
+                subtabPKLI.style.background = "#d97706";
+                subtabPKLI.style.color = "#ffffff";
+                subtabActive.style.background = "rgba(255,255,255,0.06)";
+                subtabActive.style.color = "var(--text-muted)";
+            }
+            renderAdminStudentsTable();
+            const tableTitle = document.getElementById("admin-students-table-title");
+            if (tableTitle) tableTitle.scrollIntoView({ behavior: "smooth", block: "start" });
         });
     }
     if (btnClosePKLI && pkliModal) {
