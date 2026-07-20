@@ -4,8 +4,8 @@
 // Ini membolehkan app buka SERTA-MERTA walaupun tiada atau lambat internet.
 // ==========================================================================
 
-const CACHE_NAME    = 'upli-static-v3';
-const CACHE_VERSION = 3; // Tingkatkan nombor ini jika ada perubahan fail utama
+const CACHE_NAME    = 'upli-static-v4';
+const CACHE_VERSION = 4; // Tingkatkan nombor ini jika ada perubahan fail utama
 
 // Senarai fail statik yang akan dicache semasa pemasangan
 const STATIC_ASSETS = [

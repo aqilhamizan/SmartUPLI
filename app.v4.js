@@ -251,73 +251,7 @@ const DEFAULT_SESSIONS = [
     "Sesi 1:2026/2027"
 ];
 
-const DEFAULT_STUDENTS = [
-    {
-        name: "Mohammad Amirul bin Rosli",
-        regNo: "13DKA23F1001",
-        email: "amirul@student.com",
-        class: "DKA5B",
-        jabatan: "JKA",
-        tempatLI: "Petronas Carigali KK",
-        pensyarahPemantau: "faridah@polikk.edu.my",
-        pensyarahPenilai: "rizwan@polikk.edu.my",
-        sesi: "Sesi 1:2026/2027 - Fasa 1",
-        role: "student",
-        documents: {
-            borang_jawapan: {
-                status: "Diterima",
-                fileName: "amirul_jawapan.pdf",
-                fileSize: "1.4 MB",
-                uploadDate: "2026-06-15 10:24",
-                feedback: "Jawapan lengkap.",
-                fileData: ""
-            },
-            skop_kerja: {
-                status: "Dalam Semakan",
-                fileName: "skop_kerja_amirul.pdf",
-                fileSize: "980 KB",
-                uploadDate: "2026-06-20 14:15",
-                feedback: "",
-                fileData: ""
-            }
-        }
-    },
-    {
-        name: "Nurul Aishah binti Osman",
-        regNo: "13DUB23F1002",
-        email: "aishah@student.com",
-        class: "DUB5A",
-        jabatan: "JKA",
-        tempatLI: "Telekom Malaysia (Sabah)",
-        pensyarahPemantau: "faridah@polikk.edu.my",
-        pensyarahPenilai: "alice@polikk.edu.my",
-        sesi: "Sesi 1:2026/2027 - Fasa 1",
-        syarikat: "Zelnet Resources",
-        documents: {
-            borang_jawapan: {
-                status: "Diterima",
-                fileName: "aishah_jawapan.pdf",
-                fileSize: "1.1 MB",
-                uploadDate: "2026-06-12 09:30",
-                feedback: "Diluluskan.",
-                fileData: ""
-            }
-        }
-    },
-    {
-        name: "Chong Wei Sheng",
-        regNo: "13DKA23F2001",
-        email: "chong@student.com",
-        class: "DKA5C",
-        jabatan: "JKA",
-        tempatLI: "Syarikat Pembinaan Jaya Sdn Bhd",
-        pensyarahPemantau: "alice@polikk.edu.my",
-        pensyarahPenilai: "faridah@polikk.edu.my",
-        sesi: "Sesi 1:2026/2027 - Fasa 1",
-        role: "student",
-        documents: {}
-    }
-];
+const DEFAULT_STUDENTS = [];
 
 
 const DEFAULT_LOGS = [
@@ -6446,11 +6380,79 @@ function deleteAllStudentsGlobal() {
     );
 }
 
-// Bind Padam Semua Pelajar button in Pengurusan Pensyarah tab
+// Complete Reset of all student records and sessions across App, Google Sheets & Firestore
+async function resetAllStudentsAndSessionsGlobal() {
+    const defaultSesi = "Sesi 1:2026/2027";
+
+    showConfirm(
+        `⚠️ AMARAN KERAS: Adakah anda pasti mahu MENGESET SEMULA (RESET) KESEMUA data pelajar dan sesi akademik pada aplikasi dan Google Sheets? Tindakan ini akan memadamkan SEMUA rekod pelajar dan sesi secara kekal!`,
+        async function () {
+            // 1. Reset dbCache
+            dbCache.students = [];
+            dbCache.sessions = [defaultSesi];
+            dbCache.activeSession = defaultSesi;
+
+            // 2. Reset localStorage
+            localStorage.setItem("upli_students", "[]");
+            localStorage.setItem("upli_sessions", JSON.stringify([defaultSesi]));
+            localStorage.setItem("upli_active_session", defaultSesi);
+            localStorage.setItem("upli_cache_ts", String(Date.now()));
+
+            // 3. Reset Google Sheets if configured
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.trim() !== "") {
+                try {
+                    await callGoogleScript("writeStudents", { data: [] });
+                    await callGoogleScript("writeSettings", { 
+                        data: { 
+                            sessions: [defaultSesi], 
+                            activeSession: defaultSesi 
+                        } 
+                    });
+                } catch (e) {
+                    console.warn("Google Script reset error:", e);
+                }
+            }
+
+            // 4. Reset Firestore collection
+            try {
+                const snap = await db.collection("students").get();
+                if (!snap.empty) {
+                    const batch = db.batch();
+                    snap.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+            } catch (e) {
+                console.warn("Firestore student reset warning:", e);
+            }
+
+            // 5. Update UI
+            populateGlobalSessionSelect();
+            renderAdminStudentsTable();
+            renderAdminDashboard();
+            renderAdminLecturerAssignTable();
+
+            const selectAllCheck = document.getElementById("admin-student-select-all");
+            if (selectAllCheck) {
+                selectAllCheck.checked = false;
+                selectAllCheck.indeterminate = false;
+                if (window.updateBulkCount) updateBulkCount();
+            }
+
+            addLog("danger", "Admin telah set semula (reset) KESEMUA data pelajar dan sesi pada aplikasi dan Google Sheets.");
+            showToast("✅ Kesemua data pelajar dan sesi telah dipadam & di-reset secara kekal!", "success");
+        },
+        "⚠️ Reset SEMUA Data Pelajar & Sesi",
+        "Ya, Reset Semua Sepenuhnya"
+    );
+}
+
+window.resetAllStudentsAndSessionsGlobal = resetAllStudentsAndSessionsGlobal;
+
+// Bind Padam/Reset Semua Pelajar button in Pengurusan Pensyarah tab
 document.addEventListener("DOMContentLoaded", () => {
     const btnDeleteAllFromLecturers = document.getElementById("btn-delete-all-from-lecturers");
     if (btnDeleteAllFromLecturers) {
-        btnDeleteAllFromLecturers.addEventListener("click", deleteAllStudentsGlobal);
+        btnDeleteAllFromLecturers.addEventListener("click", resetAllStudentsAndSessionsGlobal);
     }
 });
 
