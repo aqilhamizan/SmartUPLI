@@ -1835,8 +1835,25 @@ globalSessionSelect.addEventListener("change", function () {
     addLog("info", `Pertukaran paparan sesi akademik aktif ke: ${selectedSesi}`);
     showToast(`Paparan ditukar ke Sesi: ${selectedSesi}`, "info");
 
+    const portalSessionSelect = document.getElementById("portal-session-select");
+    if (portalSessionSelect) portalSessionSelect.value = selectedSesi;
+
     // Refresh current tab
     renderTabData(activeTab);
+});
+
+// Watch portal session dropdown change (public landing page)
+document.addEventListener("DOMContentLoaded", () => {
+    const portalSessionSelect = document.getElementById("portal-session-select");
+    if (portalSessionSelect) {
+        portalSessionSelect.addEventListener("change", function () {
+            const selectedSesi = this.value;
+            saveActiveSession(selectedSesi);
+            if (globalSessionSelect) globalSessionSelect.value = selectedSesi;
+            if (typeof renderPortalAnnouncements === "function") renderPortalAnnouncements();
+            if (activeTab) renderTabData(activeTab);
+        });
+    }
 });
 
 logoutBtn.addEventListener("click", () => {
@@ -7582,9 +7599,30 @@ window.openDeptStatsModal = function(deptCode) {
     const activeSession = (portalSelect && portalSelect.value) ? portalSelect.value : (dbCache.activeSession || "");
     const allStudents = getStudents();
     
-    // Filter students strictly by selected session and department (with safety trims)
-    const sessionStudents = activeSession ? allStudents.filter(s => (s.sesi || "").trim() === activeSession.trim()) : allStudents;
-    const deptStudents = sessionStudents.filter(s => (s.jabatan || "").trim().toUpperCase() === deptCode.toUpperCase());
+    // Robust session matching
+    const normActiveSesi = (activeSession || "").toUpperCase().trim();
+    const baseActiveSesi = normActiveSesi.split("-")[0].trim();
+
+    const sessionStudents = activeSession ? allStudents.filter(s => {
+        const sSesi = (s.sesi || "").toUpperCase().trim();
+        if (!sSesi) return true;
+        if (sSesi === normActiveSesi) return true;
+        const baseStudentSesi = sSesi.split("-")[0].trim();
+        return baseStudentSesi === baseActiveSesi || sSesi.includes(baseActiveSesi) || normActiveSesi.includes(baseStudentSesi);
+    }) : allStudents;
+
+    // Robust department matching
+    const deptStudents = sessionStudents.filter(s => {
+        const dept = (s.jabatan || "").toUpperCase().trim();
+        if (dept === deptCode.toUpperCase()) return true;
+        if (deptCode === "JKA" && (dept.includes("AWAM") || dept.includes("CIVIL") || dept.includes("JKA"))) return true;
+        if (deptCode === "JKE" && (dept.includes("ELEKTRIK") || dept.includes("ELECTRICAL") || dept.includes("JKE"))) return true;
+        if (deptCode === "JKM" && (dept.includes("MEKANIKAL") || dept.includes("MECHANICAL") || dept.includes("JKM"))) return true;
+        if (deptCode === "JP"  && (dept.includes("PERDAGANGAN") || dept === "JP")) return true;
+        if (deptCode === "JPH" && (dept.includes("HOSPITALITI") || dept.includes("PELANCONGAN") || dept === "JPH")) return true;
+        const prog = getStudentProgram(s);
+        return cfg.programs.includes(prog);
+    });
 
     const total = deptStudents.length;
 
