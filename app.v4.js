@@ -437,13 +437,15 @@ async function writeRubriksToFirestore(data) {
 function getPKLIRegNoSet() {
     try {
         const arr = JSON.parse(localStorage.getItem("upli_pkli_ids") || "[]");
-        return new Set(Array.isArray(arr) ? arr : []);
+        const cleaned = (Array.isArray(arr) ? arr : []).map(r => String(r).trim().toUpperCase()).filter(Boolean);
+        return new Set(cleaned);
     } catch(e) { return new Set(); }
 }
 
 function savePKLIRegNoSet(pkliSet) {
     try {
-        localStorage.setItem("upli_pkli_ids", JSON.stringify(Array.from(pkliSet)));
+        const arr = Array.from(pkliSet).map(r => String(r).trim().toUpperCase()).filter(Boolean);
+        localStorage.setItem("upli_pkli_ids", JSON.stringify(arr));
     } catch(e) {}
 }
 
@@ -465,6 +467,9 @@ function normalizeStudentsCache() {
 
     dbCache.students.forEach(s => {
         if (!s || typeof s !== 'object') return;
+
+        // Clean & normalize regNo FIRST so Set lookup is 100% accurate!
+        if (s.regNo) s.regNo = String(s.regNo).trim().toUpperCase();
 
         // Map Google Sheet keys to local model keys if needed
         if (s.dept !== undefined && s.jabatan === undefined) {
@@ -495,11 +500,16 @@ function normalizeStudentsCache() {
             s.sesi = fallbackSession;
         }
 
-        // Lock & preserve PKLI status using standalone set
-        if (pkliSet.has(s.regNo) || s.statusLI === "PKLI" || String(s.isPKLI) === "true" || s.isPKLI === true) {
+        // Lock & preserve PKLI status using standalone set (case & space insensitive)
+        const isMarkedPKLI = (s.regNo && pkliSet.has(s.regNo)) ||
+                             s.statusLI === "PKLI" ||
+                             String(s.isPKLI).toLowerCase() === "true" ||
+                             s.isPKLI === true;
+
+        if (isMarkedPKLI) {
             s.isPKLI = true;
             s.statusLI = "PKLI";
-            pkliSet.add(s.regNo);
+            if (s.regNo) pkliSet.add(s.regNo);
         } else {
             s.isPKLI = false;
         }
