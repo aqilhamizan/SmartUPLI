@@ -3093,9 +3093,10 @@ function renderLecturerStudentsList() {
             const hasDoc = docEntry && (docEntry.fileUrl || docEntry.fileData);
             const docStatus = docEntry ? (docEntry.status || "Belum Dihantar") : "Belum Dihantar";
 
-            // Badge status khas untuk Appendix E3
+            // Badge status khas untuk dokumen markah pensyarah (E3, E2, Appendix 2)
+            const isLecturerDoc = ["appendix_e3", "appendix_e2", "appendix_2"].includes(td.id);
             let statusBadgeHTML = "";
-            if (td.id === "appendix_e3" && hasDoc) {
+            if (isLecturerDoc && hasDoc) {
                 if (docStatus === "Diterima") {
                     statusBadgeHTML = `<span class="badge badge-success" style="font-size:0.6rem; padding:2px 6px;">✅ Disahkan</span>`;
                 } else if (docStatus === "Ditolak") {
@@ -3109,10 +3110,10 @@ function renderLecturerStudentsList() {
                 statusBadgeHTML = `<span class="badge badge-secondary" style="font-size:0.6rem; padding:2px 6px; background:rgba(255,255,255,0.05); color:var(--text-muted);">Belum</span>`;
             }
 
-            // Butang upload: E3 yang sudah disahkan tidak boleh ditukar ganti
-            const isE3Verified = td.id === "appendix_e3" && docStatus === "Diterima";
-            const uploadBtnHTML = isE3Verified
-                ? `<button class="btn btn-sm" style="padding:2px 6px; font-size:0.65rem; opacity:0.4; cursor:not-allowed;" title="Appendix E3 telah disahkan oleh Admin UPLI. Tidak boleh ditukar." disabled><i class="fa-solid fa-lock"></i></button>`
+            // Butang upload: Borang markah pensyarah yang telah disahkan tidak boleh ditukar ganti
+            const isVerified = isLecturerDoc && docStatus === "Diterima";
+            const uploadBtnHTML = isVerified
+                ? `<button class="btn btn-sm" style="padding:2px 6px; font-size:0.65rem; opacity:0.4; cursor:not-allowed;" title="${td.title} telah disahkan oleh Admin UPLI. Tidak boleh ditukar." disabled><i class="fa-solid fa-lock"></i></button>`
                 : `<button class="btn btn-primary btn-sm" onclick="document.getElementById('lecturer-upload-${td.id}-${s.regNo}').click()" style="padding:2px 6px; font-size:0.65rem;" title="Upload Fail"><i class="fa-solid fa-upload"></i></button>
                    <input type="file" id="lecturer-upload-${td.id}-${s.regNo}" style="display:none;" onchange="handleLecturerFileUpload('${s.regNo}', '${td.id}', this)">`;
 
@@ -3205,9 +3206,9 @@ window.openDocumentReviewModal = function (studentReg, docId) {
     document.getElementById("doc-modal-doc-type").textContent = docMeta.title;
     document.getElementById("doc-modal-file-name").textContent = doc.fileName || (docMeta.isPhysical ? "(Borang Fizikal)" : "");
 
-    // Paparan maklumat siapa yang menghantar (untuk Appendix E3)
+    // Paparan maklumat siapa yang menghantar (untuk borang markah pensyarah: E3, E2, Appendix 2)
     let fileSizeText = doc.fileSize ? `${doc.fileSize} • Dimuat naik pada ${doc.uploadDate}` : (docMeta.isPhysical ? "Penyerahan fizikal ke pejabat UPLI" : "");
-    if (docId === "appendix_e3" && doc.submittedByName) {
+    if (["appendix_e3", "appendix_e2", "appendix_2"].includes(docId) && doc.submittedByName) {
         fileSizeText += ` • Dihantar oleh: ${doc.submittedByName}`;
     }
     document.getElementById("doc-modal-file-size").textContent = fileSizeText;
@@ -5130,9 +5131,23 @@ window.updateAdminNotifications = function () {
                     const notifId = `${s.regNo}_${docKey}_${doc.uploadDate || ""}`;
                     // Kenal pasti jenis pengirim
                     const isE3 = docKey === "appendix_e3";
-                    const submitterType = isE3 ? "pensyarah" : "pelajar";
-                    const submitterName = isE3
-                        ? (doc.submittedByName || s.pensyarahPenilai || "Pensyarah Penilai")
+                    const isE2 = docKey === "appendix_e2";
+                    const isApp2 = docKey === "appendix_2";
+                    const isLecturerDoc = isE3 || isE2 || isApp2;
+                    const submitterType = isLecturerDoc ? "pensyarah" : "pelajar";
+
+                    let submitterRoleLabel = "Pelajar";
+                    let defaultRoleName = "Pensyarah";
+                    if (isE3) {
+                        submitterRoleLabel = "Pensyarah Penilai";
+                        defaultRoleName = s.pensyarahPenilai || "Pensyarah Penilai";
+                    } else if (isE2 || isApp2) {
+                        submitterRoleLabel = "Pensyarah Pemantau";
+                        defaultRoleName = s.pensyarahPemantau || "Pensyarah Pemantau";
+                    }
+
+                    const submitterName = isLecturerDoc
+                        ? (doc.submittedByName || defaultRoleName)
                         : s.name;
 
                     pendingReviews.push({
@@ -5143,6 +5158,7 @@ window.updateAdminNotifications = function () {
                         docKey,
                         time: doc.uploadDate || "",
                         submitterType,
+                        submitterRoleLabel,
                         submitterName,
                         isRead: readNotifs.includes(notifId)
                     });
@@ -5201,7 +5217,7 @@ window.updateAdminNotifications = function () {
                     : `<i class="fa-solid fa-user-graduate" style="color:var(--color-success);"></i>`;
 
                 const typeLabel = item.submitterType === "pensyarah"
-                    ? `<span style="font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(99,102,241,0.15); color:var(--color-accent);">Pensyarah Penilai</span>`
+                    ? `<span style="font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(99,102,241,0.15); color:var(--color-accent);">${item.submitterRoleLabel}</span>`
                     : `<span style="font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(34,197,94,0.15); color:var(--color-success);">Pelajar</span>`;
 
                 const bgStyle = item.isRead ? "background:transparent;" : "background:rgba(99,102,241,0.04);";
@@ -6337,8 +6353,12 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
     const file = inputEl.files[0];
     if (!file) return;
 
-    // === SEMAKAN KHAS: Appendix E3 hanya boleh dihantar oleh Pensyarah Penilai yang dilantik ===
-    if (docId === "appendix_e3") {
+    // === SEMAKAN KHAS: Hak muat naik borang markah pensyarah ===
+    const isE3 = docId === "appendix_e3";
+    const isE2 = docId === "appendix_e2";
+    const isApp2 = docId === "appendix_2";
+
+    if (isE3 || isE2 || isApp2) {
         const students = getStudents();
         const student = students.find(s => s.regNo === regNo);
         if (!student) {
@@ -6346,12 +6366,23 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
             inputEl.value = "";
             return;
         }
-        const assignedPenilai = (student.pensyarahPenilai || "").trim().toLowerCase();
         const uploaderEmail = (currentUser?.email || "").trim().toLowerCase();
-        if (!assignedPenilai || assignedPenilai !== uploaderEmail) {
-            showToast("❌ Anda tidak dibenarkan menghantar Appendix E3. Hanya Pensyarah Penilai yang dilantik bagi pelajar ini sahaja yang boleh menghantar dokumen ini.", "error");
-            inputEl.value = "";
-            return;
+
+        if (isE3) {
+            const assignedPenilai = (student.pensyarahPenilai || "").trim().toLowerCase();
+            if (!assignedPenilai || assignedPenilai !== uploaderEmail) {
+                showToast("❌ Anda tidak dibenarkan menghantar Appendix E3. Hanya Pensyarah Penilai yang dilantik bagi pelajar ini sahaja yang boleh menghantar dokumen ini.", "error");
+                inputEl.value = "";
+                return;
+            }
+        } else if (isE2 || isApp2) {
+            const assignedPemantau = (student.pensyarahPemantau || "").trim().toLowerCase();
+            const docTitle = isE2 ? "Appendix E2" : "Appendix 2";
+            if (!assignedPemantau || assignedPemantau !== uploaderEmail) {
+                showToast(`❌ Anda tidak dibenarkan menghantar ${docTitle}. Hanya Pensyarah Pemantau yang dilantik bagi pelajar ini sahaja yang boleh menghantar dokumen ini.`, "error");
+                inputEl.value = "";
+                return;
+            }
         }
     }
 
@@ -6389,17 +6420,19 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
         const studentIdx = students.findIndex(s => s.regNo === regNo);
         if (studentIdx === -1) return;
 
-        // Appendix E3 → status "Dalam Semakan" menunggu pengesahan Admin UPLI
-        // Dokumen lain → terus "Diterima"
-        const isE3 = docId === "appendix_e3";
+        // Borang markah pensyarah (E3, E2, Appendix 2) → status "Dalam Semakan" menunggu pengesahan Admin UPLI
+        const isLecturerDoc = isE3 || isE2 || isApp2;
+        const submitterRoleName = isE3 ? "Pensyarah Penilai" : "Pensyarah Pemantau";
+        const docTitle = isE3 ? "Appendix E3" : (isE2 ? "Appendix E2" : "Appendix 2");
+
         const docData = {
-            status: isE3 ? "Dalam Semakan" : "Diterima",
+            status: isLecturerDoc ? "Dalam Semakan" : "Diterima",
             fileName: finalFileName,
             fileSize: sizeStr,
             uploadDate: formattedTime,
-            feedback: isE3 ? "Menunggu pengesahan Admin UPLI" : "Dimuat naik oleh Pensyarah Seliaan",
+            feedback: isLecturerDoc ? "Menunggu pengesahan Admin UPLI" : "Dimuat naik oleh Pensyarah Seliaan",
             submittedBy: currentUser?.email || "",
-            submittedByName: currentUser?.name || currentUser?.displayName || "Pensyarah Penilai"
+            submittedByName: currentUser?.name || currentUser?.displayName || submitterRoleName
         };
 
         if (!result.useBase64) {
@@ -6425,9 +6458,9 @@ window.handleLecturerFileUpload = async function (regNo, docId, inputEl) {
         students[studentIdx].documents[docId] = docData;
         saveStudents(students);
 
-        if (isE3) {
-            addLog("info", `Pensyarah Penilai (${currentUser?.email}) menghantar Appendix E3 bagi pelajar ${students[studentIdx].name} (${regNo}) — menunggu pengesahan Admin UPLI`);
-            showToast(`✅ Appendix E3 berjaya dihantar dan sedang menunggu pengesahan Admin UPLI.`, "success");
+        if (isLecturerDoc) {
+            addLog("info", `${submitterRoleName} (${currentUser?.email}) menghantar ${docTitle} bagi pelajar ${students[studentIdx].name} (${regNo}) — menunggu pengesahan Admin UPLI`);
+            showToast(`✅ ${docTitle} berjaya dihantar dan sedang menunggu pengesahan Admin UPLI.`, "success");
         } else {
             addLog("info", `Pensyarah memuat naik borang markah (${docId}) bagi pelajar ${students[studentIdx].name} (${regNo})`);
             showToast(`Fail "${finalFileName}" berjaya dimuat naik dan diluluskan.`, "success");
