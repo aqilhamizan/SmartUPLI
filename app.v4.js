@@ -1697,31 +1697,28 @@ function populateGlobalSessionSelect() {
     // Unique sessions directly from registered student records
     const studentSessions = [...new Set(students.map(st => (st.sesi || "").trim()).filter(Boolean))];
 
-    // Filter sessions: keep if present in student data, active session, or manually created
-    let active = getActiveSession();
     let cleanSessions = [];
 
-    // Add student sessions
+    // 1. Add all registered sessions from dbCache.sessions
+    rawSessions.forEach(s => {
+        const trimmed = (s || "").trim();
+        if (!trimmed) return;
+        // Only purge old hardcoded legacy string '2025/2026' if it has no students
+        if (trimmed.includes("2025/2026") && !studentSessions.includes(trimmed)) return;
+        if (!cleanSessions.includes(trimmed)) cleanSessions.push(trimmed);
+    });
+
+    // 2. Add any sessions from student records that aren't listed yet
     studentSessions.forEach(s => {
         if (!cleanSessions.includes(s)) cleanSessions.push(s);
     });
 
-    // Add remaining custom sessions from rawSessions EXCEPT legacy hardcoded defaults if unused
-    rawSessions.forEach(s => {
-        const trimmed = (s || "").trim();
-        if (!trimmed) return;
-        const isLegacyUnused = (trimmed.includes("2025/2026") || trimmed.includes("Fasa")) && !studentSessions.includes(trimmed);
-        if (!isLegacyUnused && !cleanSessions.includes(trimmed)) {
-            cleanSessions.push(trimmed);
-        }
-    });
-
-    // Fallback if empty
+    // Fallback if cleanSessions is empty
     if (cleanSessions.length === 0) {
         cleanSessions = ["Sesi 1:2026/2027"];
     }
 
-    // Ensure active session is valid
+    let active = getActiveSession();
     if (!active || !cleanSessions.includes(active)) {
         active = cleanSessions[0];
         saveActiveSession(active);
@@ -4417,43 +4414,38 @@ function parseExcelRows(rows) {
 
 // Add New Session Form Submit
 const addSessionForm = document.getElementById("admin-add-session-form");
-addSessionForm.addEventListener("submit", (e) => {
+if (addSessionForm) {
+    addSessionForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const newSessionName = document.getElementById("admin-new-session-name").value.trim();
 
-    e.preventDefault();
-    const newSessionName = document.getElementById("admin-new-session-name").value.trim();
+        if (!newSessionName) {
+            showToast("Sila masukkan nama Sesi Akademik!", "error");
+            return;
+        }
 
-    // Regular expression validation e.g. "Sesi 1:2026/2027" or "Sesi 2:2026/2027"
-    const sessionRegex = /^Sesi \d:20\d{2}\/20\d{2}$/;
-    if (!sessionRegex.test(newSessionName)) {
-        showToast("Format nama Sesi salah! Sila gunakan format: Sesi [1/2]:[Tahun/Tahun] (Contoh: Sesi 2:2026/2027)", "error");
-        return;
-    }
+        const sessions = getSessions();
+        if (sessions.includes(newSessionName)) {
+            showToast(`Sesi Akademik "${newSessionName}" sudah berdaftar di dalam sistem!`, "error");
+            return;
+        }
 
-    const sessions = getSessions();
-    const fasa1Name = `${newSessionName} - Fasa 1`;
-    const fasa2Name = `${newSessionName} - Fasa 2`;
-    
-    if (sessions.includes(fasa1Name) || sessions.includes(fasa2Name)) {
-        showToast("Sesi Akademik ini sudah berdaftar di dalam sistem!", "error");
-        return;
-    }
+        sessions.push(newSessionName);
+        
+        saveSessions(sessions);
+        saveActiveSession(newSessionName); // Auto-set newly registered session as active
+        addLog("success", `Admin mendaftarkan sesi akademik baharu: ${newSessionName}`);
 
-    sessions.push(fasa1Name);
-    sessions.push(fasa2Name);
-    
-    saveSessions(sessions);
-    saveActiveSession(fasa1Name); // auto-set to newly registered session fasa 1
-    addLog("success", `Admin mendaftarkan sesi akademik baharu: ${newSessionName} (Fasa 1 & 2)`);
+        showToast(`Sesi "${newSessionName}" berjaya didaftarkan dan diaktifkan.`, "success");
+        addSessionForm.reset();
 
-    showToast(`Sesi "${newSessionName}" berjaya didaftarkan untuk Fasa 1 dan Fasa 2.`, "success");
-    addSessionForm.reset();
-
-    // Refresh selects
-    populateGlobalSessionSelect();
-
-    // Refresh View
-    renderAdminStudentsTable();
-});
+        // Refresh all selects & views
+        populateGlobalSessionSelect();
+        renderAdminStudentsTable();
+        renderAdminDashboard();
+        renderAdminLecturerAssignTable();
+    });
+}
 
 // Delete Session Form Submit
 const deleteSessionForm = document.getElementById("admin-delete-session-form");
