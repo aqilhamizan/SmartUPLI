@@ -20,7 +20,7 @@ firebase.initializeApp(firebaseConfig);
 
 // Feature Flags
 const USE_FIREBASE_STORAGE = false; // Set to false to remain on Spark Free plan without upgrading billing
-const USE_FIRESTORE = false;        // Set to false to completely deactivate Firestore Database (uses Google Sheets only)
+const USE_FIRESTORE = true;         // Set to true to activate Firestore Database for real-time sync across devices
 
 // Firestore & Storage instances (global)
 let db;
